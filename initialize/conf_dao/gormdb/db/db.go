@@ -1,0 +1,49 @@
+package db
+
+import (
+	pkdb "github.com/hopeio/cherry/initialize/conf_dao/gormdb"
+	"github.com/hopeio/cherry/initialize/conf_dao/gormdb/mysql"
+	"github.com/hopeio/cherry/initialize/conf_dao/gormdb/postgres"
+	"github.com/hopeio/cherry/initialize/conf_dao/gormdb/sqlite"
+	gormi "github.com/hopeio/cherry/utils/dao/db/gorm"
+	"github.com/hopeio/cherry/utils/log"
+
+	"gorm.io/gorm"
+)
+
+// Deprecated 每个驱动分开，不然每次都要编译所有驱动
+type Config pkdb.Config
+
+func (c *Config) InitBeforeInject() {
+	(*pkdb.Config)(c).InitBeforeInject()
+}
+func (c *Config) InitAfterInject() {
+	(*pkdb.Config)(c).InitAfterInject()
+}
+
+func (c *Config) Build() *gorm.DB {
+	if c.Type == gormi.MYSQL {
+		(*mysql.Config)(c).Build()
+	} else if c.Type == gormi.POSTGRES {
+		(*postgres.Config)(c).Build()
+	} else if c.Type == gormi.SQLite {
+		(*sqlite.Config)(c).Build()
+	}
+
+	log.Fatal("只支持" + gormi.MYSQL + "," + gormi.POSTGRES + "." + gormi.POSTGRES)
+	return nil
+}
+
+type DB pkdb.DB
+
+func (db *DB) Config() any {
+	return (*Config)(&db.Conf)
+}
+
+func (db *DB) SetEntity() {
+	db.DB = (*Config)(&db.Conf).Build()
+}
+
+func (db *DB) Close() error {
+	return nil
+}

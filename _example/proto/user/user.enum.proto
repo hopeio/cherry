@@ -1,0 +1,41 @@
+syntax = "proto3";
+package user;
+import "cherry/protobuf/utils/enum/enum.proto";
+import "cherry/protobuf/utils/patch/go.proto";
+
+option (enum.enum_gqlgen_all) = true;
+
+option java_package = "cherry.hopeio.protobuf.user";
+option go_package = "github.com/hopeio/cherry/_example/protobuf/user";
+
+option (enum.enum_prefix_all) = false;
+option (go.file) = {no_enum_prefix:true};
+
+// 用户性别
+enum Gender{
+  option (go.enum) = {stringer_name: 'OrigString'};
+  GenderPlaceholder = 0 [(enum.enumvalue_cn)= "占位"];
+  GenderUnfilled = 1 [(enum.enumvalue_cn)= "未填"];
+  GenderMale = 2 [(enum.enumvalue_cn)= "男"];
+  GenderFemale = 3 [(enum.enumvalue_cn)= "女"];
+}
+
+// 用户角色
+enum Role {
+  option (go.enum) = {stringer_name: 'OrigString'};
+  PlaceholderRole = 0 [(enum.enumvalue_cn)= "占位"];
+  RoleNormal = 1 [(enum.enumvalue_cn)= "普通用户"];
+  RoleAdmin = 2 [(enum.enumvalue_cn)= "管理员"];
+  RoleSuperAdmin = 3 [(enum.enumvalue_cn)= "超级管理员"];
+}
+
+// 用户角色
+enum UserStatus {
+  option (go.enum) = {stringer_name: 'OrigString'};
+  option (enum.enum_jsonmarshal) = false;
+  UserStatusPlaceholder = 0 [(enum.enumvalue_cn)= "占位"];
+  UserStatusInActive = 1 [(enum.enumvalue_cn)= "未激活"];
+  UserStatusActivated = 2 [(enum.enumvalue_cn)= "已激活"];
+  UserStatusFrozen = 3 [(enum.enumvalue_cn)= "已冻结"];
+  UserStatusDeleted = 4 [(enum.enumvalue_cn)= "已注销"];
+}

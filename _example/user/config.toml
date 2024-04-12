@@ -1,0 +1,46 @@
+Module = "hoper"
+# dev | test | prod
+Env = "dev"
+
+[dev]
+debug = true
+ConfigTemplateDir = "./_example/user"
+
+[dev.configCenter]
+Format = "toml"
+configType = "local"
+NoInject = ["Apollo","Etcd", "Es"]
+
+[dev.configCenter.local]
+ConfigPath = "D:/code/hopeio/hoper/server/go/local.toml"
+ReloadType = "fsnotify"
+
+[test]
+Debug = false
+[test.configCenter]
+Format = "json"
+configType = "nacos"
+Watch  = true
+NoInject = ["Apollo","Etcd", "Es"]
+
+[test.configCenter.nacos]
+DataId = "pro"
+Group = "DEFAULT_GROUP"
+
+[[test.configCenter.nacos.ServerConfigs]]
+Scheme = "http"
+IpAddr = "localhost"
+Port = 9000
+GrpcPort = 10000
+
+[test.configCenter.nacos.ClientConfig]
+NamespaceId = ""
+username = "nacos"
+password = "123456"
+LogLevel = "debug"
+
+[prod]
+Debug = false
+[prod.configCenter.http]
+Interval = 100
+Url = "http://localhost:6666/local.toml"

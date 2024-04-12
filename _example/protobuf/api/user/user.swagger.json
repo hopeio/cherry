@@ -1,0 +1,124 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "user/user.proto",
+    "version": "1.0"
+  },
+  "tags": [
+    {
+      "name": "UserService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v1/user": {
+      "post": {
+        "summary": "注册",
+        "description": "注册接口",
+        "operationId": "UserService_Signup",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/userSignupReq"
+            }
+          }
+        ],
+        "tags": [
+          "用户相关接口",
+          "v1.0.0"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "userGender": {
+      "type": "string",
+      "enum": [
+        "GenderPlaceholder",
+        "GenderUnfilled",
+        "GenderMale",
+        "GenderFemale"
+      ],
+      "default": "GenderPlaceholder",
+      "title": "用户性别"
+    },
+    "userSignupReq": {
+      "type": "object",
+      "properties": {
+        "password": {
+          "type": "string",
+          "title": "密码",
+          "minLength": 6
+        },
+        "name": {
+          "type": "string"
+        },
+        "gender": {
+          "$ref": "#/definitions/userGender"
+        },
+        "mail": {
+          "type": "string",
+          "title": "邮箱"
+        },
+        "phone": {
+          "type": "string",
+          "title": "手机号"
+        },
+        "vCode": {
+          "type": "string",
+          "title": "验证码"
+        }
+      }
+    }
+  }
+}

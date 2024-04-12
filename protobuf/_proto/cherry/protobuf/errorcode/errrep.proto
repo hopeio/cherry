@@ -1,0 +1,15 @@
+syntax = "proto3";
+package errorcode;
+
+import "cherry/protobuf/errorcode/enum.proto";
+import "cherry/protobuf/utils/patch/go.proto";
+
+option java_package = "xyz.hoper.cherry.protobuf.errorcode";
+option go_package = "github.com/hopeio/cherry/protobuf/errorcode";
+
+
+
+message ErrRep {
+    ErrCode code = 1 [(go.field) = {tags:'json:"code"'}];
+    string message = 2;
+}
