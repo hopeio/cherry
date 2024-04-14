@@ -125,7 +125,7 @@ defer initialize.Start(Conf, dao)()
 
 ## server
 cherry服务器，各种服务接口的保留，集成支持，一个服务暴露grpc,http,graphql接口
-- 集成opencensus实现调用链路跟踪记录，配合context及utils/log 实现完整的请求链路日志记录
+- 集成opentelemetry实现调用链路跟踪记录，配合context及utils/log 实现完整的请求链路日志记录
 - 集成prometheus及pprof实现性能监控及性能问题排查
 - 支持框架自生成的由gin提供支持的grpc转http，也支持原生的grpc-gateway
 ![server](_readme/assets/server.webp)
@@ -153,20 +153,21 @@ import (
 func main() {
 	//配置初始化应该在第一位
 	defer initialize.Start(uconf.Conf, udao.Dao)()
-
-
+	
   config := uconf.Conf.Server.Origin()
-  config.GRPCOptions = []grpc.ServerOption{grpc.StatsHandler(&ocgrpc.ServerHandler{})}
+  config.GRPCOptions = []grpc.ServerOption{
+    grpc.StatsHandler(otelgrpc.NewServerHandler()),
+  }
   server.Start(&server.Server{
         Config: config,
-		GRPCHandle: func(gs *grpc.Server) {
+		GRPCHandler: func(gs *grpc.Server) {
 			user.RegisterUserServiceServer(gs, userservice.GetUserService())
 		},
-		GinHandle: func(app *gin.Engine) {
+		GinHandler: func(app *gin.Engine) {
 			_ = user.RegisterUserServiceHandlerServer(app, userservice.GetUserService())
 			app.Static("/static", "F:/upload")
 		},
-        /*	GraphqlHandle: model.NewExecutableSchema(model.Config{
+        /*	GraphqlHandler: model.NewExecutableSchema(model.Config{
                 Resolvers: &model.GQLServer{
                 UserService:  service.GetUserService(),
                 OauthService: service.GetOauthService(),
