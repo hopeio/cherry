@@ -1,4 +1,4 @@
-package stamap
+package stamp
 
 import (
 	"log"
