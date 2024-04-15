@@ -23,7 +23,7 @@ type GRPCStatus interface {
 
 type ErrCode uint32
 
-func SetCode(code ErrCode, msg string) {
+func RegisterErrCode(code ErrCode, msg string) {
 	codeMap.Store(code, msg)
 }
 

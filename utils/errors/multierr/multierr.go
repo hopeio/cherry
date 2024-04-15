@@ -233,6 +233,7 @@ var _ errorGroup = (*MultiError)(nil)
 //
 // This slice MUST NOT be modified.
 func (merr *MultiError) Errors() []error {
+	errors.Join()
 	if merr == nil {
 		return nil
 	}

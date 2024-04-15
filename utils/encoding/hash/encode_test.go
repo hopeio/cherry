@@ -4,8 +4,6 @@ import (
 	"reflect"
 	"testing"
 	"time"
-
-	"github.com/hopeio/cherry/utils/log"
 )
 
 type Foo struct {
@@ -22,6 +20,6 @@ func TestMarshal(t *testing.T) {
 	u := &Foo{Time: time.Now(), Bar: Bar{Int: 1}}
 	e.encode("", reflect.ValueOf(u))
 	for i := 0; i < len(e.strings); i += 2 {
-		log.Info(e.strings[i], e.strings[i+1])
+		t.Log(e.strings[i], e.strings[i+1])
 	}
 }

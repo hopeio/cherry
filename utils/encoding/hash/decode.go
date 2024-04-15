@@ -43,7 +43,7 @@ type decodeState struct {
 }
 */
 
-func UnMarshal(v interface{}, redisArgs []string) {
+func Unmarshal(v interface{}, redisArgs []string) {
 	uValue := reflect.ValueOf(v).Elem()
 	for i := 0; i < len(redisArgs); i += 2 {
 		fieldValue := uValue.FieldByName(redisArgs[i])
