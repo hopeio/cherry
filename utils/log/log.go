@@ -41,6 +41,12 @@ func Print(args ...interface{}) {
 	}
 }
 
+func Println(args ...interface{}) {
+	if ce := Default.Check(zap.InfoLevel, fmt.Sprint(args...)); ce != nil {
+		ce.Write()
+	}
+}
+
 func Debug(args ...interface{}) {
 	if ce := Default.Check(zap.DebugLevel, fmt.Sprint(args...)); ce != nil {
 		ce.Write()

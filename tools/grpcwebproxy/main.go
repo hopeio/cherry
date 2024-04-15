@@ -2,28 +2,36 @@ package main
 
 import (
 	"fmt"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
+	"github.com/hopeio/cherry/utils/log"
 	"github.com/hopeio/cherry/utils/net/http/grpc/web"
-	"log"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/zap"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"runtime/debug"
+
 	"net"
 	"net/http"
 	_ "net/http/pprof" // register in DefaultServerMux
-	"os"
+
 	"sync"
 	"time"
 
 	"crypto/tls"
 
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
-	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
+	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 
 	"github.com/mwitkow/go-conntrack"
 	"github.com/mwitkow/grpc-proxy/proxy"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/sirupsen/logrus"
+
 	"github.com/spf13/pflag"
 	"golang.org/x/net/context"
-	"golang.org/x/net/trace" // register in DefaultServerMux
+	nettrace "golang.org/x/net/trace" // register in DefaultServerMux
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/metadata"
@@ -59,21 +67,21 @@ func main() {
 	pflag.Parse()
 	for _, flag := range pflag.Args() {
 		if flag == "true" || flag == "false" {
-			logrus.Fatal("Boolean flags should be set using --flag=false, --flag=true or --flag (which is short for --flag=true). You cannot use --flag true or --flag false.")
+			log.Fatal("Boolean flags should be set using --flag=false, --flag=true or --flag (which is short for --flag=true). You cannot use --flag true or --flag false.")
 		}
-		logrus.Fatal("Unknown argument: " + flag)
+		log.Fatal("Unknown argument: " + flag)
 	}
 
-	logrus.SetOutput(os.Stdout)
-	logEntry := logrus.NewEntry(logrus.StandardLogger())
-
 	if *flagAllowAllOrigins && len(*flagAllowedOrigins) != 0 {
-		logrus.Fatal("Ambiguous --allow_all_origins and --allow_origins configuration. Either set --allow_all_origins=true OR specify one or more origins to whitelist with --allow_origins, not both.")
+		log.Fatal("Ambiguous --allow_all_origins and --allow_origins configuration. Either set --allow_all_origins=true OR specify one or more origins to whitelist with --allow_origins, not both.")
 	}
 
 	backendConn := dialBackendOrFail()
 
-	grpcServer := buildGrpcProxyServer(backendConn, logEntry)
+	logger := log.Default
+	rpcLogger := logger.With(zap.String("server", "gRPC/server"))
+
+	grpcServer := buildGrpcProxyServer(backendConn, rpcLogger)
 	errChan := make(chan error)
 
 	allowedOrigins := makeAllowedOrigins(*flagAllowedOrigins)
@@ -84,14 +92,14 @@ func main() {
 	}
 
 	if *useWebsockets {
-		logrus.Println("using websockets")
+		log.Println("using websockets")
 		options = append(
 			options,
 			web.WithWebsockets(true),
 			web.WithWebsocketOriginFunc(makeWebsocketOriginFunc(allowedOrigins)),
 		)
 		if *websocketPingInterval >= time.Second {
-			logrus.Infof("websocket keepalive pinging enabled, the timeout interval is %s", websocketPingInterval.String())
+			log.Infof("websocket keepalive pinging enabled, the timeout interval is %s", websocketPingInterval.String())
 		}
 		if *websocketReadLimit > 0 {
 			options = append(options, web.WithWebsocketsMessageReadLimit(*websocketReadLimit))
@@ -113,16 +121,16 @@ func main() {
 	wrappedGrpc := web.WrapServer(grpcServer, options...)
 
 	if !*runHttpServer && !*runTlsServer {
-		logrus.Fatalf("Both run_http_server and run_tls_server are set to false. At least one must be enabled for grpcweb proxy to function correctly.")
+		log.Fatalf("Both run_http_server and run_tls_server are set to false. At least one must be enabled for grpcweb proxy to function correctly.")
 	}
 
 	serveMux := http.NewServeMux()
 	serveMux.Handle("/", wrappedGrpc)
 
 	if *enableHealthEndpoint {
-		logrus.Printf("health endpoint enabled on /%v", *healthEndpointName)
+		log.Printf("health endpoint enabled on /%v", *healthEndpointName)
 		if *enableHealthCheckService {
-			logrus.Printf("health checking enabled for service '%v'", *healthServiceName)
+			log.Printf("health checking enabled for service '%v'", *healthServiceName)
 			// Health checking endpoint set up
 			healthCtx, cancel := context.WithCancel(context.Background())
 			defer cancel()
@@ -144,10 +152,10 @@ func main() {
 		if *enableRequestDebug {
 			serveMux.Handle("/metrics", promhttp.Handler())
 			serveMux.HandleFunc("/debug/requests", func(resp http.ResponseWriter, req *http.Request) {
-				trace.Traces(resp, req)
+				nettrace.Traces(resp, req)
 			})
 			serveMux.HandleFunc("/debug/events", func(resp http.ResponseWriter, req *http.Request) {
-				trace.Events(resp, req)
+				nettrace.Events(resp, req)
 			})
 		}
 
@@ -167,6 +175,24 @@ func main() {
 	// TODO(mwitkow): Add graceful shutdown.
 }
 
+func interceptorLogger(l *log.Logger) logging.Logger {
+	return logging.LoggerFunc(func(_ context.Context, lvl logging.Level, msg string, fields ...any) {
+		largs := append([]any{"msg", msg}, fields...)
+		switch lvl {
+		case logging.LevelDebug:
+			l.Debug(largs...)
+		case logging.LevelInfo:
+			l.Info(largs...)
+		case logging.LevelWarn:
+			l.Warn(largs...)
+		case logging.LevelError:
+			l.Error(largs...)
+		default:
+			panic(fmt.Sprintf("unknown level %v", lvl))
+		}
+	})
+}
+
 func buildServer(wrappedGrpc *web.WrappedGrpcServer, handler http.Handler) *http.Server {
 	return &http.Server{
 		WriteTimeout: *flagHttpMaxWriteTimeout,
@@ -177,17 +203,16 @@ func buildServer(wrappedGrpc *web.WrappedGrpcServer, handler http.Handler) *http
 
 func serveServer(server *http.Server, listener net.Listener, name string, errChan chan error) {
 	go func() {
-		logrus.Infof("listening for %s on: %v", name, listener.Addr().String())
+		log.Infof("listening for %s on: %v", name, listener.Addr().String())
 		if err := server.Serve(listener); err != nil {
 			errChan <- fmt.Errorf("%s server error: %v", name, err)
 		}
 	}()
 }
 
-func buildGrpcProxyServer(backendConn *grpc.ClientConn, logger *logrus.Entry) *grpc.Server {
+func buildGrpcProxyServer(backendConn *grpc.ClientConn, rpcLogger *log.Logger) *grpc.Server {
 	// gRPC-wide changes.
 	grpc.EnableTracing = true
-	grpc_logrus.ReplaceGrpcLogger(logger)
 
 	// gRPC proxy logic.
 	director := func(ctx context.Context, fullMethodName string) (context.Context, *grpc.ClientConn, error) {
@@ -203,18 +228,52 @@ func buildGrpcProxyServer(backendConn *grpc.ClientConn, logger *logrus.Entry) *g
 		return outCtx, backendConn, nil
 	}
 
+	srvMetrics := grpcprom.NewServerMetrics(
+		grpcprom.WithServerHandlingTimeHistogram(
+			grpcprom.WithHistogramBuckets([]float64{0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120}),
+		),
+	)
+	reg := prometheus.NewRegistry()
+	reg.MustRegister(srvMetrics)
+	exemplarFromContext := func(ctx context.Context) prometheus.Labels {
+		if span := trace.SpanContextFromContext(ctx); span.IsSampled() {
+			return prometheus.Labels{"traceID": span.TraceID().String()}
+		}
+		return nil
+	}
+
+	logTraceID := func(ctx context.Context) logging.Fields {
+		if span := trace.SpanContextFromContext(ctx); span.IsSampled() {
+			return logging.Fields{"traceID", span.TraceID().String()}
+		}
+		return nil
+	}
+
+	// Setup metric for panic recoveries.
+	panicsTotal := promauto.With(reg).NewCounter(prometheus.CounterOpts{
+		Name: "grpc_req_panics_recovered_total",
+		Help: "Total number of gRPC requests recovered from internal panic.",
+	})
+	grpcPanicRecoveryHandler := func(p any) (err error) {
+		panicsTotal.Inc()
+		rpcLogger.Error("msg", "recovered from panic", "panic", p, "stack", debug.Stack())
+		return status.Errorf(codes.Internal, "%s", p)
+	}
+
 	// Server with logging and monitoring enabled.
 	return grpc.NewServer(
 		grpc.CustomCodec(proxy.Codec()), // needed for proxy to function.
 		grpc.UnknownServiceHandler(proxy.TransparentHandler(director)),
 		grpc.MaxRecvMsgSize(*flagMaxCallRecvMsgSize),
-		grpc_middleware.WithUnaryServerChain(
-			grpc_logrus.UnaryServerInterceptor(logger),
-			grpc_prometheus.UnaryServerInterceptor,
+		grpc.ChainUnaryInterceptor(
+			srvMetrics.UnaryServerInterceptor(grpcprom.WithExemplarFromContext(exemplarFromContext)),
+			logging.UnaryServerInterceptor(interceptorLogger(rpcLogger), logging.WithFieldsFromContext(logTraceID)),
+			recovery.UnaryServerInterceptor(recovery.WithRecoveryHandler(grpcPanicRecoveryHandler)),
 		),
-		grpc_middleware.WithStreamServerChain(
-			grpc_logrus.StreamServerInterceptor(logger),
-			grpc_prometheus.StreamServerInterceptor,
+		grpc.ChainStreamInterceptor(
+			srvMetrics.StreamServerInterceptor(grpcprom.WithExemplarFromContext(exemplarFromContext)),
+			logging.StreamServerInterceptor(interceptorLogger(rpcLogger), logging.WithFieldsFromContext(logTraceID)),
+			recovery.StreamServerInterceptor(recovery.WithRecoveryHandler(grpcPanicRecoveryHandler)),
 		),
 	)
 }
@@ -307,7 +366,7 @@ func runHealthChecker(ctx context.Context, backendConn *grpc.ClientConn, service
 	go func() {
 		err := web.ClientHealthCheck(ctx, backendConn, service, h.setServing)
 		if err != nil {
-			logrus.Errorf("%s health check service error: %v", service, err)
+			log.Errorf("%s health check service error: %v", service, err)
 		}
 	}()
 

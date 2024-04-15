@@ -9,6 +9,6 @@ import (
 
 func Debug(r *gin.Engine) {
 	r.Any("/debug/*path", handler.Wrap(httpi.Debug()))
-	// Register Prometheus metrics handler.
+	// Register Metrics metrics handler.
 	r.Any("/metrics", handler.Wrap(promhttp.Handler()))
 }

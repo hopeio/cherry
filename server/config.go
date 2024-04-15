@@ -28,22 +28,30 @@ type Http3 struct {
 	KeyFile  string `json:"key_file"`
 }
 
+type HttpOption struct {
+	ExcludeLogPrefixes []string
+	IncludeLogPrefixes []string
+	StaticFs           []StaticFsConfig `json:"static_fs"`
+	Middlewares        []http.HandlerFunc
+}
+
 type Config struct {
 	ServerName  string
 	Http        Http
 	Http2       http2.Server
 	Http3       *Http3 `json:"http3"`
 	StopTimeout time.Duration
-	StaticFs    []StaticFsConfig `json:"static_fs"`
-	Gin         gini.Config      `json:"gin"`
+	Gin         gini.Config `json:"gin"`
 	EnableCors  bool
 	Cors        *cors.Options `json:"cors"`
+	Middlewares []http.HandlerFunc
+	HttpOption  HttpOption
 	// Grpc options
-	GRPCOptions               []grpc.ServerOption
-	EnableGrpcWeb             bool
-	GrpcWebOption             []web.Option `json:"grpc_web"`
-	Trace, Prometheus, GenDoc bool
-	BaseContext               func() context.Context
+	GrpcOptions              []grpc.ServerOption
+	EnableGrpcWeb            bool
+	GrpcWebOption            []web.Option `json:"grpc_web"`
+	Tracing, Metrics, GenDoc bool
+	BaseContext              func() context.Context
 }
 
 func (c *Config) InitBeforeInject() {
@@ -55,8 +63,8 @@ func (c *Config) InitBeforeInject() {
 	gin.DisableBindValidation()
 	validator.DefaultValidator = nil // 自己做校验
 	c.EnableCors = true
-	c.Trace = true
-	c.Prometheus = true
+	c.Tracing = true
+	c.Metrics = true
 	c.GenDoc = true
 }
 

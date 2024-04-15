@@ -3,8 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
-	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
-	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
+	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/validator"
 	"github.com/hopeio/cherry/context/http_context"
 	"github.com/hopeio/cherry/protobuf/errorcode"
 	"github.com/hopeio/cherry/utils/encoding/json"
@@ -24,25 +23,42 @@ import (
 )
 
 func (s *Server) grpcHandler() *grpc.Server {
-	conf := s.Config
+	//conf := s.Config
 	grpclog.SetLoggerV2(zapgrpc.NewLogger(log.Default.Logger))
 	if s.GRPCHandler != nil {
 		var stream = []grpc.StreamServerInterceptor{StreamAccess}
 		var unary = []grpc.UnaryServerInterceptor{UnaryAccess(s.Config), Validator}
-		if conf.Prometheus {
-			stream = append(stream, grpc_prometheus.StreamServerInterceptor)
-			unary = append(unary, grpc_prometheus.UnaryServerInterceptor)
-		}
+		// 想做的大而全几乎不可能,为了更高的自由度,这里不做实现,均由使用者自行实现,后续可提供默认实现,但同样要由用户自己调用
+		/*		var srvMetrics *grpcprom.ServerMetrics
+				if conf.Metrics {
+					// Setup metrics.
+					srvMetrics = grpcprom.NewServerMetrics(
+						grpcprom.WithServerHandlingTimeHistogram(
+							grpcprom.WithHistogramBuckets([]float64{0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120}),
+						),
+					)
+					prometheus.MustRegister(srvMetrics)
+					exemplarFromContext := func(ctx context.Context) prometheus.Labels {
+						if span := trace.SpanContextFromContext(ctx); span.IsSampled() {
+							return prometheus.Labels{"traceID": span.TraceID().String()}
+						}
+						return nil
+					}
+					stream = append(stream, srvMetrics.StreamServerInterceptor(grpcprom.WithExemplarFromContext(exemplarFromContext)))
+					unary = append(unary, srvMetrics.UnaryServerInterceptor(grpcprom.WithExemplarFromContext(exemplarFromContext)))
+				}*/
+
 		stream = append(stream, grpc_validator.StreamServerInterceptor())
 		unary = append(unary, grpc_validator.UnaryServerInterceptor())
-		s.Config.GRPCOptions = append([]grpc.ServerOption{
+		s.Config.GrpcOptions = append([]grpc.ServerOption{
 			grpc.ChainStreamInterceptor(stream...),
 			grpc.ChainUnaryInterceptor(unary...),
-		}, s.Config.GRPCOptions...)
-		grpcServer := grpc.NewServer(s.Config.GRPCOptions...)
-		if conf.Prometheus {
-			grpc_prometheus.Register(grpcServer)
-		}
+		}, s.Config.GrpcOptions...)
+
+		grpcServer := grpc.NewServer(s.Config.GrpcOptions...)
+		/*		if conf.Metrics {
+				srvMetrics.InitializeMetrics(grpcServer)
+			}*/
 		s.GRPCHandler(grpcServer)
 		reflection.Register(grpcServer)
 		return grpcServer
@@ -55,7 +71,7 @@ func UnaryAccess(conf *Config) func(
 	*grpc.UnaryServerInfo,
 	grpc.UnaryHandler,
 ) (interface{}, error) {
-	enablePrometheus := conf.Prometheus
+	enablePrometheus := conf.Metrics
 	return func(
 		ctx context.Context, req interface{},
 		info *grpc.UnaryServerInfo,
@@ -91,7 +107,7 @@ func UnaryAccess(conf *Config) func(
 			stringsi.BytesToString(body), stringsi.BytesToString(result),
 			code)
 		if enablePrometheus {
-			defaultPrometheusRecord(ctxi, info.FullMethod, "grpc", code)
+			defaultMetricsRecord(ctxi, info.FullMethod, "grpc", code)
 		}
 		return resp, err
 	}

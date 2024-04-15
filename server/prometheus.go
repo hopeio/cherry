@@ -44,9 +44,9 @@ func init() {
 	}
 }
 
-type PrometheusRecord = func(ctxi *http_context.Context, uri, method string, code int)
+type MetricsRecord = func(ctxi *http_context.Context, uri, method string, code int)
 
-var defaultPrometheusRecord = func(ctxi *http_context.Context, uri, method string, code int) {
+var defaultMetricsRecord = func(ctxi *http_context.Context, uri, method string, code int) {
 	labels := prometheus2.Labels{
 		"method": method,
 		"uri":    uri,
@@ -58,8 +58,8 @@ var defaultPrometheusRecord = func(ctxi *http_context.Context, uri, method strin
 	prometheus1.HttpDurations.With(labels).Observe(float64(t) / 1000)
 }
 
-func SetPrometheusRecord(prometheusRecord PrometheusRecord) {
-	if prometheusRecord != nil {
-		defaultPrometheusRecord = prometheusRecord
+func SetMetricsRecord(metricsRecord MetricsRecord) {
+	if metricsRecord != nil {
+		defaultMetricsRecord = metricsRecord
 	}
 }

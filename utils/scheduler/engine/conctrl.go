@@ -88,6 +88,9 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 						}
 						timer.Reset(e.monitorInterval)
 					case <-e.ctx.Done():
+						if err := e.ctx.Err(); err != nil {
+							log.Error(err)
+						}
 						break loop
 					}
 				}
@@ -101,7 +104,7 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 	}
 	e.wg.Wait()
 	e.isFinished = true
-	log.Infof("任务结束,total:%d,done:%d,failed:%d", e.taskTotalCount, e.taskDoneCount, e.taskFailedCount)
+	log.Infof("[END] total:%d,done:%d,failed:%d", e.taskTotalCount, e.taskDoneCount, e.taskFailedCount)
 }
 
 func (e *Engine[KEY]) newWorker(readyTask *Task[KEY]) {
@@ -308,8 +311,7 @@ func (e *Engine[KEY]) ExecTask(worker *Worker[KEY], task *Task[KEY]) {
 
 func (e *Engine[KEY]) execTask(task *Task[KEY]) bool {
 
-	zeroKey := *new(KEY)
-	if task.Key != zeroKey {
+	if task.Key != e.zeroKey {
 		if _, ok := e.done.Get(task.Key); ok {
 			return false
 		}
@@ -356,7 +358,7 @@ func (e *Engine[KEY]) execTask(task *Task[KEY]) bool {
 		}
 		return false
 	}
-	if task.Key != zeroKey {
+	if task.Key != e.zeroKey {
 		e.done.SetWithTTL(task.Key, struct{}{}, 1, time.Hour)
 	}
 	if len(tasks) > 0 {

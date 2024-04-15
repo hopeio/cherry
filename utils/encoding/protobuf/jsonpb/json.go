@@ -33,6 +33,10 @@ func (j *JSONPb) Marshal(v any) ([]byte, error) {
 	})
 }
 
+func (j *JSONPb) Name() string {
+	return "jsonpb"
+}
+
 func (j *JSONPb) Unmarshal(data []byte, v interface{}) error {
 	return json.Unmarshal(data, v)
 }

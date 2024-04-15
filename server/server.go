@@ -28,8 +28,37 @@ import (
 	"google.golang.org/grpc"
 )
 
-type CustomContext func(c context.Context, r *http.Request) context.Context
-type ConvertContext func(r *http.Request) *http_context.Context
+type Server struct {
+	Config *Config
+	// 注册 grpc 服务
+	GRPCHandler func(*grpc.Server)
+	// 注册 grpc-gateway 服务
+	GatewayHandler gateway.GatewayHandler
+	// 注册 gin 服务
+	GinHandler func(*gin.Engine)
+	// 注册 graphql 服务
+	GraphqlHandler graphql.ExecutableSchema
+
+	// 各种钩子函数
+	OnBeforeStart func(context.Context)
+	OnAfterStart  func(context.Context)
+	OnBeforeStop  func(context.Context)
+	OnAfterStop   func(context.Context)
+}
+
+func NewServer(config *Config, ginhandler func(*gin.Engine), grpchandler func(*grpc.Server), gatewayhandler gateway.GatewayHandler, graphqlhandler graphql.ExecutableSchema) *Server {
+	return &Server{
+		Config:         config,
+		GinHandler:     ginhandler,
+		GRPCHandler:    grpchandler,
+		GatewayHandler: gatewayhandler,
+		GraphqlHandler: graphqlhandler,
+	}
+}
+
+func Start(s *Server) {
+	s.Start()
+}
 
 func (s *Server) Start() {
 	if s.Config == nil {
@@ -76,14 +105,14 @@ func (s *Server) Start() {
 		wrappedGrpc = web.WrapServer(grpcServer, s.Config.GrpcWebOption...)
 	}
 
-	enableTrace := s.Config.Trace
+	enableTracing := s.Config.Tracing
 
 	//systemTracing := serviceConfig.SystemTracing
-	if enableTrace {
+	if enableTracing {
 		grpc.EnableTracing = true
 		// Set up OpenTelemetry.
 
-		otelShutdown, err := setupOTelSDK(sigCtx, enableTrace)
+		otelShutdown, err := setupOTelSDK(sigCtx, enableTracing)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -109,7 +138,12 @@ func (s *Server) Start() {
 			}
 		}()
 
-		ctx, span := http_context.ContextFromRequest(http_context.RequestCtx{Request: r, Response: w}, enableTrace)
+		// 简单的中间件支持
+		for _, middleware := range s.Config.Middlewares {
+			middleware(w, r)
+		}
+
+		ctx, span := http_context.ContextFromRequest(http_context.RequestCtx{Request: r, Response: w}, enableTracing)
 
 		r = r.WithContext(ctx.ContextWrapper())
 
@@ -129,7 +163,7 @@ func (s *Server) Start() {
 		}
 	})
 
-	if enableTrace {
+	if enableTracing {
 		http.DefaultClient = otelhttp.DefaultClient
 		handlerBack := handler
 
@@ -202,36 +236,4 @@ func (s *Server) Start() {
 	if s.OnAfterStop != nil {
 		s.OnAfterStop(sigCtx)
 	}
-}
-
-type Server struct {
-	Config *Config
-	// 注册 grpc 服务
-	GRPCHandler func(*grpc.Server)
-	// 注册 grpc-gateway 服务
-	GatewayHandler gateway.GatewayHandler
-	// 注册 gin 服务
-	GinHandler func(*gin.Engine)
-	// 注册 graphql 服务
-	GraphqlHandler graphql.ExecutableSchema
-
-	// 各种钩子函数
-	OnBeforeStart func(context.Context)
-	OnAfterStart  func(context.Context)
-	OnBeforeStop  func(context.Context)
-	OnAfterStop   func(context.Context)
-}
-
-func NewServer(config *Config, ginhandler func(*gin.Engine), grpchandler func(*grpc.Server), gatewayhandler gateway.GatewayHandler, graphqlhandler graphql.ExecutableSchema) *Server {
-	return &Server{
-		Config:         config,
-		GinHandler:     ginhandler,
-		GRPCHandler:    grpchandler,
-		GatewayHandler: gatewayhandler,
-		GraphqlHandler: graphqlhandler,
-	}
-}
-
-func Start(s *Server) {
-	s.Start()
 }

@@ -47,6 +47,7 @@ type Engine[KEY comparable] struct {
 	errHandler   func(task *Task[KEY])
 	errChan      chan *Task[KEY]
 	stopCallBack []func()
+	zeroKey      KEY // 泛型不够强大,又为了性能妥协的字段
 }
 
 type KindHandler[KEY comparable] struct {
@@ -86,6 +87,7 @@ func NewEngineWithContext[KEY comparable](workerCount uint, ctx context.Context)
 		},
 		lock:    sync.RWMutex{},
 		errChan: make(chan *Task[KEY]),
+		zeroKey: *new(KEY),
 	}
 }
 

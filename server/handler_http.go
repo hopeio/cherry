@@ -16,13 +16,13 @@ import (
 
 func (s *Server) httpHandler() http.HandlerFunc {
 	conf := s.Config
-	enablePrometheus := conf.Prometheus
+	enableMetrics := conf.Metrics
 	// 默认使用gin
 	ginServer := conf.Gin.New()
 	s.GinHandler(ginServer)
 	gini.Debug(ginServer)
-	if len(s.Config.StaticFs) > 0 {
-		for _, fs := range s.Config.StaticFs {
+	if len(conf.HttpOption.StaticFs) > 0 {
+		for _, fs := range conf.HttpOption.StaticFs {
 			ginServer.Static(fs.Prefix, fs.Root)
 		}
 	}
@@ -45,17 +45,23 @@ func (s *Server) httpHandler() http.HandlerFunc {
 	}
 
 	// http.Handle("/", ginServer)
-	var excludes = []string{"/api/v1/upload", "/api/v1/multiUpload", "/api/ws/chat"}
-	var includes = []string{"/api"}
+	var excludes = conf.HttpOption.ExcludeLogPrefixes
+	var includes = conf.HttpOption.IncludeLogPrefixes
 	return func(w http.ResponseWriter, r *http.Request) {
+		for _, middlewares := range conf.HttpOption.Middlewares {
+			middlewares(w, r)
+		}
 		// 暂时解决方法，三个路由
 		if h, p := http.DefaultServeMux.Handler(r); p != "" {
 			h.ServeHTTP(w, r)
 			return
 		}
-		if !stringsi.HasPrefixes(r.RequestURI, includes) || stringsi.HasPrefixes(r.RequestURI, excludes) {
-			ginServer.ServeHTTP(w, r)
-			return
+		// 不记录日志
+		if len(includes) > 0 || len(excludes) > 0 {
+			if !stringsi.HasPrefixes(r.RequestURI, includes) || stringsi.HasPrefixes(r.RequestURI, excludes) {
+				ginServer.ServeHTTP(w, r)
+				return
+			}
 		}
 
 		var body []byte
@@ -81,8 +87,8 @@ func (s *Server) httpHandler() http.HandlerFunc {
 		defaultAccessLog(ctxi, r.RequestURI, r.Method,
 			stringsi.BytesToString(body), stringsi.BytesToString(recorder.Body.Bytes()),
 			recorder.Code)
-		if enablePrometheus {
-			defaultPrometheusRecord(ctxi, r.RequestURI, r.Method, recorder.Code)
+		if enableMetrics {
+			defaultMetricsRecord(ctxi, r.RequestURI, r.Method, recorder.Code)
 		}
 	}
 }
