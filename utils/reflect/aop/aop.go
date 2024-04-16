@@ -6,15 +6,17 @@ import (
 	"unsafe"
 )
 
-func Aop(before, fs, after []AnyFunc) {
-	for _, f := range before {
-		f()
-	}
-	for _, f := range fs {
-		f()
-	}
-	for _, f := range after {
-		f()
+func Aop(before, fs, after []AnyFunc) AnyFunc {
+	return func() {
+		for _, f := range before {
+			f()
+		}
+		for _, f := range fs {
+			f()
+		}
+		for _, f := range after {
+			f()
+		}
 	}
 }
 
