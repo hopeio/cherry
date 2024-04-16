@@ -5,11 +5,11 @@ import (
 	"github.com/hopeio/cherry/utils/log"
 )
 
-type Config ristretto.Config
+type Config[K ristretto.Key, V any] ristretto.Config[K, V]
 
-func (c *Config) InitBeforeInject() {
+func (c *Config[K, V]) InitBeforeInject() {
 }
-func (c *Config) InitAfterInject() {
+func (c *Config[K, V]) InitAfterInject() {
 	if c.NumCounters == 0 {
 		c.NumCounters = 10000000
 	}
@@ -21,9 +21,9 @@ func (c *Config) InitAfterInject() {
 	}
 }
 
-func (c *Config) Build() *ristretto.Cache {
+func (c *Config[K, V]) Build() *ristretto.Cache[K, V] {
 	c.InitAfterInject()
-	cache, err := ristretto.NewCache((*ristretto.Config)(c))
+	cache, err := ristretto.NewCache((*ristretto.Config[K, V])(c))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,20 +34,20 @@ func (c *Config) Build() *ristretto.Cache {
 // freecache不能存对象，可能要为每个对象写UnmarshalBinary 和 MarshalBinary
 // go-cache
 
-type Cache struct {
-	*ristretto.Cache
-	Conf Config
+type Cache[K ristretto.Key, V any] struct {
+	*ristretto.Cache[K, V]
+	Conf Config[K, V]
 }
 
-func (c *Cache) Config() any {
+func (c *Cache[K, V]) Config() any {
 	return &c.Conf
 }
 
-func (c *Cache) SetEntity() {
+func (c *Cache[K, V]) SetEntity() {
 	c.Cache = c.Conf.Build()
 }
 
-func (e *Cache) Close() error {
+func (e *Cache[K, V]) Close() error {
 	if e.Cache != nil {
 		e.Cache.Close()
 	}

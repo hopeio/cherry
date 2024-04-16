@@ -24,9 +24,9 @@ func In[S ~[]V, V comparable](v V, slices S) bool {
 	return false
 }
 
-func InByKey[S ~[]constraints.CmpKey[K], K comparable](key K, slices S) bool {
+func InByKey[S ~[]constraints.CompareKey[K], K comparable](key K, slices S) bool {
 	for _, x := range slices {
-		if x.CmpKey() == key {
+		if x.CompareKey() == key {
 			return true
 		}
 	}

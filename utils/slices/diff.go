@@ -20,10 +20,10 @@ func HasCoincide[S ~[]T, T comparable](s1, s2 S) bool {
 	return false
 }
 
-func HasCoincideByKey[S ~[]_interface.CmpKey[T], T comparable](s1, s2 S) bool {
+func HasCoincideByKey[S ~[]_interface.CompareKey[T], T comparable](s1, s2 S) bool {
 	for i := range s1 {
 		for j := range s2 {
-			if s1[i].CmpKey() == s2[j].CmpKey() {
+			if s1[i].CompareKey() == s2[j].CompareKey() {
 				return true
 			}
 		}
@@ -43,10 +43,10 @@ func RemoveDuplicates[S ~[]T, T comparable](s S) S {
 	return s
 }
 
-func RemoveDuplicatesByKey[S ~[]_interface.CmpKey[T], T comparable](s S) S {
-	var m = make(map[T]_interface.CmpKey[T])
+func RemoveDuplicatesByKey[S ~[]_interface.CompareKey[T], T comparable](s S) S {
+	var m = make(map[T]_interface.CompareKey[T])
 	for _, i := range s {
-		m[i.CmpKey()] = i
+		m[i.CompareKey()] = i
 	}
 	s = s[:0]
 	for _, i := range m {
@@ -94,7 +94,7 @@ Loop:
 	return intersectionMap
 }
 
-func IntersectionByKey[S ~[]_interface.CmpKey[T], T comparable](a S, b S) S {
+func IntersectionByKey[S ~[]_interface.CompareKey[T], T comparable](a S, b S) S {
 	if len(a) < SmallArrayLen && len(b) < SmallArrayLen {
 		if len(a) > len(b) {
 			return intersectionByKey(a, b)
@@ -104,10 +104,10 @@ func IntersectionByKey[S ~[]_interface.CmpKey[T], T comparable](a S, b S) S {
 	panic("TODO:大数组利用map取并集")
 }
 
-func intersectionByKey[S ~[]_interface.CmpKey[T], T comparable](a S, b S) S {
+func intersectionByKey[S ~[]_interface.CompareKey[T], T comparable](a S, b S) S {
 	var ret S
 	for _, x := range a {
-		if InByKey(x.CmpKey(), b) {
+		if InByKey(x.CompareKey(), b) {
 			ret = append(ret, x)
 		}
 	}
@@ -150,13 +150,13 @@ func Union[S ~[]T, T comparable](a S, b S) S {
 	return maps.Keys(set)
 }
 
-func UnionByKey[S ~[]_interface.CmpKey[T], T comparable](a S, b S) S {
-	var m = make(map[T]_interface.CmpKey[T], len(a)+len(b))
+func UnionByKey[S ~[]_interface.CompareKey[T], T comparable](a S, b S) S {
+	var m = make(map[T]_interface.CompareKey[T], len(a)+len(b))
 	for _, x := range a {
-		m[x.CmpKey()] = x
+		m[x.CompareKey()] = x
 	}
 	for _, x := range b {
-		m[x.CmpKey()] = x
+		m[x.CompareKey()] = x
 	}
 	return maps.Values(m)
 }
@@ -217,7 +217,7 @@ func differenceSet[S ~[]T, T comparable](a S, b S) S {
 }
 
 // 指定key取差集,返回为A-B
-func DifferenceSetByKey[S ~[]_interface.CmpKey[T], T comparable](a S, b S) S {
+func DifferenceSetByKey[S ~[]_interface.CompareKey[T], T comparable](a S, b S) S {
 	if len(a) == 0 {
 		return S{}
 	}
@@ -229,41 +229,41 @@ func DifferenceSetByKey[S ~[]_interface.CmpKey[T], T comparable](a S, b S) S {
 	}
 	aMap := make(map[T]struct{})
 	for _, x := range a {
-		aMap[x.CmpKey()] = struct{}{}
+		aMap[x.CompareKey()] = struct{}{}
 	}
 	var diff S
 	for _, x := range b {
-		if _, ok := aMap[x.CmpKey()]; !ok {
+		if _, ok := aMap[x.CompareKey()]; !ok {
 			diff = append(diff, x)
 		}
 	}
 	return diff
 }
 
-func smallArrayDifferenceSetByKey[S ~[]_interface.CmpKey[T], T comparable](a S, b S) S {
+func smallArrayDifferenceSetByKey[S ~[]_interface.CompareKey[T], T comparable](a S, b S) S {
 	var diff S
 	for _, x := range a {
-		if !InByKey(x.CmpKey(), b) {
+		if !InByKey(x.CompareKey(), b) {
 			diff = append(diff, x)
 		}
 	}
 	return diff
 }
 
-func differenceSetByKey[S ~[]_interface.CmpKey[T], T comparable](a S, b S) S {
+func differenceSetByKey[S ~[]_interface.CompareKey[T], T comparable](a S, b S) S {
 	var diff S
 	if len(b)/len(a) >= 2 {
 		aMap := make(map[T]bool)
 		for _, x := range a {
-			aMap[x.CmpKey()] = false
+			aMap[x.CompareKey()] = false
 		}
 		for _, x := range b {
-			if _, ok := aMap[x.CmpKey()]; ok {
-				aMap[x.CmpKey()] = true
+			if _, ok := aMap[x.CompareKey()]; ok {
+				aMap[x.CompareKey()] = true
 			}
 		}
 		for _, x := range a {
-			if _, exits := aMap[x.CmpKey()]; !exits {
+			if _, exits := aMap[x.CompareKey()]; !exits {
 				diff = append(diff, x)
 			}
 		}
@@ -271,10 +271,10 @@ func differenceSetByKey[S ~[]_interface.CmpKey[T], T comparable](a S, b S) S {
 	} else {
 		bMap := make(map[T]struct{})
 		for _, x := range b {
-			bMap[x.CmpKey()] = struct{}{}
+			bMap[x.CompareKey()] = struct{}{}
 		}
 		for _, x := range a {
-			if _, ok := bMap[x.CmpKey()]; !ok {
+			if _, ok := bMap[x.CompareKey()]; !ok {
 				diff = append(diff, x)
 			}
 		}
@@ -305,21 +305,21 @@ Loop:
 }
 
 // 取差集，通过循环比较key
-func DifferenceByKey[S ~[]_interface.CmpKey[T], T comparable](a, b S) (S, S) {
+func DifferenceByKey[S ~[]_interface.CompareKey[T], T comparable](a, b S) (S, S) {
 	var diff1, diff2 S
 	intersectionMap := make(map[T]struct{})
 Loop:
 	for _, i := range a {
 		for _, j := range b {
-			if i.CmpKey() == j.CmpKey() {
-				intersectionMap[i.CmpKey()] = struct{}{}
+			if i.CompareKey() == j.CompareKey() {
+				intersectionMap[i.CompareKey()] = struct{}{}
 				continue Loop
 			}
 		}
 		diff1 = append(diff1, i)
 	}
 	for _, i := range b {
-		if _, ok := intersectionMap[i.CmpKey()]; !ok {
+		if _, ok := intersectionMap[i.CompareKey()]; !ok {
 			diff2 = append(diff2, i)
 		}
 	}

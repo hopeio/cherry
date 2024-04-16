@@ -2,7 +2,6 @@ package engine
 
 import (
 	"context"
-	"github.com/hopeio/cherry/utils/definition/types"
 	"time"
 )
 
@@ -16,9 +15,7 @@ var (
 	stdTimeout time.Duration = 0
 )
 
-type TaskMetaNew[T types.Key[KEY], KEY comparable] struct{}
-
-type TaskMeta[KEY comparable] struct {
+type TaskMeta[KEY Key] struct {
 	id          uint64
 	Kind        Kind
 	Key         KEY
@@ -56,7 +53,7 @@ type TaskStatistics struct {
 	errTimes  int
 }
 
-type Task[KEY comparable] struct {
+type Task[KEY Key] struct {
 	ctx context.Context
 	TaskMeta[KEY]
 	TaskFunc[KEY]
@@ -67,11 +64,11 @@ func (t *Task[KEY]) Errs() []error {
 	return t.errs
 }
 
-type TaskInterface[KEY comparable] interface {
+type TaskInterface[KEY Key] interface {
 	Do(ctx context.Context) ([]*Task[KEY], error)
 }
 
-type Tasks[KEY comparable] []*Task[KEY]
+type Tasks[KEY Key] []*Task[KEY]
 
 func (tasks Tasks[KEY]) Less(i, j int) bool {
 	return tasks[i].Priority > tasks[j].Priority
@@ -81,12 +78,12 @@ func (tasks Tasks[KEY]) Less(i, j int) bool {
 
 type ErrHandle func(context.Context, error)
 
-type TaskFunc[KEY comparable] func(ctx context.Context) ([]*Task[KEY], error)
+type TaskFunc[KEY Key] func(ctx context.Context) ([]*Task[KEY], error)
 
 func (t TaskFunc[KEY]) Do(ctx context.Context) ([]*Task[KEY], error) {
 	return t(ctx)
 }
 
-func emptyTaskFunc[KEY comparable](ctx context.Context) ([]*Task[KEY], error) {
+func emptyTaskFunc[KEY Key](ctx context.Context) ([]*Task[KEY], error) {
 	return nil, nil
 }

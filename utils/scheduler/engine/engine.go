@@ -15,7 +15,12 @@ import (
 	"time"
 )
 
-type Config[KEY comparable] struct {
+// 目前受限于ristretto.Cache的泛型限制,考虑移除并引入lru或boolong filter
+type Key interface {
+	uint64 | string | byte | int | int32 | uint32 | int64
+}
+
+type Config[KEY Key] struct {
 	WorkerCount uint
 }
 
@@ -23,7 +28,7 @@ func (c *Config[KEY]) NewEngine() *Engine[KEY] {
 	return NewEngine[KEY](c.WorkerCount)
 }
 
-type Engine[KEY comparable] struct {
+type Engine[KEY Key] struct {
 	limitWorkerCount, currentWorkerCount uint64
 	limitWaitTaskCount                   uint
 	workerChan                           chan *Worker[KEY]
@@ -42,7 +47,7 @@ type Engine[KEY comparable] struct {
 	isRunning, isFinished, isRan bool
 	lock                         sync.RWMutex
 	EngineStatistics
-	done         *ristretto.Cache
+	done         *ristretto.Cache[KEY, struct{}]
 	kindHandlers []*KindHandler[KEY]
 	errHandler   func(task *Task[KEY])
 	errChan      chan *Task[KEY]
@@ -50,7 +55,7 @@ type Engine[KEY comparable] struct {
 	zeroKey      KEY // 泛型不够强大,又为了性能妥协的字段
 }
 
-type KindHandler[KEY comparable] struct {
+type KindHandler[KEY Key] struct {
 	Skip        bool
 	speedLimit  rate2.SpeedLimiter
 	rateLimiter *rate.Limiter
@@ -58,13 +63,13 @@ type KindHandler[KEY comparable] struct {
 	HandleFun TaskFunc[KEY]
 }
 
-func NewEngine[KEY comparable](workerCount uint) *Engine[KEY] {
+func NewEngine[KEY Key](workerCount uint) *Engine[KEY] {
 	return NewEngineWithContext[KEY](workerCount, context.Background())
 }
 
-func NewEngineWithContext[KEY comparable](workerCount uint, ctx context.Context) *Engine[KEY] {
+func NewEngineWithContext[KEY Key](workerCount uint, ctx context.Context) *Engine[KEY] {
 	ctx, cancel := context.WithCancel(ctx)
-	cache, _ := ristretto.NewCache(&ristretto.Config{
+	cache, _ := ristretto.NewCache(&ristretto.Config[KEY, struct{}]{
 		NumCounters:        1e4,   // number of keys to track frequency of (10M).
 		MaxCost:            1e3,   // maximum cost of cache (MaxCost * 1MB).
 		BufferItems:        64,    // number of keys per Get buffer.

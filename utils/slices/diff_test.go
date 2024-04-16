@@ -19,19 +19,19 @@ func (f *Foo) IsEqual(v interface{}) bool {
 	}
 	return false
 }
-func (f *Foo) CmpKey() uint64 {
+func (f *Foo) CompareKey() uint64 {
 	return f.ID
 }
 
-var _ constraints.CmpKey[uint64] = &Foo{}
+var _ constraints.CompareKey[uint64] = &Foo{}
 
 func TestIsEqu(t *testing.T) {
-	s1 := []constraints.CmpKey[uint64]{
+	s1 := []constraints.CompareKey[uint64]{
 		&Foo{1, "1"},
 		&Foo{2, "2"},
 		&Foo{5, "3"},
 	}
-	s2 := []constraints.CmpKey[uint64]{
+	s2 := []constraints.CompareKey[uint64]{
 		&Foo{4, "1"},
 		&Foo{5, "1"},
 		&Foo{6, "1"},

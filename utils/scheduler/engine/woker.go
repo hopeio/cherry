@@ -12,7 +12,7 @@ const (
 	fixedType
 )
 
-type Worker[KEY comparable] struct {
+type Worker[KEY Key] struct {
 	Id          uint
 	Type        Type
 	Kind        Kind

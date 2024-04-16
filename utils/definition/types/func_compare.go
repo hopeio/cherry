@@ -5,7 +5,7 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-type CompareFunc func(a, b any) bool
+type CompareFunc[T any] func(T, T) bool
 
 func SignedConvert[T, V constraints.Signed](v V) T {
 	return T(v)

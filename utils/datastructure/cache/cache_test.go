@@ -2,15 +2,16 @@ package cache
 
 import (
 	"fmt"
+	"github.com/coocood/freecache"
+	gocache "github.com/hopeio/cherry/utils/datastructure/cache/go-cache"
 	"runtime/debug"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/dgraph-io/ristretto"
-	"github.com/hopeio/cherry/utils/datastructure/cache/freecache"
+
 	"github.com/hopeio/cherry/utils/datastructure/cache/gcache"
-	gocache "github.com/hopeio/cherry/utils/datastructure/cache/go-cache"
 )
 
 func BenchmarkFree(b *testing.B) {
@@ -57,7 +58,7 @@ func BenchmarkGoCache(b *testing.B) {
 }
 
 func BenchmarkRistretto(b *testing.B) {
-	cache, err := ristretto.NewCache(&ristretto.Config{
+	cache, err := ristretto.NewCache(&ristretto.Config[string, string]{
 		NumCounters: 1e7,     // number of keys to track frequency of (10M).
 		MaxCost:     1 << 30, // maximum cost of cache (1GB).
 		BufferItems: 64,      // number of keys per Get buffer.

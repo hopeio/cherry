@@ -24,7 +24,6 @@ func (l *List[T]) Len() uint {
 
 func (l *List[T]) Head() *Node[T] {
 	if l.size == 0 {
-		panic("list is empty")
 		return nil
 	}
 	return l.head
@@ -32,7 +31,6 @@ func (l *List[T]) Head() *Node[T] {
 
 func (l *List[T]) Tail() *Node[T] {
 	if l.size == 0 {
-		panic("list is empty")
 		return nil
 	}
 	return l.tail
