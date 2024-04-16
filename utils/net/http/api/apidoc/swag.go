@@ -63,7 +63,7 @@ func ApiMod(w http.ResponseWriter, r *http.Request) {
 	var ret []string
 	for i := range fileInfos {
 		if fileInfos[i].IsDir() {
-			ret = append(ret, `<a href="`+r.RequestURI+"/swagger/"+fileInfos[i].Name()+`">`+fileInfos[i].Name()+`</a>`)
+			ret = append(ret, `<a href="`+r.RequestURI+"/"+fileInfos[i].Name()+`">`+fileInfos[i].Name()+`</a>`)
 		}
 	}
 	w.Write([]byte(strings.Join(ret, "<br>")))
