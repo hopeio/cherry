@@ -32,13 +32,10 @@ const (
 )
 
 const (
-	goListDir     = `go list -m -f {{.Dir}} `
-	goListDep     = `go list -m -f {{.Path}}@{{.Version}} `
-	DepGoogleapis = "github.com/googleapis/googleapis@v0.0.0-20220520010701-4c6f5836a32f"
-	Depcherry     = "github.com/hopeio/cherry"
-)
-
-var (
+	goListDir      = `go list -m -f {{.Dir}} `
+	goListDep      = `go list -m -f {{.Path}}@{{.Version}} `
+	DepGoogleapis  = "github.com/googleapis/googleapis@v0.0.0-20220520010701-4c6f5836a32f"
+	Depcherry      = "github.com/hopeio/cherry"
 	DepGrpcGateway = "github.com/grpc-ecosystem/grpc-gateway/v2"
 	DepProtopatch  = "github.com/alta/protopatch"
 )
@@ -52,24 +49,18 @@ var gatewayPlugin = []string{gatewayOut, openapiv2Out}
 var validatorsOutPlugin = govalidatorsOut
 var gqlPlugin = []string{gqlOut, gogqlOut}
 
-var (
-	proto, genpath, dproto                                                          string
-	include                                                                         string
-	useEnumPlugin, useGateWayPlugin, useValidatorsOutPlugin, useGqlPlugin, stdPatch bool
-)
-
 func init() {
 	protodef, _ := filepath.Abs("/proto")
 	pwd, _ := os.Getwd()
 	pflag := rootCmd.PersistentFlags()
-	pflag.StringVarP(&proto, "proto", "p", protodef, "proto dir")
-	pflag.StringVarP(&genpath, "genpath", "g", pwd+"/protobuf", "generate dir")
-	pflag.StringVarP(&dproto, "cherry", "d", "/proto", "cherry proto dir")
-	pflag.BoolVarP(&useEnumPlugin, "enum", "e", false, "是否使用enum扩展插件")
-	pflag.BoolVarP(&useGateWayPlugin, "gw", "w", false, "是否使用grpc-gateway插件")
-	pflag.BoolVarP(&useValidatorsOutPlugin, "validator", "v", false, "是否使用validators插件")
-	pflag.BoolVarP(&useGqlPlugin, "graphql", "q", false, "是否使用graphql插件")
-	pflag.BoolVar(&stdPatch, "patch", false, "是否使用原生protopatch")
+	pflag.StringVarP(&config.proto, "proto", "p", protodef, "proto dir")
+	pflag.StringVarP(&config.genpath, "genpath", "g", pwd+"/protobuf", "generate dir")
+	pflag.StringVarP(&config.dproto, "cherry", "d", "/proto", "cherry proto dir")
+	pflag.BoolVarP(&config.useEnumPlugin, "enum", "e", false, "是否使用enum扩展插件")
+	pflag.BoolVarP(&config.useGateWayPlugin, "gw", "w", false, "是否使用grpc-gateway插件")
+	pflag.BoolVarP(&config.useValidatorsOutPlugin, "validator", "v", false, "是否使用validators插件")
+	pflag.BoolVarP(&config.useGqlPlugin, "graphql", "q", false, "是否使用graphql插件")
+	pflag.BoolVar(&config.stdPatch, "patch", false, "是否使用原生protopatch")
 	rootCmd.AddCommand(&cobra.Command{
 		Use: "test",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -78,8 +69,8 @@ func init() {
 	rootCmd.AddCommand(&cobra.Command{
 		Use: "go",
 		Run: func(cmd *cobra.Command, args []string) {
-			run(proto)
-			if useGqlPlugin {
+			run(config.proto)
+			if config.useGqlPlugin {
 				gengql()
 			}
 		},
@@ -102,19 +93,19 @@ func init() {
 var rootCmd = &cobra.Command{
 	Use: "protogen",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		if fs.CheckNotExist(genpath) {
-			os.MkdirAll(genpath, os.ModePerm)
+		if fs.CheckNotExist(config.genpath) {
+			os.MkdirAll(config.genpath, os.ModePerm)
 		}
-		if useEnumPlugin {
+		if config.useEnumPlugin {
 			plugin = append(plugin, enumPlugin)
 		}
-		if useGateWayPlugin {
+		if config.useGateWayPlugin {
 			plugin = append(plugin, gatewayPlugin...)
 		}
-		if useValidatorsOutPlugin {
+		if config.useValidatorsOutPlugin {
 			plugin = append(plugin, validatorsOutPlugin)
 		}
-		if useGqlPlugin {
+		if config.useGqlPlugin {
 			plugin = append(plugin, gqlPlugin...)
 		}
 		getInclude()
@@ -142,14 +133,14 @@ func run(dir string) {
 }
 func getInclude() {
 	pwd, _ := os.Getwd()
-	proto, _ = filepath.Abs(proto)
-	genpath, _ = filepath.Abs(genpath)
-	log.Println("proto:", proto)
-	log.Println("genpath:", genpath)
-	if useGateWayPlugin || useGqlPlugin {
-		_, err := os.Stat(genpath + "/api")
+	config.proto, _ = filepath.Abs(config.proto)
+	config.genpath, _ = filepath.Abs(config.genpath)
+	log.Println("proto:", config.proto)
+	log.Println("genpath:", config.genpath)
+	if config.useGateWayPlugin || config.useGqlPlugin {
+		_, err := os.Stat(config.genpath + "/api")
 		if os.IsNotExist(err) {
-			err = os.Mkdir(genpath+"/api", os.ModePerm)
+			err = os.Mkdir(config.genpath+"/api", os.ModePerm)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -171,9 +162,9 @@ func getInclude() {
 
 	libcherryDir, err := osi.Cmd(_go.GoListDir + Depcherry)
 	if err == nil {
-		dproto = libcherryDir + "/protobuf/_proto"
+		config.dproto = libcherryDir + "/protobuf/_proto"
 	}
-	include = "-I" + dproto + " -I" + proto
+	config.include = "-I" + config.dproto + " -I" + config.proto
 	/*	os.Chdir(libcherryDir)
 		DepGrpcGateway, _ = osi.Cmd(goListDep + DepGrpcGateway)
 		DepProtopatch, _ = osi.Cmd(goListDep + DepProtopatch)
@@ -183,7 +174,7 @@ func getInclude() {
 
 	os.Chdir(pwd)
 
-	log.Println("include:", include)
+	log.Println("include:", config.include)
 
 }
 
@@ -227,12 +218,12 @@ func getPackagesHelper(dir, pre string, p map[string]struct{}) {
 }
 func gengql() {
 	// 完整路径
-	compath, err := filepath.Abs(genpath)
+	compath, err := filepath.Abs(config.genpath)
 	if err != nil {
 		log.Panicln(err)
 	}
 	// mod名
-	err = os.Chdir(genpath)
+	err = os.Chdir(config.genpath)
 	if err != nil {
 		log.Panicln(err)
 	}
@@ -248,7 +239,7 @@ func gengql() {
 	_, after, _ := strings.Cut(compath, out)
 	gomod := strings.ReplaceAll(mod+after, "\\", "/")
 	packages := getPackages(compath)
-	gqldir := genpath + "/api"
+	gqldir := config.genpath + "/api"
 	fileInfos, err := os.ReadDir(gqldir)
 	if err != nil {
 		log.Panicln(err)
