@@ -10,7 +10,11 @@ type Get[K constraints.Key, V any] interface {
 }
 
 type Set[K constraints.Key, V any] interface {
-	Set(key K) V
+	Set(key K, v V)
+}
+
+type Delete[K constraints.Key, V any] interface {
+	Delete(key K)
 }
 
 type Init interface {
@@ -20,9 +24,11 @@ type Init interface {
 type StoreWithExpire[K constraints.Key, V any] interface {
 	Set(k K, v V, expire time.Duration)
 	Get[K, V]
+	Delete[K, V]
 }
 
 type Store[K constraints.Key, V any] interface {
 	Set[K, V]
 	Get[K, V]
+	Delete[K, V]
 }
