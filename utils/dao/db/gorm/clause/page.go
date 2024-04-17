@@ -4,8 +4,7 @@ package clause
 
 import (
 	"github.com/hopeio/cherry/utils/dao/db/querytypes"
-	"github.com/hopeio/cherry/utils/definition/request"
-	request2 "github.com/hopeio/cherry/utils/definition/request"
+	request2 "github.com/hopeio/cherry/utils/definition/types/request"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -27,7 +26,7 @@ func ListClause[O querytypes.Ordered](req *querytypes.ListReq[O]) []clause.Expre
 	return append((*PageSortReq)(&req.PageSortReq).Clause(), (*RangeReq[O])(req.RangeReq).Clause())
 }
 
-type PageSortReq request.PageSortReq
+type PageSortReq request2.PageSortReq
 
 func (req *PageSortReq) Clause() []clause.Expression {
 	if req.PageNo == 0 && req.PageSize == 0 {

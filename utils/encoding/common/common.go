@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/hopeio/cherry/utils/encoding"
-	"github.com/pelletier/go-toml"
+	"github.com/pelletier/go-toml/v2"
 	"gopkg.in/yaml.v3"
 	"strings"
 )

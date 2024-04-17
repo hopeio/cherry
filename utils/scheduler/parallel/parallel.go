@@ -9,6 +9,7 @@ import (
 func Run(tasks []types.FuncWithErr) error {
 	ch := make(chan error)
 	for _, task := range tasks {
+		task := task // 兼容!go1.22
 		go func() {
 			ch <- task()
 		}()

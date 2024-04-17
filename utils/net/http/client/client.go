@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hopeio/cherry/utils/strings"
+	stringsi "github.com/hopeio/cherry/utils/strings"
 )
 
 // 不是并发安全的

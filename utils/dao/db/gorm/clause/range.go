@@ -3,7 +3,7 @@ package clause
 import (
 	dbi "github.com/hopeio/cherry/utils/dao/db"
 	_type "github.com/hopeio/cherry/utils/dao/db/querytypes"
-	"github.com/hopeio/cherry/utils/definition/request"
+	"github.com/hopeio/cherry/utils/definition/types/request"
 	"gorm.io/gorm/clause"
 )
 

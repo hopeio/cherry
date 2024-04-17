@@ -2,12 +2,12 @@ package fs
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"github.com/hopeio/cherry/utils/io/fs/path"
-	runtimei "github.com/hopeio/cherry/utils/runtime"
-	"io/ioutil"
-	"log"
+	"github.com/hopeio/cherry/utils/log"
+	runtimei "github.com/hopeio/cherry/utils/scheduler/monitor"
 	"os"
 	"path/filepath"
 	"sort"
@@ -67,7 +67,7 @@ func subDirFiles(dir, path, exclude string, files *[]string, deep, step int8, nu
 	}
 	fileInfos, err := os.ReadDir(dir)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 	}
 	for i := range fileInfos {
 		if fileInfos[i].IsDir() {
@@ -112,25 +112,31 @@ func FindFiles2(path string, deep int8, num int) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	var file = make(chan string)
+	var file = make(chan string, 1)
 	//属于回调而不是通知
-	ctx := runtimei.New(func() {
+	ctx := runtimei.New(context.Background(), func() {
 		close(file)
 	})
 	defer ctx.Cancel()
+	// 当前目录下先找
+	filepath1 := filepath.Join(wd, path)
+	if _, err = os.Stat(filepath1); !os.IsNotExist(err) {
+		file <- filepath1
+	}
 
-	go func() {
-		filepath1 := filepath.Join(wd, path)
-		if _, err = os.Stat(filepath1); !os.IsNotExist(err) {
-			file <- filepath1
+	ctx.Run(func() {
+		err := subDirFiles2(wd, path, "", file, deep, 0, ctx)
+		if err != nil {
+			log.Error(err)
 		}
-	}()
+	})
 
-	ctx.Start()
-	go subDirFiles2(wd, path, "", file, deep, 0, ctx)
-
-	ctx.Start()
-	go supDirFiles2(wd+string(os.PathSeparator), path, file, deep, 0, ctx)
+	ctx.Run(func() {
+		err := supDirFiles2(wd+string(os.PathSeparator), path, file, deep, 0, ctx)
+		if err != nil {
+			log.Error(err)
+		}
+	})
 	var files []string
 	for filepath1 := range file {
 		if files = append(files, filepath1); len(files) == num {
@@ -141,60 +147,77 @@ func FindFiles2(path string, deep int8, num int) ([]string, error) {
 	return files, nil
 }
 
-func subDirFiles2(dir, path, exclude string, file chan string, deep, step int8, ctx *runtimei.NumGoroutine) {
-	defer ctx.End()
+func subDirFiles2(dir, path, exclude string, file chan string, deep, step int8, ctx *runtimei.Monitor) error {
+
 	step += 1
 	if step-1 == deep {
-		return
+		return nil
 	}
-	fileInfos, err := ioutil.ReadDir(dir)
+	fileInfos, err := os.ReadDir(dir)
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 	for i := range fileInfos {
 		if fileInfos[i].IsDir() {
 			if exclude != "" && fileInfos[i].Name() == exclude {
 				continue
 			}
-			filepath1 := filepath.Join(dir, fileInfos[i].Name(), path)
+			subDir := filepath.Join(dir, fileInfos[i].Name())
+			filepath1 := filepath.Join(subDir, path)
 			if _, err = os.Stat(filepath1); !os.IsNotExist(err) {
 				//①如果给出了default语句，那么就会执行default的流程，同时程序的执行会从select语句后的语句中恢复。
 				//②如果没有default语句，那么select语句将被阻塞，直到至少有一个case可以进行下去。
 				select {
 				case <-ctx.Done():
-					return
+					return ctx.Err()
 				case file <- filepath1:
 				}
 			}
-			ctx.Start()
-			go subDirFiles2(filepath.Join(dir, fileInfos[i].Name()), path, "", file, deep, step, ctx)
+			ctx.Run(func() {
+				//TODO: subDirFiles2(filepath.Join(dir, fileInfos[i].Name()), path, "", file, deep, step, ctx) 这种语句有问题,不清楚原因,i会错乱?
+				// 还是go1.22之前的问题，升级go mod go 和toolchain 标签到1.22
+				err := subDirFiles2(filepath.Join(dir, fileInfos[i].Name()), path, "", file, deep, step, ctx)
+				if err != nil {
+					log.Error(err)
+				}
+			})
+
 		}
 	}
+	return nil
 }
 
-func supDirFiles2(dir, path string, file chan string, deep, step int8, ctx *runtimei.NumGoroutine) {
-	defer ctx.End()
+func supDirFiles2(dir, path string, file chan string, deep, step int8, ctx *runtimei.Monitor) error {
 	step += 1
 	if step-1 == deep {
-		return
+		return nil
 	}
 	dir, dirName := filepath.Split(dir[:len(dir)-1])
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		return
+		return err
 	}
 	filepath1 := filepath.Join(dir, path)
 	if _, err := os.Stat(filepath1); !os.IsNotExist(err) {
 		select {
 		case <-ctx.Done():
-			return
+			return ctx.Err()
 		case file <- filepath1:
 		}
 	}
 
-	ctx.Start()
-	go subDirFiles2(dir, path, dirName, file, deep, 0, ctx)
-	ctx.Start()
-	go supDirFiles2(dir, path, file, deep, step, ctx)
+	ctx.Run(func() {
+		err := subDirFiles2(dir, path, dirName, file, deep, 0, ctx)
+		if err != nil {
+			log.Error(err)
+		}
+	})
+	ctx.Run(func() {
+		err := supDirFiles2(dir, path, file, deep, step, ctx)
+		if err != nil {
+			log.Error(err)
+		}
+	})
+	return nil
 }
 
 func Mkdir(src string) error {

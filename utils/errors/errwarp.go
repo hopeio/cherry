@@ -1,4 +1,4 @@
-package errorsi
+package errors
 
 type Unwrap interface {
 	Unwrap(err error) error

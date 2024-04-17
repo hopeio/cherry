@@ -18,13 +18,13 @@ func TestFindFile(t *testing.T) {
 			log.Fatal(err)
 		}
 		fmt.Println(string(bytes))*/
-	files, _ := FindFiles("BUILD.bazel", 5, 0)
+	files, _ := FindFiles("config.toml", 5, 0)
 	fmt.Println(files)
-	files2, _ := FindFiles2("BUILD.bazel", 5, 0)
+	files2, _ := FindFiles2("config.toml", 5, 0)
 	fmt.Println(files2)
 	fmt.Println(len(files), len(files2))
-	fmt.Println(removeDuplicates(files, files2))
-	fmt.Println(isDuplicate2(files))
+	//fmt.Println(removeDuplicates(files, files2))
+	//fmt.Println(isDuplicate2(files))
 }
 
 func removeDuplicates(files1, files2 []string) []string {

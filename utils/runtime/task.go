@@ -1,4 +1,4 @@
-package runtimei
+package runtime
 
 import "sync"
 

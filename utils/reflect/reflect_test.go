@@ -1,6 +1,6 @@
 //go:build !gccgo
 
-package reflecti
+package reflect
 
 import (
 	"fmt"

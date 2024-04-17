@@ -1,4 +1,4 @@
-package grpci
+package grpc
 
 import (
 	"crypto/tls"

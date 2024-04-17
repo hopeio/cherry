@@ -1,4 +1,4 @@
-package gini
+package gin
 
 import (
 	"mime"

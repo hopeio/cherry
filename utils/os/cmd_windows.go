@@ -1,6 +1,6 @@
 //go:build windows
 
-package osi
+package os
 
 import (
 	stringsi "github.com/hopeio/cherry/utils/strings"

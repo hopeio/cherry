@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/pelletier/go-toml"
+	"github.com/pelletier/go-toml/v2"
 	"io/ioutil"
 	"net/http"
 	url2 "net/url"

@@ -3,10 +3,10 @@ package mail
 import (
 	"bytes"
 	"crypto/tls"
+	"github.com/hopeio/cherry/utils/definition/vars/template"
 	"net"
 	"net/smtp"
 
-	templatei "github.com/hopeio/cherry/utils/definition/template"
 	"github.com/hopeio/cherry/utils/log"
 )
 

@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/hopeio/cherry/utils/io/fs"
-	"github.com/hopeio/cherry/utils/os"
+	osi "github.com/hopeio/cherry/utils/os"
 	execi "github.com/hopeio/cherry/utils/os/exec"
 	_go "github.com/hopeio/cherry/utils/sdk/go"
 	"github.com/spf13/cobra"

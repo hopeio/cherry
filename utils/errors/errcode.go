@@ -1,4 +1,4 @@
-package errorsi
+package errors
 
 import (
 	"github.com/gin-gonic/gin/render"

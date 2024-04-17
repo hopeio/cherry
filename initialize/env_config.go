@@ -4,7 +4,7 @@ import (
 	"github.com/hopeio/cherry/initialize/conf_center"
 	"github.com/hopeio/cherry/utils/encoding/common"
 	"github.com/hopeio/cherry/utils/log"
-	strings "github.com/hopeio/cherry/utils/strings"
+	"github.com/hopeio/cherry/utils/strings"
 	"os"
 	"reflect"
 )

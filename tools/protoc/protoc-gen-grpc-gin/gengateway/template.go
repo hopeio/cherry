@@ -10,7 +10,7 @@ import (
 	"text/template"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
-	"github.com/hopeio/cherry/utils/strings"
+	stringsi "github.com/hopeio/cherry/utils/strings"
 )
 
 type param struct {

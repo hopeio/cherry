@@ -1,6 +1,6 @@
 //go:build go1.20
 
-package synci
+package sync
 
 import (
 	"sync"

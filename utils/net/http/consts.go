@@ -1,4 +1,4 @@
-package httpi
+package http
 
 const (
 	// ContentBinaryHeaderValue header value for binary data.

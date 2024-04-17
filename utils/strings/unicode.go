@@ -1,4 +1,4 @@
-package stringsi
+package strings
 
 import (
 	"github.com/hopeio/cherry/utils/slices"

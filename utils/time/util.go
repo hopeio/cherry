@@ -1,4 +1,4 @@
-package timei
+package time
 
 import (
 	"os/exec"

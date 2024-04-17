@@ -1,4 +1,4 @@
-package grpci
+package grpc
 
 import (
 	"github.com/hopeio/cherry/utils/log"

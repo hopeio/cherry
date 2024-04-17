@@ -1,6 +1,6 @@
 //go:build go1.20
 
-package stringsi
+package strings
 
 import "unsafe"
 

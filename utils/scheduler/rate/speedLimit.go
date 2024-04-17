@@ -6,7 +6,7 @@ import (
 )
 
 type SpeedLimiter interface {
-	Reset()
+	Reset(time.Duration) bool
 	Stop() bool
 
 	Wait()
@@ -21,8 +21,9 @@ func (t *Ticker) Stop() bool {
 	return true
 }
 
-func (t *Ticker) Reset() {
-
+func (t *Ticker) Reset(d time.Duration) bool {
+	(*time.Ticker)(t).Reset(d)
+	return true
 }
 
 func (t *Ticker) Wait() {
@@ -33,46 +34,54 @@ func (t *Ticker) Channel() <-chan time.Time {
 	return t.C
 }
 
-type RandTimer struct {
-	*time.Timer
-	randSpeedLimitBase, randSpeedLimitRange time.Duration
-}
-
 func NewSpeedLimiter(interval time.Duration) SpeedLimiter {
 	return (*Ticker)(time.NewTicker(interval))
+}
+
+var _ SpeedLimiter = &RandTimer{}
+
+type RandTimer struct {
+	timer                 *time.Timer
+	limitBase, limitRange time.Duration
+}
+
+func (t *RandTimer) Stop() bool {
+	return t.timer.Stop()
+}
+
+// 设置最小间隔
+func (t *RandTimer) Reset(d time.Duration) bool {
+	t.limitBase = d
+	return t.reset()
+}
+
+func (t *RandTimer) reset() bool {
+	if t.limitRange == 0 {
+		return t.timer.Reset(t.limitBase)
+	}
+	return t.timer.Reset(t.limitBase + time.Duration(rand.Intn(int(t.limitRange))))
+}
+
+func (t *RandTimer) Wait() {
+	<-t.timer.C
+	t.reset()
+}
+
+func (t *RandTimer) Channel() <-chan time.Time {
+	return t.timer.C
 }
 
 // minInterval:最小等待时间
 // maxInterval：最大等待时间
 // maxInterval-minInterval: 等待范围
 func NewRandSpeedLimiter(minInterval, maxInterval time.Duration) SpeedLimiter {
-	randSpeedLimitRange := maxInterval - minInterval
-	if randSpeedLimitRange == 0 {
+	limitRange := maxInterval - minInterval
+	if limitRange == 0 {
 		return (*Ticker)(time.NewTicker(minInterval))
 	}
 	return &RandTimer{
-		Timer:               time.NewTimer(minInterval + time.Duration(rand.Intn(int(randSpeedLimitRange)))),
-		randSpeedLimitBase:  minInterval,
-		randSpeedLimitRange: randSpeedLimitRange,
+		timer:      time.NewTimer(minInterval + time.Duration(rand.Intn(int(limitRange)))),
+		limitBase:  minInterval,
+		limitRange: limitRange,
 	}
-}
-
-func (t *RandTimer) Stop() bool {
-	return t.Timer.Stop()
-}
-
-func (t *RandTimer) Reset() {
-	if t.randSpeedLimitRange == 0 {
-		t.Timer.Reset(t.randSpeedLimitBase)
-	}
-	t.Timer.Reset(t.randSpeedLimitBase + time.Duration(rand.Intn(int(t.randSpeedLimitRange))))
-}
-
-func (t *RandTimer) Wait() {
-	<-t.Timer.C
-	t.Reset()
-}
-
-func (t *RandTimer) Channel() <-chan time.Time {
-	return t.C
 }

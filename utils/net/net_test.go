@@ -1,4 +1,4 @@
-package neti
+package net
 
 import (
 	"log"

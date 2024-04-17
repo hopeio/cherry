@@ -2,7 +2,7 @@ package common
 
 import (
 	"encoding/json"
-	"github.com/pelletier/go-toml"
+	"github.com/pelletier/go-toml/v2"
 	"go.uber.org/zap/zapcore"
 	"testing"
 	"time"

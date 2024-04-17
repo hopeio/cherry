@@ -2,6 +2,15 @@
 
 package json
 
+import (
+	jsoniter "github.com/json-iterator/go"
+	"io"
+)
+
+func NewEncoder(w io.Writer) *jsoniter.Encoder {
+	return jsoniter.ConfigDefault.NewEncoder(w)
+}
+
 func Marshal(v interface{}) ([]byte, error) {
-	return jsoniter.ConfigCompatibleWithStandardLibrary.Marshal(v)
+	return jsoniter.ConfigDefault.Marshal(v)
 }

@@ -1,4 +1,4 @@
-package stringsi
+package strings
 
 import (
 	"bytes"

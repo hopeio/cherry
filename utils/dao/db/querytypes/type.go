@@ -1,7 +1,7 @@
 package querytypes
 
 import (
-	"github.com/hopeio/cherry/utils/definition/request"
+	"github.com/hopeio/cherry/utils/definition/types/request"
 	"golang.org/x/exp/constraints"
 	"time"
 )

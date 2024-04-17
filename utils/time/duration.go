@@ -1,4 +1,4 @@
-package timei
+package time
 
 import (
 	"context"
@@ -15,6 +15,10 @@ func (d *Duration) UnmarshalText(text []byte) error {
 		*d = Duration(tmp)
 	}
 	return err
+}
+
+func (d Duration) MarshalText() ([]byte, error) {
+	return []byte(time.Duration(d).String()), nil
 }
 
 // Shrink will decrease the duration by comparing with context's timeout duration

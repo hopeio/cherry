@@ -1,4 +1,4 @@
-package dbi
+package db
 
 const (
 	INSERT    = "INSERT"

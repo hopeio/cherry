@@ -1,4 +1,4 @@
-package dbi
+package db
 
 type Config struct {
 	Type, Charset, Database, TimeZone string

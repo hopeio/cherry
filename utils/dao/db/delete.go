@@ -1,4 +1,4 @@
-package dbi
+package db
 
 type Deleted struct {
 	DeleteAt, Time string

@@ -1,6 +1,9 @@
 package types
 
-import "golang.org/x/exp/constraints"
+import (
+	constraintsi "github.com/hopeio/cherry/utils/definition/constraints"
+	"golang.org/x/exp/constraints"
+)
 
 type Enum[T constraints.Integer] int
 
@@ -22,4 +25,8 @@ type Basic struct {
 func ZeroValue[T any]() T {
 	var zero T
 	return zero
+}
+
+type ID[T constraintsi.ID] struct {
+	Id T `json:"id"`
 }

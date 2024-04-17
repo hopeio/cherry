@@ -63,6 +63,9 @@ type Task[KEY Key] struct {
 func (t *Task[KEY]) Errs() []error {
 	return t.errs
 }
+func (t *Task[KEY]) SetContext(ctx context.Context) {
+	t.ctx = ctx
+}
 
 type TaskInterface[KEY Key] interface {
 	Do(ctx context.Context) ([]*Task[KEY], error)

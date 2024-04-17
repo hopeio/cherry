@@ -1,4 +1,4 @@
-package controller
+package retry
 
 import "github.com/hopeio/cherry/utils/errors/multierr"
 

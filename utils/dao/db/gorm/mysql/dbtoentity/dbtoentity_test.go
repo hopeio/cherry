@@ -14,20 +14,12 @@ import (
 )
 
 type dao struct {
+	initialize.EmbeddedPresets
 	MysqlTest initmysql.DB
 }
 
-func (d *dao) Close() {
-}
-
-func (d dao) Init() {
-
-}
-
-type config struct{}
-
-func (d config) Init() {
-
+type config struct {
+	initialize.EmbeddedPresets
 }
 
 var Dao dao

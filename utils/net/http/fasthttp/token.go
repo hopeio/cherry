@@ -1,4 +1,4 @@
-package fasthttpi
+package fasthttp
 
 import (
 	httpi "github.com/hopeio/cherry/utils/net/http"

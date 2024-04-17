@@ -1,4 +1,4 @@
-package osi
+package os
 
 import "os"
 

@@ -1,4 +1,4 @@
-package synci
+package sync
 
 type noCopy struct{}
 

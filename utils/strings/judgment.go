@@ -1,4 +1,4 @@
-package stringsi
+package strings
 
 // Is c an ASCII lower-case letter?
 func IsASCIILower(c byte) bool {

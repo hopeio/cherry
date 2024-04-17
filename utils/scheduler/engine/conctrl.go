@@ -174,10 +174,7 @@ func (e *Engine[KEY]) AddTasks(generation int, tasks ...*Task[KEY]) {
 	atomic.AddUint64(&e.taskTotalCount, uint64(l))
 	e.wg.Add(l)
 	for _, task := range tasks {
-		// 如果task为nil,补一个什么都不做的task,为了减少atomic.AddUint64和e.wg.Add的调用次数
-		if task == nil {
-			atomic.AddUint64(&e.taskTotalCount, ^uint64(0))
-			e.wg.Done()
+		if task == nil || task.TaskFunc == nil {
 			continue
 		}
 		task.Priority += generation
@@ -243,9 +240,7 @@ func (e *Engine[KEY]) AddFixedTasks(workerId int, generation int, tasks ...*Task
 	atomic.AddUint64(&e.taskTotalCount, uint64(l))
 	e.wg.Add(l)
 	for _, task := range tasks {
-		if task == nil {
-			atomic.AddUint64(&e.taskTotalCount, ^uint64(0))
-			e.wg.Done()
+		if task == nil || task.TaskFunc == nil {
 			continue
 		}
 		task.Priority += generation

@@ -1,4 +1,4 @@
-package listener
+package poller
 
 import (
 	"context"
@@ -8,21 +8,21 @@ import (
 
 type TaskFunc = func(context.Context)
 
-type TimerTask struct {
+type Poller struct {
 	times         uint
 	firstExecuted bool
 	do            TaskFunc
 }
 
-func NewTimerTask() *TimerTask {
-	return &TimerTask{}
+func NewPoller() *Poller {
+	return &Poller{}
 }
 
-func (task *TimerTask) Times() uint {
+func (task *Poller) Times() uint {
 	return task.times
 }
 
-func (task *TimerTask) Run(ctx context.Context, interval time.Duration, do TaskFunc) {
+func (task *Poller) Run(ctx context.Context, interval time.Duration, do TaskFunc) {
 	task.do = do
 	timer := time.NewTicker(interval)
 	if !task.firstExecuted {
@@ -42,7 +42,7 @@ func (task *TimerTask) Run(ctx context.Context, interval time.Duration, do TaskF
 	}
 }
 
-func (task *TimerTask) RandRun(ctx context.Context, minInterval, maxInterval time.Duration, do TaskFunc) {
+func (task *Poller) RandRun(ctx context.Context, minInterval, maxInterval time.Duration, do TaskFunc) {
 	task.do = do
 	timer := rate.NewRandSpeedLimiter(minInterval, maxInterval)
 	ch := timer.Channel()
