@@ -16,7 +16,7 @@ func main() {
 	defer initialize.Start(confdao.Conf, confdao.Dao, nacos.ConfigCenter)()
 
 	config := confdao.Conf.Server.Origin()
-	config.GRPCOptions = []grpc.ServerOption{
+	config.GrpcOptions = []grpc.ServerOption{
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 	}
 

@@ -25,13 +25,8 @@ func (c *Config) InitAfterInject() {
 
 func (c *Config) Build(dialector gorm.Dialector) *gorm.DB {
 
-	dbConfig := &c.GormConfig
+	dbConfig := &c.Gorm
 	dbConfig.NamingStrategy = c.NamingStrategy
-
-	db, err := gorm.Open(dialector, dbConfig)
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	// 日志
 	if c.EnableStdLogger {
@@ -39,6 +34,11 @@ func (c *Config) Build(dialector gorm.Dialector) *gorm.DB {
 		logger.Default = logger.New(stdlog.New(os.Stdout, "\r", stdlog.LstdFlags), c.Logger)
 	} else {
 		logger.Default = &loggeri.Logger{Logger: log.Default().Logger, Config: &c.Logger}
+	}
+
+	db, err := gorm.Open(dialector, dbConfig)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	if c.EnablePrometheus {

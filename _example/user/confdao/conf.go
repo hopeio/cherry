@@ -72,7 +72,7 @@ type dao struct {
 }
 
 func (d *dao) InitBeforeInject() {
-	d.GORMDB.Conf.GormConfig.NowFunc = time.Now
+	d.GORMDB.Conf.Gorm.NowFunc = time.Now
 }
 
 func (d *dao) InitAfterInjectConfig() {

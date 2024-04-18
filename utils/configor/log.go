@@ -5,9 +5,9 @@ import (
 	"time"
 )
 
-func DurationNotify(td time.Duration, stdTd time.Duration) {
+func DurationNotify(file string, td time.Duration, stdTd time.Duration) {
 	if td > 0 && td < stdTd {
-		log.GetSkipLogger(1).Warnf("except: %s level,but got %s", stdTd, td)
+		log.GetSkipLogger(1).Warnf("%s except: %s level,but got %s", file, stdTd, td)
 	}
 }
 

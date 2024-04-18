@@ -27,7 +27,7 @@ type Config struct {
 	MaxIdleConns, MaxOpenConns        int
 	ConnMaxLifetime, ConnMaxIdleTime  time.Duration
 
-	GormConfig gorm.Config
+	Gorm gorm.Config
 
 	EnableStdLogger bool
 	Logger          logger.Config
@@ -63,7 +63,7 @@ func (c *Config) Init() {
 	if c.Type == "" {
 		c.Type = POSTGRES
 	}
-	configor.DurationNotify(c.Logger.SlowThreshold, 10*time.Millisecond)
+	configor.DurationNotify("SlowThreshold", c.Logger.SlowThreshold, 10*time.Millisecond)
 	if c.TimeZone == "" {
 		c.TimeZone = "Asia/Shanghai"
 	}

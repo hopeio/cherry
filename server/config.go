@@ -76,12 +76,12 @@ func (c *Config) InitAfterInject() {
 	if c.Http3 != nil && c.Http3.Addr == "" {
 		c.Http3.Addr = ":8080"
 	}
-	configor.DurationNotify(c.Http.ReadTimeout, time.Second)
-	configor.DurationNotify(c.Http.WriteTimeout, time.Second)
+	configor.DurationNotify("ReadTimeout", c.Http.ReadTimeout, time.Second)
+	configor.DurationNotify("WriteTimeout", c.Http.WriteTimeout, time.Second)
 	if c.StopTimeout == 0 {
 		c.StopTimeout = 5 * time.Second
 	}
-	configor.DurationNotify(c.StopTimeout, time.Second)
+	configor.DurationNotify("StopTimeout", c.StopTimeout, time.Second)
 	if c.Http.CertFile != "" && c.Http.KeyFile != "" {
 		tlsConfig, err := tls.Certificate(c.Http.CertFile, c.Http.KeyFile)
 		if err != nil {

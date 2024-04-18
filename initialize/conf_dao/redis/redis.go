@@ -24,7 +24,7 @@ func (c *Config) InitAfterInject() {
 		log.Fatal(err)
 	}
 	c.TLSConfig = tlsConfig
-	configor.DurationNotify(c.IdleTimeout, time.Second)
+	configor.DurationNotify("IdleTimeout", c.IdleTimeout, time.Second)
 }
 
 func (c *Config) Build() *redis.Client {

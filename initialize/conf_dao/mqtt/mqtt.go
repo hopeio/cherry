@@ -25,11 +25,11 @@ func (c *Config) InitAfterInject() {
 	}
 	c.TLSConfig = tlsConfig
 
-	configor.DurationNotify(c.PingTimeout, time.Second)
-	configor.DurationNotify(c.ConnectTimeout, time.Second)
-	configor.DurationNotify(c.MaxReconnectInterval, time.Second)
-	configor.DurationNotify(c.ConnectRetryInterval, time.Second)
-	configor.DurationNotify(c.WriteTimeout, time.Second)
+	configor.DurationNotify("PingTimeout", c.PingTimeout, time.Second)
+	configor.DurationNotify("ConnectTimeout", c.ConnectTimeout, time.Second)
+	configor.DurationNotify("MaxReconnectInterval", c.MaxReconnectInterval, time.Second)
+	configor.DurationNotify("ConnectRetryInterval", c.ConnectRetryInterval, time.Second)
+	configor.DurationNotify("WriteTimeout", c.WriteTimeout, time.Second)
 }
 
 func (c *Config) Build() mqtt.Client {
