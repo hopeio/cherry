@@ -73,6 +73,8 @@ func (c *Config) Build(dialector gorm.Dialector) *gorm.DB {
 	}
 	rawDB.SetMaxIdleConns(c.MaxIdleConns)
 	rawDB.SetMaxOpenConns(c.MaxOpenConns)
+	rawDB.SetConnMaxLifetime(c.ConnMaxLifetime)
+	rawDB.SetConnMaxIdleTime(c.ConnMaxIdleTime)
 	return db
 }
 

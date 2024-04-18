@@ -19,8 +19,8 @@ func (c *Config) InitAfterInject() {
 
 func (c *Config) Build() *gorm.DB {
 	c.InitAfterInject()
-	url := fmt.Sprintf("host=%s user=%s dbname=%s port=%d sslmode=disable password=%s TimeZone=%s",
-		c.Host, c.User, c.Database, c.Port, c.Password, c.TimeZone)
+	url := fmt.Sprintf("host=%s user=%s dbname=%s port=%d sslmode=%s password=%s TimeZone=%s",
+		c.Host, c.User, c.Database, c.Port, c.Password, c.Postgres.SSLMode, c.TimeZone)
 	return (*pkdb.Config)(c).Build(postgres.Open(url))
 }
 
@@ -47,8 +47,8 @@ func (db *DB) Table(name string) *gorm.DB {
 }
 
 func (db *DB) TableName(name string) string {
-	if db.Conf.Schema != "" {
-		return db.Conf.Schema + "." + name
+	if db.Conf.Postgres.Schema != "" {
+		return db.Conf.Postgres.Schema + "." + name
 	}
 	return name
 }

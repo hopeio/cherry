@@ -4,7 +4,6 @@ import (
 	pkdb "github.com/hopeio/cherry/initialize/conf_dao/gormdb"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"runtime"
 )
 
 type Config pkdb.Config
@@ -19,11 +18,7 @@ func (c *Config) InitAfterInject() {
 
 func (c *Config) Build() *gorm.DB {
 	c.InitAfterInject()
-	url := "/data/db/sqlite/" + c.Database + ".db"
-	if runtime.GOOS == "windows" {
-		url = ".." + url
-	}
-	return (*pkdb.Config)(c).Build(sqlite.Open(url))
+	return (*pkdb.Config)(c).Build(sqlite.Open(c.Sqlite.Path))
 }
 
 type DB pkdb.DB
