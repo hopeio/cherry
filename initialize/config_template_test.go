@@ -8,7 +8,7 @@ import (
 func TestGenConfigTemplate(t *testing.T) {
 	type args struct {
 		format encoding.Format
-		config NeedInit
+		config Config
 		dao    Dao
 	}
 }

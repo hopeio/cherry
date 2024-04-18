@@ -4,11 +4,13 @@ import (
 	"github.com/hopeio/cherry/utils/log"
 	"github.com/spf13/viper"
 	_ "github.com/spf13/viper/remote"
+	"gopkg.in/ini.v1"
 	"os"
 )
 
 // 全局变量,只一个实例,只提供config
 type Config struct {
+	Debug             bool
 	Watch             bool
 	ConfigName        string
 	ConfigFile        string
@@ -16,6 +18,9 @@ type Config struct {
 	ConfigPermissions os.FileMode
 	EnvPrefix         string
 	RemoteProvider    []RemoteProvider
+	AllowEmptyEnv     bool
+	IniLoadOptions    ini.LoadOptions
+	EnvVars           []string
 }
 
 type RemoteProvider struct {
@@ -34,16 +39,16 @@ func (c *Config) InitAfterInject() {
 	c.build(viper.GetViper())
 }
 
-/*
-	func (c *Config) Build() *viper.Viper {
-		c.Init()
-		var runtimeViper = viper.New()
-		c.build(runtimeViper)
-		return runtimeViper
-	}
-*/
-func (c *Config) build(runtimeViper *viper.Viper) {
+func (c *Config) Build() *viper.Viper {
+	var runtimeViper = viper.New()
+	c.build(runtimeViper)
+	return runtimeViper
+}
 
+func (c *Config) build(runtimeViper *viper.Viper) {
+	if c.Debug {
+		runtimeViper.Debug()
+	}
 	runtimeViper.SetConfigType(c.ConfigType) // because there is no file extension in a stream of bytes, supported extensions are "json", "toml", "yaml", "yml", "properties", "props", "prop", "Env", "dotenv"
 	if len(c.RemoteProvider) > 0 {
 		var err error
@@ -73,12 +78,23 @@ func (c *Config) build(runtimeViper *viper.Viper) {
 	} else {
 
 		runtimeViper.SetConfigFile(c.ConfigFile)
+		if c.ConfigPermissions > 0 {
+			runtimeViper.SetConfigPermissions(c.ConfigPermissions)
+		}
 		err := runtimeViper.ReadInConfig()
 		if err != nil {
 			log.Fatal(err)
 		}
 		if c.Watch {
 			runtimeViper.WatchConfig()
+		}
+	}
+	runtimeViper.AllowEmptyEnv(c.AllowEmptyEnv)
+	runtimeViper.SetEnvPrefix(c.EnvPrefix)
+	if len(c.EnvVars) > 0 {
+		err := runtimeViper.BindEnv(c.EnvVars...)
+		if err != nil {
+			log.Error(err)
 		}
 	}
 
@@ -105,7 +121,8 @@ func (c *Config) build(runtimeViper *viper.Viper) {
 	}()*/
 }
 
-/*type Viper struct {
+// 不建议使用,请使用viper全局变量
+type Viper struct {
 	*viper.Viper
 	Conf Config
 }
@@ -121,4 +138,3 @@ func (v *Viper) SetEntity() {
 func (v *Viper) Close() error {
 	return nil
 }
-*/
