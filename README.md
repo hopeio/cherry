@@ -1,31 +1,35 @@
 # cherry
 
 一个开箱即用，高度集成的微服务组件库,可以快速开发集grpc,http,graphql的云原生微服务
-### quick start
+## quick start
 `go get github.com/hopeio/cherry@main`
 #### install env tools
-`install protoc`
-`go get github.com/hopeio/cherry/tools/protoc@main`
-`go run $(go list -m -f {{.Dir}}  github.com/hopeio/cherry)/tools/protoc/install_tools.go`
+- `install protoc`
+- `go get github.com/hopeio/cherry/tools/protoc@main`
+- `go run $(go list -m -f {{.Dir}}  github.com/hopeio/cherry)/tools/protoc/install_tools.go`
 #### generate protobuf
 `protogen go -e -w (-q) (-v) -p $proto_path -g $proto_output_path`
-#### use docker
+#### (use docker)
 `docker run --rm -v $project:/work jybl/goprotoc protogen go -e -w -p $proto_path -g $proto_output_path`
 
-## initialize
+##
+### initialize
 基于反射自动注入的配置及dao注入初始化，并暴露一个全局变量，记录模块信息
 ![initialize](_readme/assets/initialize.webp)
 
-### 一个应用的启动，应该如此简单
-#### config（配置）
+#### 一个应用的启动，应该如此简单
+##### config（配置）
 支持nacos,local file,http请求作为配置中心,可扩展支持etcd,apollo,viper(获取配置代理，底层是其他配置中心)，支持toml格式的配置文件，
 支持dev，test，prod环境本，启动命令区分
 仅需配置配置中心,后续配置均从配置中心拉取及自动更新
 ```toml
-Module = "user"
+Module = "hoper"
+# dev | test | stage | prod |...
 Env = "dev"
+
 [dev]
-Debug = true
+debug = true
+ConfigTemplateDir = "."
 [dev.configCenter]
 configType = "local"
 Watch  = true
@@ -37,7 +41,7 @@ ConfigPath = "local.toml"
 ReloadType = "fsnotify"
 
 [dev.configCenter.http]
-Interval = 100
+Interval = 10000000000
 Url = "http://localhost:6666/local.toml"
 
 [dev.configCenter.nacos]
@@ -51,7 +55,7 @@ Port = 9000
 GrpcPort = 10000
 
 [dev.configCenter.nacos.ClientConfig]
-NamespaceId = ""
+NamespaceId = "xxx"
 username = "nacos"
 password = "nacos"
 LogLevel = "debug"
@@ -66,13 +70,16 @@ type config struct {
 	Customize serverConfig
 	Server    server.ServerConfig
 }
+type serverConfig struct{
+    TokenMaxAge time.Duration
+}
 
 var Conf = &config{}
-
+// 注入配置前初始化
 func (c *config) InitBeforeInject() {
     c.Customize.TokenMaxAge = time.Second * 60 * 60 * 24
 }
-
+// 注入配置后初始化
 func (c *config) InitAfterInject() {
 	c.Customize.TokenMaxAge = time.Second * 60 * 60 * 24 * c.Customize.TokenMaxAge
 }
@@ -96,11 +103,13 @@ type dao struct {
 	// RedisPool Redis连接池
 	Redis *initredis.Client
 }
-
+// 注入配置前初始化
 func (c *dao) InitBeforeInject() {
-
 }
-
+// 注入配置后初始化
+func (c *dao) InitAfterInjectConfig() {
+}
+// 注入dao后初始化
 func (d *dao) InitAfterInject() {
 	db := d.GORMDB
 	db.Callback().Create().Remove("gorm:save_before_associations")
@@ -111,8 +120,7 @@ func (d *dao) InitAfterInject() {
 	d.StdDB, _ = db.DB()
 }
 func main() {
-
-defer initialize.Start(Conf, dao)()
+    defer initialize.Start(Conf, dao)()
 }
 ```
 原生集成了redis,gormdb(mysql,postgressql,sqlite),kafka,pebbledb,apollo,badgerdb,etcd,elasticsearch,nsq,ristretto,viper等，并且非常简单的支持自定义扩展,不局限于Dao对象，任何对象都支持根据配置自动注入生成
@@ -123,7 +131,7 @@ defer initialize.Start(Conf, dao)()
 支持http及fasthttp,并支持自定义的请求类型
 ![context](_readme/assets/context.webp)
 
-## server
+### server
 cherry服务器，各种服务接口的保留，集成支持，一个服务暴露grpc,http,graphql接口
 - 集成opentelemetry实现调用链路跟踪记录，配合context及utils/log 实现完整的请求链路日志记录
 - 集成prometheus及pprof实现性能监控及性能问题排查
@@ -155,7 +163,7 @@ func main() {
 	defer initialize.Start(uconf.Conf, udao.Dao)()
 	
   config := uconf.Conf.Server.Origin()
-  config.GRPCOptions = []grpc.ServerOption{
+  config.GrpcOptions = []grpc.ServerOption{
     grpc.StatsHandler(otelgrpc.NewServerHandler()),
   }
   server.Start(&server.Server{
@@ -177,15 +185,15 @@ func main() {
 
 ```
 
-## protobuf
+### protobuf
 库中用到的protobuf定义及生成文件
 ![protobuf](_readme/assets/protobuf.webp)
 
-### 生成库protobuf代码
+#### 生成库protobuf代码
 `go run protobuf/generate.go`
 
-## tools/protoc
-本项目需要用到的protobuf插件，`go run tools/protoc/install_tools.go`或者运行`go generate tools/protoc/install_tools.go`或者运行`tools/protoc/install-tools.sh`，会自动安装
+### tools/protoc
+本项目需要用到的protobuf插件，`go run tools/protoc/install_tools.go` 或 `go generate tools/protoc/install_tools.go` 或 `tools/protoc/install-tools.sh`，会自动安装
 
 - protogen为go语言写的protobuf生成程序
   - go/dart 生成go/dart文件，E.g: protogen go -p xxx -g xxx
@@ -205,58 +213,13 @@ func main() {
 - 集成github.com/danielvladco/go-proto-gql 用于生成graphql schema 及 grahpql服务
 
 
-### template
-user.model.proto
-```protobuf
-syntax = "proto3";
-package user;
-import "user/user.enum.proto";
-import "cherry/protobuf/utils/patch/go.proto";
-import "protoc-gen-openapiv2/options/annotations.proto";
-
-option java_package = "xyz.hoper.protobuf.user";
-option go_package = "github.com/hopeio/cherry/protobuf/user";
-// 用户
-message User {
-  uint64 id = 1 [(go.field) = {tags:'gorm:"primaryKey;"'}];
-  string name = 2 [(go.field) = {tags:'gorm:"size:10;not null" annotation:"昵称"'}];
-    // 性别，0未填写，1男，2女
-  Gender gender = 8 [(go.field) = {tags:'gorm:"type:int2;default:0"'}, (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    type:INTEGER
-  }];
-}
-```
-user.enum.proto
+#### template
+user.proto
 ```protobuf
 syntax = "proto3";
 package user;
 import "cherry/protobuf/utils/enum/enum.proto";
 import "cherry/protobuf/utils/patch/go.proto";
-
-option (enum.enum_gqlgen_all) = true;
-
-option java_package = "xyz.hoper.protobuf.user";
-option go_package = "github.com/hopeio/cherry/protobuf/user";
-
-option (enum.enum_prefix_all) = false;
-option (go.file) = {no_enum_prefix:true};
-// 用户性别
-enum Gender{
-    option (go.enum) = {stringer_name: 'OrigString'};
-    GenderPlaceholder = 0 [(enum.enumvalue_cn)= "占位"];
-    GenderUnfilled = 1 [(enum.enumvalue_cn)= "未填"];
-    GenderMale = 2 [(enum.enumvalue_cn)= "男"];
-    GenderFemale = 3 [(enum.enumvalue_cn)= "女"];
-}
-
-```
-
-user.service.proto
-```protobuf
-syntax = "proto3";
-package user;
-import "user/user.model.proto";
-import "user/user.enum.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 import "github.com/mwitkow/go-proto-validators/validator.proto";
 import "google/api/annotations.proto";
@@ -266,18 +229,42 @@ import "danielvladco/protobuf/graphql.proto";
 import "cherry/protobuf/utils/oauth/oauth.proto";
 import "cherry/protobuf/utils/patch/go.proto";
 import "google/protobuf/wrappers.proto";
+
+option java_package = "protobuf.user";
+option go_package = "protobuf/user";
+option (enum.enum_gqlgen_all) = true;
+option (enum.enum_prefix_all) = false;
+option (go.file) = {no_enum_prefix:true};
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   info: {
     version: "1.0"
   }
 };
+// 用户
+message User {
+  uint64 id = 1 [(go.field) = {tags:'gorm:"primaryKey;"'}];
+  string name = 2 [(go.field) = {tags:'gorm:"size:10;not null" comment:"昵称"'}];
+    // 性别，0未填写，1男，2女
+  Gender gender = 8 [(go.field) = {tags:'gorm:"type:int2;default:0"'}, (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    type:INTEGER
+  }];
+}
+
+// 用户性别
+enum Gender{
+  option (go.enum) = {stringer_name: 'OrigString'};
+  GenderPlaceholder = 0 [(enum.enumvalue_cn)= "占位"];
+  GenderUnfilled = 1 [(enum.enumvalue_cn)= "未填"];
+  GenderMale = 2 [(enum.enumvalue_cn)= "男"];
+  GenderFemale = 3 [(enum.enumvalue_cn)= "女"];
+}
 
 service UserService {
 
   option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
     description: "用户相关接口"
   };
-    //获取用户信息
+  //获取用户信息
   rpc Info (request.Id) returns (User) {
     option (google.api.http) = {
       get: "/api/v1/user/{id}"
@@ -292,32 +279,33 @@ service UserService {
 
 }
 ```
-```sh
-# 安装执行
-`go get github.com/hopeio/cherry/tools/protoc@main`
-`go run $(go list -m -f {{.Dir}}  github.com/hopeio/cherry)/tools/protoc/install_tools.go`
-`protogen go -p $proto_path -g $proto_output_path`
-```
-### use docker
+
+
+## 安装执行
+- `go get github.com/hopeio/cherry/tools/protoc@main`
+- `go run $(go list -m -f {{.Dir}}  github.com/hopeio/cherry)/tools/protoc/install_tools.go`
+- `protogen go -p $proto_path -g $proto_output_path`
+
+#### use docker
 `docker run --rm -v $project_path:/work jybl/goprotoc protogen go --proto=$proto_path --genpath=$proto_output_path`
 
-## utils
+### utils
 
 各种工具库
 
 以下是一些可以单独成库的工具
-### scheduler
-### engine
+#### scheduler
+##### engine
 并发控制，一个任务调度框架，可以控制goroutine数量,任务失败重试，任务衍生子任务执行，任务检测，任务统计
-#### crawler
+##### crawler
 爬虫框架，基于conctrl
 
-# contribute
-## build docker image
+## contribute
+### build docker image
 ```base
 `$cherry_dir/tools/internal/docker/docker_build_local.sh $GOPATH $PROTOC $Image`
 ```
-## upgrade go
+### upgrade go
 `docker build -t jybl/goprotoc -f $cherry_dir/tools/internal/docker/Dockerfile_upgrade .`
 ## TODO
 - unit test

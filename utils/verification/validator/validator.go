@@ -28,8 +28,8 @@ func init() {
 	Validator = validator.New()
 	zh_translations.RegisterDefaultTranslations(Validator, trans)
 	Validator.RegisterTagNameFunc(func(sf reflect.StructField) string {
-		if annotation := sf.Tag.Get("annotation"); annotation != "" {
-			return annotation
+		if comment := sf.Tag.Get("comment"); comment != "" {
+			return comment
 		}
 		if json := sf.Tag.Get("json"); json != "" {
 			return json

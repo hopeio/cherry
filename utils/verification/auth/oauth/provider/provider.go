@@ -24,7 +24,7 @@ var (
 // 用户授权信息
 type UserAuthInfo struct {
 	Id     uint64 `json:"id,omitempty" gorm:"primaryKey;"`
-	Name   string `json:"name,omitempty" gorm:"size:10;not null" annotation:"名字"`
+	Name   string `json:"name,omitempty" gorm:"size:10;not null" comment:"名字"`
 	Role   uint64 `json:"role,omitempty" gorm:"type:int2;default:0"`
 	Status uint64 `json:"status,omitempty" gorm:"type:int2;default:0"`
 }

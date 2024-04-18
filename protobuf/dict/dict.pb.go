@@ -31,8 +31,8 @@ type Dict struct {
 	Typ    uint32 `protobuf:"varint,2,opt,name=typ,proto3" json:"typ,omitempty"`
 	PId    uint64 `protobuf:"varint,3,opt,name=pId,proto3" json:"pId,omitempty" gorm:"size:20"`
 	Key    string `protobuf:"bytes,4,opt,name=key,proto3" json:"key,omitempty" gorm:"index"`
-	Val    string `protobuf:"bytes,5,opt,name=val,proto3" json:"val,omitempty" annotation:"值"`
-	Seq    uint32 `protobuf:"varint,6,opt,name=seq,proto3" json:"seq,omitempty" annotation:"顺序"`
+	Val    string `protobuf:"bytes,5,opt,name=val,proto3" json:"val,omitempty" comment:"值"`
+	Seq    uint32 `protobuf:"varint,6,opt,name=seq,proto3" json:"seq,omitempty" comment:"顺序"`
 	CAt    string `protobuf:"bytes,16,opt,name=cAt,proto3" json:"cAt,omitempty" gorm:"type:timestamptz(6);default:now();index"`
 	DAt    string `protobuf:"bytes,28,opt,name=dAt,proto3" json:"dAt,omitempty" gorm:"<-:false;type:timestamptz(6);index"`
 	Status uint32 `protobuf:"varint,18,opt,name=status,proto3" json:"status,omitempty" gorm:"type:int2;default:0"`
