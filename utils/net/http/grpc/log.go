@@ -7,5 +7,5 @@ import (
 )
 
 func init() {
-	grpclog.SetLoggerV2(zapgrpc.NewLogger(log.Default.Logger))
+	grpclog.SetLoggerV2(zapgrpc.NewLogger(log.Default().Logger))
 }

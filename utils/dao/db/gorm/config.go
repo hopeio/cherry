@@ -1,6 +1,7 @@
 package gormi
 
 import (
+	"github.com/hopeio/cherry/utils/configor"
 	"gorm.io/gorm/schema"
 	"gorm.io/plugin/prometheus"
 	"time"
@@ -42,9 +43,8 @@ type PrometheusConfig struct {
 }
 
 func (c *Config) Init() {
-	if c.Logger.SlowThreshold < 10*time.Millisecond {
-		c.Logger.SlowThreshold *= time.Millisecond
-	}
+
+	configor.DurationNotify(c.Logger.SlowThreshold, 10*time.Millisecond)
 	if c.TimeFormat == "" {
 		c.TimeZone = "Asia/Shanghai"
 	}

@@ -56,7 +56,7 @@ var (
 	flagBackendDefaultAuthority = pflag.String(
 		"backend_default_authority",
 		"",
-		"Default value to use for the HTTP/2 :authority header commonly used for routing gRPC calls through a backend gateway.",
+		"default value to use for the HTTP/2 :authority header commonly used for routing gRPC calls through a backend gateway.",
 	)
 
 	flagBackendBackoffMaxDelay = pflag.Duration(

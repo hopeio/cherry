@@ -24,7 +24,7 @@ import (
 
 func (s *Server) grpcHandler() *grpc.Server {
 	//conf := s.Config
-	grpclog.SetLoggerV2(zapgrpc.NewLogger(log.Default.Logger))
+	grpclog.SetLoggerV2(zapgrpc.NewLogger(log.Default().Logger))
 	if s.GRPCHandler != nil {
 		var stream = []grpc.StreamServerInterceptor{StreamAccess}
 		var unary = []grpc.UnaryServerInterceptor{UnaryAccess(s.Config), Validator}
@@ -80,7 +80,7 @@ func UnaryAccess(conf *Config) func(
 		defer func() {
 			if r := recover(); r != nil {
 				frame := debug.Stack()
-				log.Default.Errorw(fmt.Sprintf("panic: %v", r), zap.ByteString(log.FieldStack, frame))
+				log.Errorw(fmt.Sprintf("panic: %v", r), zap.ByteString(log.FieldStack, frame))
 				err = errorcode.SysError.ErrRep()
 			}
 		}()
@@ -117,7 +117,7 @@ func StreamAccess(srv interface{}, stream grpc.ServerStream, info *grpc.StreamSe
 	defer func() {
 		if r := recover(); r != nil {
 			frame, _ := runtimei.GetCallerFrame(2)
-			log.Default.Errorw(fmt.Sprintf("panic: %v", r), zap.String(log.FieldStack, fmt.Sprintf("%s:%d (%#x)\n\t%s\n", frame.File, frame.Line, frame.PC, frame.Function)))
+			log.Errorw(fmt.Sprintf("panic: %v", r), zap.String(log.FieldStack, fmt.Sprintf("%s:%d (%#x)\n\t%s\n", frame.File, frame.Line, frame.PC, frame.Function)))
 			err = errorcode.SysError.ErrRep()
 		}
 		//不能添加错误处理，除非所有返回的结构相同

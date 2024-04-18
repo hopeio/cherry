@@ -3,11 +3,11 @@ package server
 import (
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/hopeio/cherry/utils/configor"
 	"github.com/hopeio/cherry/utils/crypto/tls"
 	"github.com/hopeio/cherry/utils/log"
 	gini "github.com/hopeio/cherry/utils/net/http/gin"
 	"github.com/hopeio/cherry/utils/net/http/grpc/web"
-	timei "github.com/hopeio/cherry/utils/time"
 	"github.com/hopeio/cherry/utils/verification/validator"
 	"github.com/quic-go/quic-go/http3"
 	"github.com/rs/cors"
@@ -76,12 +76,12 @@ func (c *Config) InitAfterInject() {
 	if c.Http3 != nil && c.Http3.Addr == "" {
 		c.Http3.Addr = ":8080"
 	}
-	c.Http.ReadTimeout = timei.StdDuration(c.Http.ReadTimeout, time.Second)
-	c.Http.WriteTimeout = timei.StdDuration(c.Http.WriteTimeout, time.Second)
+	configor.DurationNotify(c.Http.ReadTimeout, time.Second)
+	configor.DurationNotify(c.Http.WriteTimeout, time.Second)
 	if c.StopTimeout == 0 {
-		c.StopTimeout = 5
+		c.StopTimeout = 5 * time.Second
 	}
-	c.StopTimeout = timei.StdDuration(c.StopTimeout, time.Second)
+	configor.DurationNotify(c.StopTimeout, time.Second)
 	if c.Http.CertFile != "" && c.Http.KeyFile != "" {
 		tlsConfig, err := tls.Certificate(c.Http.CertFile, c.Http.KeyFile)
 		if err != nil {

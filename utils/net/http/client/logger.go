@@ -69,7 +69,7 @@ func DefaultLogger(url, method, auth string, reqBody, respBody *Body, status int
 		}
 	}
 
-	log.Default.Logger.Info("third-request", zap.String("url", url),
+	log.Default().Logger.Info("third-request", zap.String("url", url),
 		zap.String("method", method),
 		reqField,
 		zap.Duration("processTime", process),

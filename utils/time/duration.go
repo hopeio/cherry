@@ -45,3 +45,14 @@ const (
 	YearDay366 = Day * 366
 	Year       = YearDay365
 )
+
+// 标准化TimeDuration
+func StdDuration(td time.Duration, stdTd time.Duration) time.Duration {
+	if td == 0 {
+		return td
+	}
+	if td < stdTd {
+		return td * stdTd
+	}
+	return td
+}

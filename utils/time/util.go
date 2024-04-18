@@ -32,14 +32,3 @@ func TodayZeroTime() time.Time {
 }
 
 var ZeroTime = time.Time{}
-
-// 标准化TimeDuration
-func StdDuration(td time.Duration, stdTd time.Duration) time.Duration {
-	if td == 0 {
-		return td
-	}
-	if td < stdTd {
-		return td * stdTd
-	}
-	return td
-}

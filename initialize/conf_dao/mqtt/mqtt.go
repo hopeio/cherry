@@ -2,20 +2,38 @@ package mqtt
 
 import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/hopeio/cherry/utils/configor"
+	"github.com/hopeio/cherry/utils/crypto/tls"
 	"github.com/hopeio/cherry/utils/log"
+	"time"
 )
 
-type Config mqtt.ClientOptions
+type Config struct {
+	*mqtt.ClientOptions
+	CertFile string `json:"cert_file,omitempty"`
+	KeyFile  string `json:"key_file,omitempty"`
+}
 
 func (c *Config) InitBeforeInject() {
-
+	c.ClientOptions = mqtt.NewClientOptions()
 }
 
 func (c *Config) InitAfterInject() {
+	tlsConfig, err := tls.Certificate(c.CertFile, c.KeyFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	c.TLSConfig = tlsConfig
+
+	configor.DurationNotify(c.PingTimeout, time.Second)
+	configor.DurationNotify(c.ConnectTimeout, time.Second)
+	configor.DurationNotify(c.MaxReconnectInterval, time.Second)
+	configor.DurationNotify(c.ConnectRetryInterval, time.Second)
+	configor.DurationNotify(c.WriteTimeout, time.Second)
 }
 
 func (c *Config) Build() mqtt.Client {
-	client := mqtt.NewClient((*mqtt.ClientOptions)(c))
+	client := mqtt.NewClient(c.ClientOptions)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		log.Fatal(token.Error())
 	}
@@ -28,7 +46,6 @@ type Client struct {
 }
 
 func (c *Client) Config() any {
-	c.Conf = Config(*mqtt.NewClientOptions())
 	return &c.Conf
 }
 

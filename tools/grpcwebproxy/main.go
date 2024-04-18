@@ -78,7 +78,7 @@ func main() {
 
 	backendConn := dialBackendOrFail()
 
-	logger := log.Default
+	logger := log.Default()
 	rpcLogger := logger.With(zap.String("server", "gRPC/server"))
 
 	grpcServer := buildGrpcProxyServer(backendConn, rpcLogger)

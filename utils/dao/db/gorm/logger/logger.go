@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	DefaultV2 = New(logi.Default.Logger, &logger.Config{
+	DefaultV2 = New(logi.Default().Logger, &logger.Config{
 		SlowThreshold: 100 * time.Millisecond,
 		LogLevel:      logger.Warn,
 		Colorful:      true,
