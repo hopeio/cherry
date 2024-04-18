@@ -10,10 +10,6 @@ func enumOptions(e *protogen.Enum) *gopb.Options {
 	return proto.GetExtension(e.Desc.Options(), gopb.E_Enum).(*gopb.Options)
 }
 
-func enumCN(e *protogen.Enum) string {
-	return proto.GetExtension(e.Desc.Options(), gopb.E_Cn).(string)
-}
-
 func valueOptions(v *protogen.EnumValue) *gopb.Options {
 	return proto.GetExtension(v.Desc.Options(), gopb.E_Value).(*gopb.Options)
 }

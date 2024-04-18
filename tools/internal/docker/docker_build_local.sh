@@ -47,5 +47,5 @@ cp -r $protoc $dockerTmpDir/protoc
 
 
 docker build -t jybl/goprotoc --build-arg IMAGE=$goimage -f $cherry_dir/tools/internal/docker/Dockerfile_local $dockerTmpDir
-rm -r $dockerTmpDir
+rm -rf $dockerTmpDir
 docker push jybl/goprotoc

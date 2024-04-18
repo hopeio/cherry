@@ -1,4 +1,11 @@
 cd $(dirname $0) && pwd
+
+if ! command -v go &> /dev/null
+then
+    echo "go command not found, please install go"
+    exit 1
+fi
+
 cherry=$(go list -m -f {{.Dir}}  github.com/hopeio/cherry)
 cherry=${cherry//\\/\/}
 protoDir=$cherry/protobuf/_proto
@@ -10,7 +17,7 @@ fi
 
 if ! command -v protoc &> /dev/null
 then
-    echo "protoc command not found,will download"
+    echo "protoc command not found, will download"
     # 在这里执行其他操作
     source ./install_protoc.sh
 fi

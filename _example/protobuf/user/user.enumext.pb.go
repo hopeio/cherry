@@ -21,6 +21,19 @@ func (x Gender) String() string {
 	return ""
 }
 
+func (x Gender) MarshalJSON() ([]byte, error) {
+	return strings.QuoteToBytes(x.String()), nil
+}
+
+func (x *Gender) UnmarshalJSON(data []byte) error {
+	value, ok := Gender_value[string(data)]
+	if ok {
+		*x = Gender(value)
+		return nil
+	}
+	return errors.New("无效的Gender")
+}
+
 func (x Gender) MarshalGQL(w io.Writer) {
 	w.Write(strings.QuoteToBytes(x.String()))
 }
@@ -46,6 +59,19 @@ func (x Role) String() string {
 		return "超级管理员"
 	}
 	return ""
+}
+
+func (x Role) MarshalJSON() ([]byte, error) {
+	return strings.QuoteToBytes(x.String()), nil
+}
+
+func (x *Role) UnmarshalJSON(data []byte) error {
+	value, ok := Role_value[string(data)]
+	if ok {
+		*x = Role(value)
+		return nil
+	}
+	return errors.New("无效的Role")
 }
 
 func (x Role) MarshalGQL(w io.Writer) {
@@ -75,6 +101,19 @@ func (x UserStatus) String() string {
 		return "已注销"
 	}
 	return ""
+}
+
+func (x UserStatus) MarshalJSON() ([]byte, error) {
+	return strings.QuoteToBytes(x.String()), nil
+}
+
+func (x *UserStatus) UnmarshalJSON(data []byte) error {
+	value, ok := UserStatus_value[string(data)]
+	if ok {
+		*x = UserStatus(value)
+		return nil
+	}
+	return errors.New("无效的UserStatus")
 }
 
 func (x UserStatus) MarshalGQL(w io.Writer) {

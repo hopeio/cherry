@@ -12,7 +12,6 @@ option java_package = "cherry.hopeio.protobuf.user";
 option go_package = "github.com/hopeio/cherry/_example/protobuf/user";
 
 option (enum.enum_gqlgen_all) = true;
-option (enum.enum_prefix_all) = false;
 option (go.file) = {no_enum_prefix:true};
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {

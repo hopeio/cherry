@@ -47,7 +47,7 @@ func (b *Builder) Generate() error {
 			continue
 		}
 
-		if !FileEnabledExtGen(protoFile) || len(protoFile.Enums) == 0 {
+		if TurnOffExtGenAll(protoFile) || len(protoFile.Enums) == 0 {
 			continue
 		}
 
@@ -56,7 +56,7 @@ func (b *Builder) Generate() error {
 		genFileMap[fileName] = g
 		// third traverse: build associations
 		for _, enum := range protoFile.Enums {
-			if EnabledExtGen(enum) {
+			if TurnOffExtGen(enum) {
 				genFileMap[fileName] = g
 				break
 			}
@@ -87,13 +87,13 @@ func (b *Builder) generate(f *protogen.File, e *protogen.Enum, g *protogen.Gener
 	if EnabledEnumStringer(e) {
 		b.generateString(f, e, g)
 	}
-	if EnabledEnumJsonMarshal(e) {
-		//b.generateJsonMarshal(f, e, g)
+	if EnabledEnumJsonMarshal(f, e) {
+		b.generateJsonMarshal(f, e, g)
 	}
 	if EnabledEnumErrorCode(e) {
 		b.generateErrorCode(f, e, g)
 	}
-	if EnabledEnumGqlGen(e) || FileEnabledGqlGenAll(f) {
+	if EnabledEnumGqlGen(f, e) {
 		b.generateGQLMarshal(f, e, g)
 	}
 }
@@ -140,32 +140,31 @@ func (b *Builder) generateGQLMarshal(f *protogen.File, e *protogen.Enum, g *prot
 	g.P(`*x = `, ccTypeName, `(i)`)
 	g.P("return nil")
 	g.P("}")
-	g.P(`return `, generateImport("New", "errors", g), `("枚举值需要数字类型")`)
+	g.P(`return `, generateImport("New", "errors", g), `("enum need integer type")`)
 	g.P("}")
 	g.P()
 }
 
 func (b *Builder) generateJsonMarshal(f *protogen.File, e *protogen.Enum, g *protogen.GeneratedFile) {
 	ccTypeName := stringsi.CamelCase(e.Desc.Name())
-	if EnabledGoEnumValueMap(e) {
-		g.P("func (x ", ccTypeName, ") MarshalJSON() ([]byte, error) {")
-		g.P("return ", generateImport("QuoteToBytes", "github.com/hopeio/cherry/utils/strings", g), "(x.String())", ", nil")
-		g.P("}")
-		g.P()
-		g.P("func (x *", ccTypeName, ") UnmarshalJSON(data []byte) error {")
 
-		g.P("value, ok := ", ccTypeName, `_value[string(data)]`)
-		g.P("if ok {")
+	g.P("func (x ", ccTypeName, ") MarshalJSON() ([]byte, error) {")
+	g.P("return ", generateImport("QuoteToBytes", "github.com/hopeio/cherry/utils/strings", g), "(x.String())", ", nil")
+	g.P("}")
+	g.P()
+	g.P("func (x *", ccTypeName, ") UnmarshalJSON(data []byte) error {")
 
-		g.P("*x = ", ccTypeName, "(value)")
-		g.P("return nil")
+	g.P("value, ok := ", ccTypeName, `_value[string(data)]`)
+	g.P("if ok {")
 
-		g.P("}")
-		g.P(`return `, generateImport("New", "errors", g), `("无效的`, ccTypeName, `")`)
+	g.P("*x = ", ccTypeName, "(value)")
+	g.P("return nil")
 
-		g.P("}")
-		g.P()
-	}
+	g.P("}")
+	g.P(`return `, generateImport("New", "errors", g), `("invalid`, ccTypeName, `")`)
+
+	g.P("}")
+	g.P()
 }
 
 func (b *Builder) generateErrorCode(f *protogen.File, e *protogen.Enum, g *protogen.GeneratedFile) {

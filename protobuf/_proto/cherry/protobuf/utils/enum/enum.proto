@@ -10,21 +10,25 @@ option go_package = "github.com/hopeio/cherry/protobuf/utils/enum";
 extend google.protobuf.EnumOptions {
   //自定义类型
   optional string enum_customtype = 62025;
-  optional bool enum_genvaluemap = 62026;
+
+  optional bool enum_no_genvaluemap = 62026;
   //不用手动标序号，= iota
   optional bool enum_numorder = 62027;
   //生成JsonMarshal
   optional bool enum_jsonmarshal = 62028;
+
   //是errorcode
   optional bool enum_errorcode = 62029;
 
   optional bool enum_gqlgen = 62030;
 
-  optional bool enum_prefix = 62031;
+  optional bool enum_no_prefix = 62031;
 
   optional bool enum_stringer = 62033;
 
-  optional bool  enum_ext_gen = 62032;
+  optional bool  enum_no_extgen = 62032;
+
+  optional bool enum_textmarshal = 62034;
 }
 
 extend google.protobuf.EnumValueOptions {
@@ -34,6 +38,8 @@ extend google.protobuf.EnumValueOptions {
 
 extend google.protobuf.FileOptions {
   optional bool enum_gqlgen_all = 1001;
-  optional bool enum_prefix_all = 1002;
-  optional bool enum_ext_gen_all = 1003;
+  optional bool enum_jsonmarshal_all = 1003;
+  optional bool enum_textmarshal_all = 1004;
+  optional bool enum_no_prefix_all = 1002;
+  optional bool enum_no_extgen_all = 1005;
 }

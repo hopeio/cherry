@@ -105,7 +105,7 @@ func expandVar(word string) string {
 func CmdLog(s string) (string, error) {
 	out, err := Cmd(s)
 	if err != nil {
-		log.Printf(`exec:"%s" failed,err:%v`, s, err)
+		log.Printf(`exec:"%s" failed,out:%v,err:%v`, s, out, err)
 		return out, err
 	}
 	log.Printf(`exec:"%s"`, s)

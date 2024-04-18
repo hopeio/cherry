@@ -46,7 +46,6 @@ extend google.protobuf.OneofOptions {
 
 extend google.protobuf.EnumOptions {
 	optional Options enum = 7002;
-	optional string cn = 7003;
 }
 
 extend google.protobuf.EnumValueOptions {

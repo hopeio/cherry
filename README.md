@@ -4,7 +4,7 @@
 ## quick start
 `go get github.com/hopeio/cherry@main`
 #### install env tools
-- `install protoc`
+- `install protoc`[https://github.com/protocolbuffers/protobuf/releases](https://github.com/protocolbuffers/protobuf/releases)
 - `go get github.com/hopeio/cherry/tools/protoc@main`
 - `go run $(go list -m -f {{.Dir}}  github.com/hopeio/cherry)/tools/protoc/install_tools.go`
 #### generate protobuf
@@ -232,8 +232,8 @@ import "google/protobuf/wrappers.proto";
 
 option java_package = "protobuf.user";
 option go_package = "protobuf/user";
-option (enum.enum_gqlgen_all) = true;
-option (enum.enum_prefix_all) = false;
+option (enum.gqlgen_all) = true;
+option (enum.prefix_all) = false;
 option (go.file) = {no_enum_prefix:true};
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   info: {
