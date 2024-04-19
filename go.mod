@@ -66,7 +66,7 @@ require (
 
 require (
 	github.com/blastrain/vitess-sqlparser v0.0.0-20201030050434-a139afbb1aba
-	github.com/bytedance/sonic v1.11.4
+	github.com/bytedance/sonic v1.11.5
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/coocood/freecache v1.2.4
 	github.com/danielvladco/go-proto-gql v0.10.1-0.20221227181908-22fca0a9469c
@@ -144,9 +144,10 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bufbuild/protocompile v0.10.0 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
+	github.com/bytedance/sonic/loader v0.1.0 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/cloudwego/base64x v0.1.1 // indirect
+	github.com/cloudwego/base64x v0.1.3 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/cockroachdb/errors v1.11.1 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect

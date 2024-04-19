@@ -20,7 +20,7 @@ func (c *Config) InitAfterInject() {
 func (c *Config) Build() *gorm.DB {
 	c.InitAfterInject()
 	url := fmt.Sprintf("host=%s user=%s dbname=%s port=%d sslmode=%s password=%s TimeZone=%s",
-		c.Host, c.User, c.Database, c.Port, c.Password, c.Postgres.SSLMode, c.TimeZone)
+		c.Host, c.User, c.Database, c.Port, c.Postgres.SSLMode, c.Password, c.TimeZone)
 	return (*pkdb.Config)(c).Build(postgres.Open(url))
 }
 
