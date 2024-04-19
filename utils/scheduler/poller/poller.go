@@ -56,7 +56,7 @@ func (task *Poller) RandRun(ctx context.Context, minInterval, maxInterval time.D
 		case <-ch:
 			task.times++
 			task.do(ctx)
-			timer.Reset()
+			timer.Reset(minInterval)
 		}
 	}
 }
