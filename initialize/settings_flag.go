@@ -32,11 +32,11 @@ type FlagTagSettings struct {
 func init() {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 	commandLine := newCommandLine()
-	injectFlagConfig(commandLine, reflect.ValueOf(&GlobalConfig.BasicConfig).Elem())
+	injectFlagConfig(commandLine, reflect.ValueOf(&globalConfig1.BasicConfig).Elem())
 	parseFlag(commandLine)
 
-	if GlobalConfig.Proxy != "" {
-		proxyURL, _ := url.Parse(GlobalConfig.Proxy)
+	if globalConfig1.Proxy != "" {
+		proxyURL, _ := url.Parse(globalConfig1.Proxy)
 		http.DefaultClient.Transport = &http.Transport{
 			Proxy: http.ProxyURL(proxyURL),
 		}

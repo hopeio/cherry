@@ -190,7 +190,7 @@ func setDao(dao Dao) {
 				continue
 			}
 			confName := strings.ToUpper(structFiled.Name)
-			if slices.Contains(GlobalConfig.NoInject, confName) {
+			if slices.Contains(globalConfig1.NoInject, confName) {
 				continue
 			}
 
@@ -244,3 +244,9 @@ func (o tagOptions) Contains(optionName string) bool {
 	}
 	return false
 }
+
+// 整合viper,提供单个注入,viper实现也挺简单的,原来的方案就能实现啊
+/*func Inject(v Config, path string) {
+
+}
+*/

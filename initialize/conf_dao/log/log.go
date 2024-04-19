@@ -9,8 +9,8 @@ import (
 type Config log.Config
 
 func (c *Config) InitBeforeInject() {
-	c.Development = initialize2.GlobalConfig.Debug
-	c.AppName = initialize2.GlobalConfig.Module
+	c.Development = initialize2.GlobalConfig().Debug
+	c.AppName = initialize2.GlobalConfig().Module
 }
 
 func (c *Config) InitAfterInject() {

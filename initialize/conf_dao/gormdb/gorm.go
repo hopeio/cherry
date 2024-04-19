@@ -16,7 +16,7 @@ import (
 type Config gormi.Config
 
 func (c *Config) InitBeforeInject() {
-	c.EnableStdLogger = initialize2.GlobalConfig.Debug
+	c.EnableStdLogger = initialize2.GlobalConfig().Debug
 }
 
 func (c *Config) InitAfterInject() {

@@ -16,19 +16,24 @@ import (
 
 // 约定大于配置
 var (
-	GlobalConfig = &globalConfig{
+	globalConfig1 = &globalConfig{
 		BasicConfig: BasicConfig{ConfUrl: "./config.toml"},
 		EnvConfig:   EnvConfig{Debug: true},
 		lock:        sync.RWMutex{},
 	}
 )
 
+func GlobalConfig() *globalConfig {
+	return globalConfig1
+}
+
 // globalConfig
 // 全局配置
 type globalConfig struct {
 	BasicConfig
 	EnvConfig
-
+	// confMap map[string]any TODO: Get("xxx.xxx")
+	confPath    string
 	conf        Config
 	dao         Dao
 	deferFuncs  []func()
@@ -40,7 +45,7 @@ func Start(conf Config, dao Dao, configCenter ...conf_center.ConfigCenter) func(
 	if conf == nil {
 		log.Fatalf("初始化错误: 配置不能为空")
 	}
-	GlobalConfig.initialized = false
+	globalConfig1.initialized = false
 
 	// 为支持自定义配置中心,并且遵循依赖最小化原则,配置中心改为可插拔的,考虑将配置序列话也照此重做
 	// 注册配置中心,默认注册本地文件
@@ -49,11 +54,11 @@ func Start(conf Config, dao Dao, configCenter ...conf_center.ConfigCenter) func(
 		conf_center.RegisterConfigCenter(cc)
 	}
 
-	GlobalConfig.setConfDao(conf, dao)
-	GlobalConfig.LoadConfig()
-	GlobalConfig.initialized = true
+	globalConfig1.setConfDao(conf, dao)
+	globalConfig1.loadConfig()
+	globalConfig1.initialized = true
 	return func() {
-		for _, f := range GlobalConfig.deferFuncs {
+		for _, f := range globalConfig1.deferFuncs {
 			f()
 		}
 	}
@@ -69,7 +74,7 @@ func (gc *globalConfig) setConfDao(conf Config, dao Dao) {
 	}
 }
 
-func (gc *globalConfig) LoadConfig() {
+func (gc *globalConfig) loadConfig() {
 	log.Infof("Load config from: %s\n", gc.ConfUrl)
 	if _, err := os.Stat(gc.ConfUrl); os.IsNotExist(err) {
 		log.Fatalf("配置路径错误: 请确保可执行文件和配置文件在同一目录下或在config目录下或指定配置文件")
@@ -111,7 +116,7 @@ func (gc *globalConfig) LoadConfig() {
 		gc.dao.InitBeforeInject()
 	}
 
-	GenConfigTemplate(format, gc.conf, gc.dao, GlobalConfig.ConfigTemplateDir)
+	GenConfigTemplate(format, gc.conf, gc.dao, globalConfig1.ConfigTemplateDir)
 
 	cfgcenter := gc.ConfigCenter.ConfigCenter
 	err = cfgcenter.HandleConfig(gc.UnmarshalAndSet)
@@ -121,10 +126,10 @@ func (gc *globalConfig) LoadConfig() {
 
 }
 
-func (gc *globalConfig) RegisterDeferFunc(deferf ...func()) {
-	gc.lock.Lock()
-	defer gc.lock.Unlock()
-	gc.deferFuncs = append(gc.deferFuncs, deferf...)
+func RegisterDeferFunc(deferf ...func()) {
+	globalConfig1.lock.Lock()
+	defer globalConfig1.lock.Unlock()
+	globalConfig1.deferFuncs = append(globalConfig1.deferFuncs, deferf...)
 }
 
 func (gc *globalConfig) Config() Config {
@@ -142,7 +147,7 @@ func (gc *globalConfig) closeDao() {
 }
 
 func closeDao(dao Dao) error {
-	var merr multierr.MultiError
+	var errs multierr.MultiError
 	daoValue := reflect.ValueOf(dao).Elem()
 	for i := 0; i < daoValue.NumField(); i++ {
 		fieldV := daoValue.Field(i)
@@ -155,24 +160,45 @@ func closeDao(dao Dao) error {
 		inter := fieldV.Interface()
 		if daofield, ok := inter.(DaoField); ok {
 			if err := daofield.Close(); err != nil {
-				merr.Append(err)
+				errs.Append(err)
 			}
 
 		}
 	}
 
-	if merr.HasErrors() {
-		return &merr
+	if errs.HasErrors() {
+		return &errs
 	}
 	return nil
 }
 
 func GetConfig[T any]() *T {
-	iconf := GlobalConfig.Config()
-	value := reflect.ValueOf(iconf).Elem()
+	globalConfig1.lock.RLock()
+	defer globalConfig1.lock.RUnlock()
+	if globalConfig1.initialized == false {
+		log.Fatalf("配置未初始化")
+	}
+	conf := globalConfig1.conf
+	value := reflect.ValueOf(conf).Elem()
 	for i := 0; i < value.NumField(); i++ {
 		if conf, ok := value.Field(i).Interface().(T); ok {
 			return &conf
+		}
+	}
+	return new(T)
+}
+
+func GetDao[T any]() *T {
+	globalConfig1.lock.RLock()
+	defer globalConfig1.lock.RUnlock()
+	if globalConfig1.initialized == false {
+		log.Fatalf("配置未初始化")
+	}
+	dao := globalConfig1.dao
+	value := reflect.ValueOf(dao).Elem()
+	for i := 0; i < value.NumField(); i++ {
+		if dao, ok := value.Field(i).Interface().(T); ok {
+			return &dao
 		}
 	}
 	return new(T)
