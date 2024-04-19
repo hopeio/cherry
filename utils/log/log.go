@@ -32,16 +32,17 @@ func Default() *Logger {
 func SetDefaultLogger(lf *Config, cores ...zapcore.Core) {
 	mu.Lock()
 	defer mu.Unlock()
+
+	defaultLogger = lf.NewLogger(cores...)
+	skipLoggers[0].Logger = defaultLogger.WithOptions(zap.WithCaller(false))
 	for i := 1; i < len(skipLoggers); i++ {
 		if skipLoggers[i].Logger != nil {
 			skipLoggers[i].needUpdate = true
 		}
 	}
-	defaultLogger = lf.NewLogger(cores...)
-	skipLoggers[0].Logger = defaultLogger
 }
 
-func GetSkipLogger(skip int) *Logger {
+func GetCallerSkipLogger(skip int) *Logger {
 	if skip > 10 {
 		panic("skip最大不超过10")
 	}
@@ -52,6 +53,10 @@ func GetSkipLogger(skip int) *Logger {
 		mu.Unlock()
 	}
 	return skipLoggers[skip].Logger
+}
+
+func GetNoCallerLogger() *Logger {
+	return skipLoggers[0].Logger
 }
 
 func Sync() error {

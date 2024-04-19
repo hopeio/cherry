@@ -7,7 +7,7 @@ import (
 
 func DurationNotify(file string, td time.Duration, stdTd time.Duration) {
 	if td > 0 && td < stdTd {
-		log.GetSkipLogger(1).Warnf("%s except: %s level,but got %s", file, stdTd, td)
+		log.GetCallerSkipLogger(1).Warnf("%s except: %s level,but got %s", file, stdTd, td)
 	}
 }
 
