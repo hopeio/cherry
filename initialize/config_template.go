@@ -5,6 +5,7 @@ import (
 	"github.com/hopeio/cherry/utils/encoding/common"
 	"github.com/hopeio/cherry/utils/log"
 	"github.com/hopeio/cherry/utils/slices"
+	stringsi "github.com/hopeio/cherry/utils/strings"
 	"os"
 	"reflect"
 )
@@ -74,7 +75,12 @@ func newConfig(format encoding.Format, value reflect.Value, confMap map[string]a
 				} else {
 					if name == "" {
 						name = fieldType.Name
+						tagSettings := ParseInitTagSettings(fieldType.Tag.Get(initTagName))
+						if tagSettings.ConfigName != "" {
+							name = stringsi.UpperCaseFirst(tagSettings.ConfigName)
+						}
 					}
+
 					newconfMap := make(map[string]any)
 					confMap[name] = newconfMap
 					newConfig(format, newValue, newconfMap)
@@ -102,7 +108,17 @@ func newDaoConfig(format encoding.Format, value reflect.Value, confMap map[strin
 		field := value.Field(i)
 		if field.Addr().Type().Implements(DaoFieldType) {
 			newconfMap := make(map[string]any)
-			confMap[typ.Field(i).Name] = newconfMap
+			fieldType := typ.Field(i)
+			name := fieldType.Tag.Get(string(format))
+			if name == "" {
+				name = fieldType.Name
+				tagSettings := ParseInitTagSettings(fieldType.Tag.Get(initTagName))
+				if tagSettings.ConfigName != "" {
+					name = stringsi.UpperCaseFirst(tagSettings.ConfigName)
+				}
+			}
+
+			confMap[name] = newconfMap
 			newConfig(format, reflect.ValueOf(field.Addr().Interface().(DaoField).Config()).Elem(), newconfMap)
 		}
 	}
