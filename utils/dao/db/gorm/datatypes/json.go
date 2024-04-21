@@ -11,9 +11,7 @@ type JsonT[T any] datatypes.JsonT[T]
 
 func (*JsonT[T]) GormDBDataType(db *gorm.DB, field *schema.Field) string {
 	switch db.Dialector.Name() {
-	case dbi.Sqlite:
-		return "json"
-	case dbi.Mysql:
+	case dbi.Sqlite, dbi.Mysql:
 		return "json"
 	case dbi.Postgres:
 		return "jsonb"

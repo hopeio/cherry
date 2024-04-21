@@ -19,7 +19,7 @@ func (j *JsonB) Scan(value interface{}) error {
 		*j = JsonB(bytes)
 		return nil
 	default:
-		return errors.New(fmt.Sprint("Failed to scan JsonB value:", value))
+		return errors.New(fmt.Sprint("failed to scan JsonB value:", value))
 	}
 
 }
@@ -50,7 +50,7 @@ func (j *Json) Scan(value interface{}) error {
 		*j = map[string]any{}
 		return json.Unmarshal([]byte(bytes), j)
 	default:
-		return errors.New(fmt.Sprint("Failed to scan Json value:", value))
+		return errors.New(fmt.Sprint("failed to scan Json value:", value))
 	}
 }
 
@@ -78,7 +78,7 @@ func (j *JsonArray) Scan(value interface{}) error {
 		*j = make([]map[string]any, 0)
 		return json.Unmarshal([]byte(bytes), j)
 	default:
-		return errors.New(fmt.Sprint("Failed to scan JsonArray value:", value))
+		return errors.New(fmt.Sprint("failed to scan JsonArray value:", value))
 	}
 }
 
@@ -109,7 +109,7 @@ func (j *JsonStr) Scan(value interface{}) error {
 		*j = JsonStr(bytes)
 		return nil
 	default:
-		return errors.New(fmt.Sprint("Failed to scan JsonStr value:", value))
+		return errors.New(fmt.Sprint("failed to scan JsonStr value:", value))
 	}
 }
 
@@ -139,7 +139,7 @@ func (j *JsonT[T]) Scan(value interface{}) error {
 		j.Json = new(T)
 		return json.Unmarshal([]byte(bytes), j)
 	default:
-		return errors.New(fmt.Sprint("Failed to scan Json value:", value))
+		return errors.New(fmt.Sprint("failed to scan Json value:", value))
 	}
 }
 
@@ -167,7 +167,7 @@ func (j *JsonArrayT[T]) Scan(value interface{}) error {
 		*j = make(JsonArrayT[T], 0)
 		return json.Unmarshal([]byte(bytes), j)
 	default:
-		return errors.New(fmt.Sprint("Failed to scan Json value:", value))
+		return errors.New(fmt.Sprint("failed to scan Json value:", value))
 	}
 }
 
