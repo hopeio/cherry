@@ -7,9 +7,9 @@ import (
 	"gorm.io/gorm/schema"
 )
 
-type JSONT[T any] datatypes.JSONT[T]
+type JsonT[T any] datatypes.JsonT[T]
 
-func (*JSONT[T]) GormDBDataType(db *gorm.DB, field *schema.Field) string {
+func (*JsonT[T]) GormDBDataType(db *gorm.DB, field *schema.Field) string {
 	switch db.Dialector.Name() {
 	case dbi.Sqlite:
 		return "json"
