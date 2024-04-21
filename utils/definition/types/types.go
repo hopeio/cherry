@@ -5,7 +5,9 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-type Enum[T constraints.Integer] int
+type Enum[T constraints.Integer] struct {
+	Value T
+}
 
 type String string
 

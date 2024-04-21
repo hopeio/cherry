@@ -1,4 +1,4 @@
-package v7
+package elastic
 
 import (
 	"github.com/hopeio/cherry/utils/log"

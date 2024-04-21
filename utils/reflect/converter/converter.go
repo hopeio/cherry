@@ -196,6 +196,17 @@ func StringConvert(value string, kind reflect.Kind) (any, error) {
 	return nil, errors.New("unsupported kind")
 }
 
+func StringConvertFor[T any](value string) (T, error) {
+	kind := reflect.TypeFor[T]().Kind()
+	converter := ConverterArrays[kind]
+	if converter != nil {
+		if v := converter(value); v != nil {
+			return v.(T), nil
+		}
+	}
+	return *new(T), errors.New("unsupported kind")
+}
+
 func AnyConvert[T any](v any) T {
 	return v.(T)
 }
@@ -215,4 +226,9 @@ func String(value reflect.Value) string {
 		return strconv.FormatFloat(value.Float(), 'g', -1, 64)
 	}
 	return ""
+}
+
+func StringFor[T any](t T) string {
+	v := reflect.ValueOf(t)
+	return String(v)
 }

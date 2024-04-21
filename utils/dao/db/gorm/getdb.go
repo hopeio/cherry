@@ -1,4 +1,4 @@
-package gormi
+package gorm
 
 import (
 	loggeri "github.com/hopeio/cherry/utils/dao/db/gorm/logger"

@@ -1,10 +1,6 @@
-package tnsq
+package nsq
 
 import (
-	"encoding/json"
-	"fmt"
-	reflecti "github.com/hopeio/cherry/utils/reflect"
-
 	"github.com/hopeio/cherry/utils/log"
 	"github.com/nsqio/go-nsq"
 )
@@ -50,26 +46,5 @@ func NewConsumer(topic string, channel string, handle nsq.HandlerFunc) {
 
 func handleStringMessage(message *nsq.Message) error {
 	log.Info("handleStringMessage get a message  %v\n\n", string(message.Body))
-	return nil
-}
-
-var reflectinvoker *reflecti.ReflectInvoker
-
-func handleJsonMessage(message *nsq.Message) error {
-
-	resultJson := reflectinvoker.InvokeByJson([]byte(message.Body))
-	result := reflecti.Response{}
-	err := json.Unmarshal(resultJson, &result)
-	if err != nil {
-		return err
-	}
-	info := "handleJsonMessage get a result\n"
-	info += "raw:\n" + string(resultJson) + "\n"
-	info += "function: " + result.FuncName + " \n"
-	info += fmt.Sprintf("result: %v\n", result.Result)
-	info += fmt.Sprintf("error: %s\n", result.ErrorMsg)
-
-	log.Info(info)
-
 	return nil
 }

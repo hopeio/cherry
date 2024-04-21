@@ -1,4 +1,4 @@
-package gormi
+package gorm
 
 import (
 	dbi "github.com/hopeio/cherry/utils/dao/db"

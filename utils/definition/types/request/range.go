@@ -13,19 +13,9 @@ const (
 	SortTypeDESC
 )
 
-type PageSortReqInter interface {
-	PageReqInter
-	SortReqInter
-}
-
 type PageSortReq struct {
 	PageReq
 	*SortReq
-}
-
-type PageReqInter interface {
-	PageNo() int
-	PageSize() int
 }
 
 type PageReq struct {
@@ -44,11 +34,6 @@ func (receiver *SortReq) Column() string {
 
 func (receiver *SortReq) Type() SortType {
 	return receiver.SortType
-}
-
-type SortReqInter interface {
-	Column() string
-	Type() SortType
 }
 
 type DateRangeReq[T ~string | time.Time] RangeReq[T]

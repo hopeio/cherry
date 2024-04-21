@@ -1,4 +1,4 @@
-package redisi
+package redis
 
 import "github.com/google/uuid"
 

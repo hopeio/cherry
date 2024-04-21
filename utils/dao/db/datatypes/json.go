@@ -1,4 +1,4 @@
-package types
+package datatypes
 
 import (
 	"database/sql/driver"
@@ -56,7 +56,7 @@ func (j *JSON) Scan(value interface{}) error {
 
 // 实现 driver.Valuer 接口，Value 返回 json value
 func (j JSON) Value() (driver.Value, error) {
-	if len(j) == 0 {
+	if j == nil {
 		return []byte("null"), nil
 	}
 	return json.Marshal(j)
@@ -84,8 +84,11 @@ func (j *JSONArray) Scan(value interface{}) error {
 
 // 实现 driver.Valuer 接口，Value 返回 json value
 func (j JSONArray) Value() (driver.Value, error) {
-	if len(j) == 0 {
+	if j == nil {
 		return []byte("null"), nil
+	}
+	if len(j) == 0 {
+		return []byte("[]"), nil
 	}
 	return json.Marshal(j)
 }
@@ -115,9 +118,70 @@ func (j JSONStr) Value() (driver.Value, error) {
 	if len(j) == 0 {
 		return []byte("null"), nil
 	}
-	return json.RawMessage(j).MarshalJSON()
+	return string(j), nil
 }
 
 func (JSONStr) GormDataType() string {
 	return "jsonb"
 }
+
+type JSONT[T any] struct {
+	JSON *T
+}
+
+// 实现 sql.Scanner 接口，Scan 将 value 扫描至 Json
+func (j *JSONT[T]) Scan(value interface{}) error {
+	switch bytes := value.(type) {
+	case []byte:
+		j.JSON = new(T)
+		return json.Unmarshal(bytes, j)
+	case string:
+		j.JSON = new(T)
+		return json.Unmarshal([]byte(bytes), j)
+	default:
+		return errors.New(fmt.Sprint("Failed to scan JSON value:", value))
+	}
+}
+
+// 实现 driver.Valuer 接口，Value 返回 json value
+func (j JSONT[T]) Value() (driver.Value, error) {
+	if j.JSON == nil {
+		return []byte("null"), nil
+	}
+	return json.Marshal(j)
+}
+
+func (JSONT[T]) GormDataType() string {
+	return "jsonb"
+}
+
+type JSONArrayT[T any] []T
+
+// 实现 sql.Scanner 接口，Scan 将 value 扫描至 Json
+func (j *JSONArrayT[T]) Scan(value interface{}) error {
+	switch bytes := value.(type) {
+	case []byte:
+		*j = make(JSONArrayT[T], 0)
+		return json.Unmarshal(bytes, j)
+	case string:
+		*j = make(JSONArrayT[T], 0)
+		return json.Unmarshal([]byte(bytes), j)
+	default:
+		return errors.New(fmt.Sprint("Failed to scan JSON value:", value))
+	}
+}
+
+// 实现 driver.Valuer 接口，Value 返回 json value
+func (j JSONArrayT[T]) Value() (driver.Value, error) {
+	if j == nil {
+		return []byte("null"), nil
+	}
+	return json.Marshal(j)
+}
+
+func (JSONArrayT[T]) GormDataType() string {
+	return "jsonb"
+}
+
+// TODO:
+type JSONAny any

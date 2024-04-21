@@ -1,4 +1,4 @@
-package gormi
+package gorm
 
 import (
 	"github.com/hopeio/cherry/utils/configor"

@@ -1,4 +1,4 @@
-package execi
+package exec
 
 import (
 	"log"

@@ -1,20 +1,19 @@
-package querytypes
+package request
 
 import (
-	"github.com/hopeio/cherry/utils/definition/types/request"
 	"golang.org/x/exp/constraints"
 	"time"
 )
 
 type ListReq[T Ordered] struct {
-	request.PageSortReq
-	*request.RangeReq[T]
+	PageSortReq
+	*RangeReq[T]
 }
 
 func NewListReq[T Ordered](pageNo, pageSize int) *ListReq[T] {
 	return &ListReq[T]{
-		PageSortReq: request.PageSortReq{
-			PageReq: request.PageReq{
+		PageSortReq: PageSortReq{
+			PageReq: PageReq{
 				PageNo:   pageNo,
 				PageSize: pageSize,
 			},
@@ -22,8 +21,8 @@ func NewListReq[T Ordered](pageNo, pageSize int) *ListReq[T] {
 	}
 }
 
-func (req *ListReq[T]) WithSort(field string, typ request.SortType) *ListReq[T] {
-	req.SortReq = &request.SortReq{
+func (req *ListReq[T]) WithSort(field string, typ SortType) *ListReq[T] {
+	req.SortReq = &SortReq{
 		SortField: field,
 		SortType:  typ,
 	}
@@ -31,7 +30,7 @@ func (req *ListReq[T]) WithSort(field string, typ request.SortType) *ListReq[T] 
 }
 
 func (req *ListReq[T]) WithRange(field string, start, end T, include bool) *ListReq[T] {
-	req.RangeReq = &request.RangeReq[T]{
+	req.RangeReq = &RangeReq[T]{
 		RangeField: field,
 		RangeStart: start,
 		RangeEnd:   end,

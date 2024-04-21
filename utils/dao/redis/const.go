@@ -1,5 +1,5 @@
-package redisi
+package redis
 
 const (
-	SortSet = "_Sorted_Set"
+	KeySortSet = "_Sorted_Set"
 )

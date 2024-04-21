@@ -1,4 +1,4 @@
-package gormi
+package gorm
 
 import "time"
 

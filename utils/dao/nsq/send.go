@@ -1,4 +1,4 @@
-package tnsq
+package nsq
 
 import (
 	"fmt"

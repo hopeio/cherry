@@ -1,4 +1,4 @@
-package v8
+package elastic
 
 import (
 	"github.com/elastic/go-elasticsearch/v8"
@@ -46,12 +46,4 @@ func (es *Client) SetEntity(entity interface{}) {
 }
 
 func (es *Client) Close() {
-}
-
-type Esv2 struct {
-	*elasticsearch.Client
-	Config Config
-}
-
-func (es *Esv2) Close() {
 }

@@ -1,4 +1,4 @@
-package v8
+package elastic
 
 import (
 	"bytes"
@@ -44,7 +44,7 @@ type Total struct {
 	Relation string `json:"relation"`
 }
 
-func GetResponse[T any](response *esapi.Response, err error) (*T, error) {
+func GetResponseData[T any](response *esapi.Response, err error) (*T, error) {
 	if err != nil {
 		return nil, err
 	}
@@ -63,8 +63,8 @@ func GetResponse[T any](response *esapi.Response, err error) (*T, error) {
 	return &res, nil
 }
 
-func GetSearchResponse[T any](response *esapi.Response, err error) (*SearchResponse[T], error) {
-	return GetResponse[SearchResponse[T]](response, err)
+func GetSearchResponseData[T any](response *esapi.Response, err error) (*SearchResponse[T], error) {
+	return GetResponseData[SearchResponse[T]](response, err)
 }
 
 func CreateDocument[T any](ctx context.Context, es *elasticsearch.Client, index, id string, obj T) error {

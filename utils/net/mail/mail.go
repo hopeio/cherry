@@ -3,7 +3,7 @@ package mail
 import (
 	"bytes"
 	"crypto/tls"
-	"github.com/hopeio/cherry/utils/definition/vars/template"
+	"github.com/hopeio/cherry/utils/text/template"
 	"net"
 	"net/smtp"
 
@@ -25,7 +25,7 @@ Content-Type: {{if .ContentType}}{{.ContentType}}{{- else}}text/html; charset=UT
 `
 
 func init() {
-	templatei.Parse(msg)
+	templatei.templatei.Parse(msg)
 }
 
 func (m *Mail) GenMsg() []byte {

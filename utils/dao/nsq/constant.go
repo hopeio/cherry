@@ -1,4 +1,4 @@
-package tnsq
+package nsq
 
 const (
 	Addr4150 = "127.0.0.1:4150"

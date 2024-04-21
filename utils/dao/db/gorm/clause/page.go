@@ -3,7 +3,6 @@
 package clause
 
 import (
-	"github.com/hopeio/cherry/utils/dao/db/querytypes"
 	request2 "github.com/hopeio/cherry/utils/definition/types/request"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -11,7 +10,7 @@ import (
 
 // unsupported data,完全不可用
 // deprecated: 不可用
-func List[T any, O querytypes.Ordered](db *gorm.DB, req *querytypes.ListReq[O]) ([]T, error) {
+func List[T any, O request2.Ordered](db *gorm.DB, req *request2.ListReq[O]) ([]T, error) {
 	var models []T
 
 	clauses := append((*PageSortReq)(&req.PageSortReq).Clause(), (*RangeReq[O])(req.RangeReq).Clause())
@@ -22,7 +21,7 @@ func List[T any, O querytypes.Ordered](db *gorm.DB, req *querytypes.ListReq[O]) 
 	return models, nil
 }
 
-func ListClause[O querytypes.Ordered](req *querytypes.ListReq[O]) []clause.Expression {
+func ListClause[O request2.Ordered](req *request2.ListReq[O]) []clause.Expression {
 	return append((*PageSortReq)(&req.PageSortReq).Clause(), (*RangeReq[O])(req.RangeReq).Clause())
 }
 
@@ -39,7 +38,7 @@ func (req *PageSortReq) Clause() []clause.Expression {
 	return []clause.Expression{Sort(req.SortField, request2.SortType(req.SortType)), Page(req.PageNo, req.PageSize)}
 }
 
-type ListReq[T querytypes.Ordered] querytypes.ListReq[T]
+type ListReq[T request2.Ordered] request2.ListReq[T]
 
 func (req *ListReq[O]) Clause() []clause.Expression {
 	psqc := (*PageSortReq)(&req.PageSortReq).Clause()

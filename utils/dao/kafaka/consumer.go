@@ -1,4 +1,4 @@
-package tkafka
+package kafka
 
 import (
 	"github.com/IBM/sarama"
