@@ -2,18 +2,13 @@ package gorm
 
 import (
 	"github.com/hopeio/cherry/utils/configor"
+	dbi "github.com/hopeio/cherry/utils/dao/db"
 	"gorm.io/gorm/schema"
 	"gorm.io/plugin/prometheus"
 	"time"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-)
-
-const (
-	MYSQL    = "mysql"
-	POSTGRES = "postgres"
-	SQLite   = "sqlite3"
 )
 
 type Config struct {
@@ -61,7 +56,7 @@ type PrometheusConfig struct {
 
 func (c *Config) Init() {
 	if c.Type == "" {
-		c.Type = POSTGRES
+		c.Type = dbi.Postgres
 	}
 	configor.DurationNotify("SlowThreshold", c.Logger.SlowThreshold, 10*time.Millisecond)
 	if c.TimeZone == "" {
@@ -77,20 +72,20 @@ func (c *Config) Init() {
 		c.Mysql.ParseTime = "True"
 	}
 	if c.Charset == "" {
-		if c.Type == MYSQL {
+		if c.Type == dbi.Mysql {
 			c.Charset = "utf8mb4"
 		}
-		if c.Type == POSTGRES {
+		if c.Type == dbi.Postgres {
 			c.Charset = "utf8"
 		}
 
 	}
 
 	if c.Port == 0 {
-		if c.Type == MYSQL {
+		if c.Type == dbi.Mysql {
 			c.Port = 3306
 		}
-		if c.Type == POSTGRES {
+		if c.Type == dbi.Postgres {
 			c.Port = 5432
 		}
 	}

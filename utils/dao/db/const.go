@@ -18,7 +18,7 @@ const (
 )
 
 const (
-	MYSQL    = "mysql"
-	POSTGRES = "postgres"
-	SQLite   = "sqlite3"
+	Mysql    = "mysql"
+	Postgres = "postgres"
+	Sqlite   = "sqlite"
 )

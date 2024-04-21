@@ -5,7 +5,7 @@ import (
 	"github.com/hopeio/cherry/initialize/conf_dao/gormdb/mysql"
 	"github.com/hopeio/cherry/initialize/conf_dao/gormdb/postgres"
 	"github.com/hopeio/cherry/initialize/conf_dao/gormdb/sqlite"
-	gormi "github.com/hopeio/cherry/utils/dao/db/gorm"
+	dbi "github.com/hopeio/cherry/utils/dao/db"
 	"github.com/hopeio/cherry/utils/log"
 
 	"gorm.io/gorm"
@@ -22,15 +22,15 @@ func (c *Config) InitAfterInject() {
 }
 
 func (c *Config) Build() *gorm.DB {
-	if c.Type == gormi.MYSQL {
+	if c.Type == dbi.Mysql {
 		(*mysql.Config)(c).Build()
-	} else if c.Type == gormi.POSTGRES {
+	} else if c.Type == dbi.Postgres {
 		(*postgres.Config)(c).Build()
-	} else if c.Type == gormi.SQLite {
+	} else if c.Type == dbi.Sqlite {
 		(*sqlite.Config)(c).Build()
 	}
 
-	log.Fatal("只支持" + gormi.MYSQL + "," + gormi.POSTGRES + "." + gormi.POSTGRES)
+	log.Fatal("只支持" + dbi.Mysql + "," + dbi.Postgres + "." + dbi.Sqlite)
 	return nil
 }
 

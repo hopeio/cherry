@@ -2,6 +2,7 @@ package gormdb
 
 import (
 	initialize2 "github.com/hopeio/cherry/initialize"
+	dbi "github.com/hopeio/cherry/utils/dao/db"
 	gormi "github.com/hopeio/cherry/utils/dao/db/gorm"
 	loggeri "github.com/hopeio/cherry/utils/dao/db/gorm/logger"
 	"github.com/hopeio/cherry/utils/log"
@@ -42,7 +43,7 @@ func (c *Config) Build(dialector gorm.Dialector) *gorm.DB {
 	}
 
 	if c.EnablePrometheus {
-		if c.Type == gormi.MYSQL {
+		if c.Type == dbi.Mysql {
 			for _, pc := range c.PrometheusConfigs {
 				c.Prometheus.MetricsCollector = append(c.Prometheus.MetricsCollector, &prometheus.MySQL{
 					Prefix:        pc.Prefix,
@@ -52,7 +53,7 @@ func (c *Config) Build(dialector gorm.Dialector) *gorm.DB {
 			}
 
 		}
-		if c.Type == gormi.POSTGRES {
+		if c.Type == dbi.Postgres {
 			for _, pc := range c.PrometheusConfigs {
 				c.Prometheus.MetricsCollector = append(c.Prometheus.MetricsCollector, &prometheus.Postgres{
 					Prefix:        pc.Prefix,

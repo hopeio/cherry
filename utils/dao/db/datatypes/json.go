@@ -29,7 +29,7 @@ func (j JSONB) Value() (driver.Value, error) {
 	return json.RawMessage(j).MarshalJSON()
 }
 
-func (JSONB) GormDataType() string {
+func (*JSONB) GormDataType() string {
 	return "jsonb"
 }
 
@@ -93,7 +93,7 @@ func (j JSONArray) Value() (driver.Value, error) {
 	return json.Marshal(j)
 }
 
-func (JSONArray) GormDataType() string {
+func (*JSONArray) GormDataType() string {
 	return "jsonb"
 }
 
@@ -121,7 +121,7 @@ func (j JSONStr) Value() (driver.Value, error) {
 	return string(j), nil
 }
 
-func (JSONStr) GormDataType() string {
+func (*JSONStr) GormDataType() string {
 	return "jsonb"
 }
 
@@ -151,7 +151,7 @@ func (j JSONT[T]) Value() (driver.Value, error) {
 	return json.Marshal(j)
 }
 
-func (JSONT[T]) GormDataType() string {
+func (*JSONT[T]) GormDataType() string {
 	return "jsonb"
 }
 
@@ -179,9 +179,6 @@ func (j JSONArrayT[T]) Value() (driver.Value, error) {
 	return json.Marshal(j)
 }
 
-func (JSONArrayT[T]) GormDataType() string {
+func (*JSONArrayT[T]) GormDataType() string {
 	return "jsonb"
 }
-
-// TODO:
-type JSONAny any
