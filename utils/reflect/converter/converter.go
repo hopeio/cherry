@@ -35,6 +35,7 @@ var (
 	reflect.Uint64:  convertUint64,
 }*/
 
+// TODO: support slices map
 var ConverterArrays = []Converter{
 	reflect.Bool:    convertBool,
 	reflect.Int:     convertInt,

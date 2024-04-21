@@ -17,9 +17,9 @@ import (
 // 约定大于配置
 var (
 	globalConfig1 = &globalConfig{
-		BasicConfig: BasicConfig{ConfUrl: "./config.toml"},
-		EnvConfig:   EnvConfig{Debug: true},
-		lock:        sync.RWMutex{},
+		ConfUrl:   "./config.toml",
+		EnvConfig: EnvConfig{Debug: true},
+		lock:      sync.RWMutex{},
 	}
 )
 
@@ -30,10 +30,11 @@ func GlobalConfig() *globalConfig {
 // globalConfig
 // 全局配置
 type globalConfig struct {
+	// 配置文件路径
+	ConfUrl string `flag:"name:config;short:c;default:config.toml;usage:配置文件路径,默认./config.toml或./config/config.toml;env:CONFIG" json:"conf_url,omitempty"`
 	BasicConfig
 	EnvConfig
 	// confMap map[string]any TODO: Get("xxx.xxx")
-	confPath    string
 	conf        Config
 	dao         Dao
 	deferFuncs  []func()
@@ -88,25 +89,25 @@ func (gc *globalConfig) loadConfig() {
 	if format != "" {
 		// remove .
 		format = format[1:]
-		if format == "yml" {
-			format = "yaml"
+		if format == encoding.YML {
+			format = encoding.YAML
 		}
 	}
 
 	gc.ConfigCenter.Format = format
 	gc.setBasicConfig(data)
 	gc.setEnvConfig(data)
-
-	if gc.EnvConfig.ConfigCenter.ConfigCenter == nil {
-		// 单配置文件
-		gc.ConfigCenter.ConfigCenter = &local.Local{
-			ReloadType: local.ReloadTypeFsNotify,
-			ConfigPath: gc.ConfUrl,
-		}
-	}
-
 	for i := range gc.NoInject {
 		gc.NoInject[i] = strings.ToUpper(gc.NoInject[i])
+	}
+
+	var singleFileConfig bool
+	if gc.EnvConfig.ConfigCenter.ConfigCenter == nil {
+		singleFileConfig = true
+		// 单配置文件
+		gc.ConfigCenter.ConfigCenter = &local.Local{
+			ConfigPath: gc.ConfUrl,
+		}
 	}
 
 	gc.applyFlagConfig()
@@ -116,7 +117,7 @@ func (gc *globalConfig) loadConfig() {
 		gc.dao.InitBeforeInject()
 	}
 
-	GenConfigTemplate(format, gc.conf, gc.dao, globalConfig1.ConfigTemplateDir)
+	gc.genConfigTemplate(singleFileConfig)
 
 	cfgcenter := gc.ConfigCenter.ConfigCenter
 	err = cfgcenter.HandleConfig(gc.UnmarshalAndSet)

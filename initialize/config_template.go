@@ -10,32 +10,47 @@ import (
 	"reflect"
 )
 
-func GenConfigTemplate(format encoding.Format, config Config, dao Dao, dir string) {
+func (gc *globalConfig) genConfigTemplate(singleFileConfig bool) {
+	dir := gc.ConfigTemplateDir
 	if dir == "" {
 		return
 	}
 	if dir[len(dir)-1] != '/' {
 		dir += "/"
 	}
+
+	format := gc.ConfigCenter.Format
+	filename := "local.template." + string(format)
+
 	confMap := make(map[string]any)
-	newConfig(format, reflect.ValueOf(config).Elem(), confMap)
-	if dao != nil {
-		newDaoConfig(format, reflect.ValueOf(dao).Elem(), confMap)
+	if singleFileConfig {
+		filename = "config.template." + string(format)
+		struct2MapHelper(format, reflect.ValueOf(&gc.BasicConfig).Elem(), confMap)
+		struct2MapHelper(format, reflect.ValueOf(&gc.EnvConfig).Elem(), confMap)
+	}
+	struct2MapHelper(format, reflect.ValueOf(gc.conf).Elem(), confMap)
+	if gc.dao != nil {
+		daoConfigTemplateMap(format, reflect.ValueOf(gc.dao).Elem(), confMap)
 	}
 	data, err := common.Marshal(format, confMap)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = os.WriteFile(dir+"local.template."+string(format), data, 0644)
+	err = os.WriteFile(dir+filename, data, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-// 递归的根据反射将对象中的指针变量赋值
+func struct2Map(format encoding.Format, value reflect.Value) map[string]any {
+	m := make(map[string]any)
+	struct2MapHelper(format, value, m)
+	return m
+}
 
-func newConfig(format encoding.Format, value reflect.Value, confMap map[string]any) {
+// 递归的根据反射将对象中的指针变量赋值
+func struct2MapHelper(format encoding.Format, value reflect.Value, confMap map[string]any) {
 	typ := value.Type()
 	for i := 0; i < value.NumField(); i++ {
 		field := value.Field(i)
@@ -71,7 +86,7 @@ func newConfig(format encoding.Format, value reflect.Value, confMap map[string]a
 				name := fieldType.Tag.Get(string(format))
 
 				if name == "" && fieldType.Anonymous {
-					newConfig(format, newValue, confMap)
+					struct2MapHelper(format, newValue, confMap)
 				} else {
 					if name == "" {
 						name = fieldType.Name
@@ -83,7 +98,7 @@ func newConfig(format encoding.Format, value reflect.Value, confMap map[string]a
 
 					newconfMap := make(map[string]any)
 					confMap[name] = newconfMap
-					newConfig(format, newValue, newconfMap)
+					struct2MapHelper(format, newValue, newconfMap)
 					if len(newconfMap) == 0 {
 						delete(confMap, name)
 					}
@@ -102,7 +117,7 @@ func newConfig(format encoding.Format, value reflect.Value, confMap map[string]a
 	}
 }
 
-func newDaoConfig(format encoding.Format, value reflect.Value, confMap map[string]any) {
+func daoConfigTemplateMap(format encoding.Format, value reflect.Value, confMap map[string]any) {
 	typ := value.Type()
 	for i := 0; i < value.NumField(); i++ {
 		field := value.Field(i)
@@ -119,7 +134,7 @@ func newDaoConfig(format encoding.Format, value reflect.Value, confMap map[strin
 			}
 
 			confMap[name] = newconfMap
-			newConfig(format, reflect.ValueOf(field.Addr().Interface().(DaoField).Config()).Elem(), newconfMap)
+			struct2MapHelper(format, reflect.ValueOf(field.Addr().Interface().(DaoField).Config()).Elem(), newconfMap)
 		}
 	}
 }

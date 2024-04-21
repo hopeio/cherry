@@ -15,9 +15,8 @@ import (
 // 配置文件映射结构体,每个启动都有一个必要的配置文件,用于初始化基本配置及配置中心配置
 type FileConfig struct {
 	// 模块名
-	Module    string
-	Env       string
-	EnvConfig *EnvConfig
+	BasicConfig
+	EnvConfig *EnvConfig `init:"fixed"`
 }
 
 type EnvConfig struct {
@@ -27,8 +26,14 @@ type EnvConfig struct {
 	Proxy    string `flag:"name:proxy;short:p;default:'socks5://localhost:1080';usage:代理;env:HTTP_PROXY" json:"proxy"`
 	NoInject []string
 	// config字段顺序不能变,ConfigCenter 保持在最后
-	ConfigCenter conf_center.Config
+	ConfigCenter conf_center.Config `init:"fixed"`
 }
+
+const (
+	fixedFieldNameEnvConfig       = "EnvConfig"
+	fixedFieldNameBasicConfig     = "BasicConfig"
+	fixedFieldNameEnvConfigCenter = "ConfigCenter"
+)
 
 func (gc *globalConfig) setEnvConfig(data []byte) {
 
@@ -38,7 +43,7 @@ func (gc *globalConfig) setEnvConfig(data []byte) {
 	confCenterTyp := confCenterValue.Type()
 	for i := 0; i < confCenterTyp.NumField(); i++ {
 		field := confCenterTyp.Field(i)
-		if field.Name == "ConfigCenter" {
+		if field.Name == fixedFieldNameEnvConfigCenter {
 			continue
 		}
 		structFields = append(structFields, reflect.StructField{Name: field.Name, Type: field.Type, Tag: field.Tag})
@@ -48,58 +53,62 @@ func (gc *globalConfig) setEnvConfig(data []byte) {
 		structFields = append(structFields, reflect.StructField{Name: strings.UpperCaseFirst(name), Type: reflect.TypeOf(v)})
 	}
 	newConfCenterTyp := reflect.StructOf(structFields)
-	structFields = structFields[:0]
+	var envConfigStructFields []reflect.StructField
 	envConfigValue := reflect.ValueOf(&gc.EnvConfig).Elem()
 	envConfigTyp := envConfigValue.Type()
 	for i := 0; i < envConfigTyp.NumField(); i++ {
 		field := envConfigTyp.Field(i)
-		if field.Name == "ConfigCenter" {
-			structFields = append(structFields, reflect.StructField{Name: "ConfigCenter", Type: newConfCenterTyp, Tag: field.Tag})
+		if field.Name == fixedFieldNameEnvConfigCenter {
+			envConfigStructFields = append(envConfigStructFields, reflect.StructField{Name: fixedFieldNameEnvConfigCenter, Type: newConfCenterTyp, Tag: field.Tag})
 			continue
 		}
-		structFields = append(structFields, reflect.StructField{Name: field.Name, Type: field.Type, Tag: field.Tag})
+		envConfigStructFields = append(envConfigStructFields, reflect.StructField{Name: field.Name, Type: field.Type, Tag: field.Tag, Anonymous: field.Anonymous})
 	}
-	newEnvConfigTyp := reflect.StructOf(structFields)
+	newEnvConfigTyp := reflect.StructOf(envConfigStructFields)
 
-	structFields = structFields[:0]
+	var fileConfigStructFields []reflect.StructField
 	fileConfigTyp := reflect.TypeOf(FileConfig{})
 	for i := 0; i < fileConfigTyp.NumField(); i++ {
 		field := fileConfigTyp.Field(i)
-		if field.Name == "EnvConfig" {
-			structFields = append(structFields, reflect.StructField{Name: strings.UpperCaseFirst(gc.Env), Type: newEnvConfigTyp, Tag: reflect.StructTag(genEncodingTag(gc.Env))})
+		if field.Name == fixedFieldNameEnvConfig {
+			fileConfigStructFields = append(fileConfigStructFields, reflect.StructField{Name: strings.UpperCaseFirst(gc.Env), Type: newEnvConfigTyp, Tag: reflect.StructTag(genEncodingTag(gc.Env))})
 			continue
 		}
-		structFields = append(structFields, reflect.StructField{Name: field.Name, Type: field.Type, Tag: field.Tag})
+		fileConfigStructFields = append(fileConfigStructFields, reflect.StructField{Name: field.Name, Type: field.Type, Tag: field.Tag, Anonymous: field.Anonymous})
 	}
 
-	newFileConfigTyp := reflect.StructOf(structFields)
+	newFileConfigTyp := reflect.StructOf(fileConfigStructFields)
 	tmpFileConfigValue := reflect.New(newFileConfigTyp)
 	tmpFileConfig := tmpFileConfigValue.Interface()
-	confMap := make(map[string]any)
-	newConfig(gc.ConfigCenter.Format, reflect.ValueOf(tmpFileConfig).Elem(), confMap)
+
+	confMap := struct2Map(gc.ConfigCenter.Format, reflect.ValueOf(tmpFileConfig).Elem()) // 仅用于模板输出
 	ndata, err := common.Marshal(gc.ConfigCenter.Format, confMap)
 	if err != nil {
 		log.Fatal(err)
 	}
-	_, err = common.Unmarshal(gc.ConfigCenter.Format, data, tmpFileConfig)
+	fromat, err = common.Unmarshal(gc.ConfigCenter.Format, data, tmpFileConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
+	if gc.ConfigCenter.Format == "" {
+		gc.ConfigCenter.Format = fromat
+	}
 	tmpEnvConfigValue := tmpFileConfigValue.Elem().FieldByName(strings.UpperCaseFirst(gc.Env))
 	if !tmpEnvConfigValue.IsValid() || tmpEnvConfigValue.IsZero() {
-		log.Fatal("缺少环境配置")
+		log.Warn("lack of environment configuration, try single config file")
+		return
 	}
 
 	// config字段顺序不能变,ConfigCenter 保持在最后
 	for i := 0; i < envConfigValue.NumField(); i++ {
 		field := envConfigValue.Field(i)
 		structField := envConfigTyp.Field(i)
-		if structField.Name == "ConfigCenter" {
+		if structField.Name == fixedFieldNameEnvConfigCenter {
 			tmpccField := tmpEnvConfigValue.Field(i)
 			for j := 0; j < confCenterValue.NumField(); j++ {
 				ccField := confCenterValue.Field(j)
 				ccstructField := confCenterTyp.Field(j)
-				if ccstructField.Name == "ConfigCenter" {
+				if ccstructField.Name == fixedFieldNameEnvConfigCenter {
 					ccField.Set(tmpccField.FieldByName(strings.UpperCaseFirst(gc.EnvConfig.ConfigCenter.ConfigType)))
 					continue
 				}
@@ -120,7 +129,5 @@ func (gc *globalConfig) setEnvConfig(data []byte) {
 			log.Fatal(err)
 		}
 	}
-	if gc.ConfigCenter.Format == "" {
-		gc.ConfigCenter.Format = fromat
-	}
+
 }

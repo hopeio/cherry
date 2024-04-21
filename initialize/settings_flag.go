@@ -32,7 +32,7 @@ type FlagTagSettings struct {
 func init() {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 	commandLine := newCommandLine()
-	injectFlagConfig(commandLine, reflect.ValueOf(&globalConfig1.BasicConfig).Elem())
+	injectFlagConfig(commandLine, reflect.ValueOf(globalConfig1).Elem())
 	parseFlag(commandLine)
 
 	if globalConfig1.Proxy != "" {
@@ -75,15 +75,18 @@ func injectFlagConfig(commandLine *pflag.FlagSet, fcValue reflect.Value) {
 		flagTag := fieldType.Tag.Get(flagTagName)
 		fieldValue := fcValue.Field(i)
 		kind := fieldValue.Kind()
-		if kind == reflect.Pointer {
+		switch kind {
+		case reflect.Pointer:
 			if !fieldValue.IsValid() || fieldValue.IsNil() {
 				fieldValue.Set(reflect.New(fieldValue.Type().Elem()))
 			}
 			injectFlagConfig(commandLine, fieldValue.Elem())
-		}
-		if kind == reflect.Struct {
+		case reflect.Struct:
 			injectFlagConfig(commandLine, fieldValue)
+		case reflect.Slice, reflect.Array, reflect.Map:
+			// TODO: support
 		}
+
 		if flagTag != "" {
 			var flagTagSettings FlagTagSettings
 			ParseTagSetting(flagTag, ";", &flagTagSettings)

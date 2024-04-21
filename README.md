@@ -25,11 +25,12 @@
 ```toml
 Module = "hoper"
 # dev | test | stage | prod |...
-Env = "dev"
+Env = "dev" # 将会选择与Env名字相同的环境配置
 
-[dev]
+[dev] 
 debug = true
-ConfigTemplateDir = "."
+ConfigTemplateDir = "." # 将会生成配置模板
+# 上方是一个个初始配置,如果不知道如何进行接下来的配置,可以先启动生成配置模板
 [dev.configCenter]
 configType = "local"
 Watch  = true
