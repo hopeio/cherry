@@ -1,6 +1,7 @@
 package client_generic
 
 import (
+	"context"
 	"github.com/hopeio/cherry/utils/net/http/client"
 	"net/http"
 	"time"
@@ -47,6 +48,11 @@ func (r *Request[RES]) Post(url string, param any) (*RES, error) {
 	return response, err
 }
 
+func (req *Request[RES]) Context(ctx context.Context) *Request[RES] {
+	(*client.Request)(req).Context(ctx)
+	return req
+}
+
 func (req *Request[RES]) Url(url string) *Request[RES] {
 	(*client.Request)(req).Url(url)
 	return req
@@ -62,8 +68,8 @@ func (req *Request[RES]) ContentType(contentType client.ContentType) *Request[RE
 	return req
 }
 
-func (req *Request[RES]) SetHeader(header client.Header) *Request[RES] {
-	(*client.Request)(req).SetHeader(header)
+func (req *Request[RES]) Header(header client.Header) *Request[RES] {
+	(*client.Request)(req).Header(header)
 	return req
 }
 
@@ -77,8 +83,8 @@ func (req *Request[RES]) CachedHeader(key string) *Request[RES] {
 	return req
 }
 
-func (req *Request[RES]) WithLogger(logger client.LogCallback) *Request[RES] {
-	(*client.Request)(req).WithLogger(logger)
+func (req *Request[RES]) Logger(logger client.LogCallback) *Request[RES] {
+	(*client.Request)(req).Logger(logger)
 	return req
 }
 
@@ -89,6 +95,11 @@ func (req *Request[RES]) DisableLog() *Request[RES] {
 
 func (req *Request[RES]) LogLevel(lvl client.LogLevel) *Request[RES] {
 	(*client.Request)(req).LogLevel(lvl)
+	return req
+}
+
+func (req *Request[RES]) Tag(tag string) *Request[RES] {
+	(*client.Request)(req).Tag(tag)
 	return req
 }
 
@@ -103,8 +114,8 @@ func (req *Request[RES]) Timeout(timeout time.Duration) *Request[RES] {
 	return req
 }
 
-func (req *Request[RES]) WithClient(c *http.Client) *Request[RES] {
-	(*client.Request)(req).WithClient(c)
+func (req *Request[RES]) Client(c *http.Client) *Request[RES] {
+	(*client.Request)(req).Client(c)
 	return req
 }
 
@@ -128,8 +139,8 @@ func (req *Request[RES]) SetRequest(handle func(*client.Request)) *Request[RES] 
 	return req
 }
 
-func (req *Request[RES]) SetProxy(url string) *Request[RES] {
-	(*client.Request)(req).SetProxy(url)
+func (req *Request[RES]) Proxy(url string) *Request[RES] {
+	(*client.Request)(req).Proxy(url)
 	return req
 }
 

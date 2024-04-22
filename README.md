@@ -169,7 +169,7 @@ func main() {
   }
   server.Start(&server.Server{
         Config: config,
-		GRPCHandler: func(gs *grpc.Server) {
+		GrpcHandler: func(gs *grpc.Server) {
 			user.RegisterUserServiceServer(gs, userservice.GetUserService())
 		},
 		GinHandler: func(app *gin.Engine) {

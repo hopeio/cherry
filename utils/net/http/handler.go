@@ -1,6 +1,9 @@
 package http
 
-import "net/http"
+import (
+	"github.com/hopeio/cherry/utils/definition/types"
+	"net/http"
+)
 
 type Handlers []http.Handler
 
@@ -28,4 +31,11 @@ func (hs HandlerFuncs) HandlerFunc() http.HandlerFunc {
 
 func (hs *HandlerFuncs) Add(handler http.HandlerFunc) {
 	*hs = append(*hs, handler)
+}
+
+// TODO
+func CommonHandler[REQ, RES any](method types.GrpcServiceMethod[REQ, RES]) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
+	})
 }

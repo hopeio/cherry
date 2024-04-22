@@ -3,6 +3,7 @@ package confdao
 import (
 	"database/sql"
 	"fmt"
+	"github.com/hopeio/cherry/_example/user/model"
 	"github.com/hopeio/cherry/initialize/conf_dao/gormdb/postgres"
 	"github.com/hopeio/cherry/initialize/conf_dao/log"
 	"github.com/hopeio/cherry/initialize/conf_dao/mail"
@@ -87,4 +88,5 @@ func (d *dao) InitAfterInject() {
 	db.Callback().Update().Remove("gorm:save_after_associations")
 
 	d.StdDB, _ = db.DB.DB()
+	d.GORMDB.Migrator().AutoMigrate(&model.TestJson{})
 }

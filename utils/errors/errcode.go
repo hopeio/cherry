@@ -17,8 +17,8 @@ type DefaultErrRep interface {
 	ErrRep() *ErrRep
 }
 
-type GRPCStatus interface {
-	GRPCStatus() *status.Status
+type GrpcStatus interface {
+	GrpcStatus() *status.Status
 }
 
 type ErrCode uint32
@@ -40,7 +40,7 @@ func (x ErrCode) ErrRep() *ErrRep {
 }
 
 // example 实现
-func (x ErrCode) GRPCStatus() *status.Status {
+func (x ErrCode) GrpcStatus() *status.Status {
 	return status.New(codes.Code(x), x.String())
 }
 

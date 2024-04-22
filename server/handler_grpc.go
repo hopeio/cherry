@@ -25,7 +25,7 @@ import (
 func (s *Server) grpcHandler() *grpc.Server {
 	//conf := s.Config
 	grpclog.SetLoggerV2(zapgrpc.NewLogger(log.GetCallerSkipLogger(3).Logger))
-	if s.GRPCHandler != nil {
+	if s.GrpcHandler != nil {
 		var stream = []grpc.StreamServerInterceptor{StreamAccess}
 		var unary = []grpc.UnaryServerInterceptor{UnaryAccess(s.Config), Validator}
 		// 想做的大而全几乎不可能,为了更高的自由度,这里不做实现,均由使用者自行实现,后续可提供默认实现,但同样要由用户自己调用
@@ -59,7 +59,7 @@ func (s *Server) grpcHandler() *grpc.Server {
 		/*		if conf.Metrics {
 				srvMetrics.InitializeMetrics(grpcServer)
 			}*/
-		s.GRPCHandler(grpcServer)
+		s.GrpcHandler(grpcServer)
 		reflection.Register(grpcServer)
 		return grpcServer
 	}
@@ -89,11 +89,11 @@ func UnaryAccess(conf *Config) func(
 		var code int
 		//不能添加错误处理，除非所有返回的结构相同
 		if err != nil {
-			if v, ok := err.(interface{ GRPCStatus() *status.Status }); !ok {
+			if v, ok := err.(interface{ GrpcStatus() *status.Status }); !ok {
 				err = errorcode.Unknown.Message(err.Error())
 				code = int(errorcode.Unknown)
 			} else {
-				code = int(v.GRPCStatus().Code())
+				code = int(v.GrpcStatus().Code())
 			}
 		}
 		if err == nil && reflect2.IsNil(resp) {
@@ -122,7 +122,7 @@ func StreamAccess(srv interface{}, stream grpc.ServerStream, info *grpc.StreamSe
 		}
 		//不能添加错误处理，除非所有返回的结构相同
 		if err != nil {
-			if _, ok := err.(interface{ GRPCStatus() *status.Status }); !ok {
+			if _, ok := err.(interface{ GrpcStatus() *status.Status }); !ok {
 				err = errorcode.Unknown.Message(err.Error())
 			}
 		}

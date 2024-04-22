@@ -91,6 +91,7 @@ type Request struct {
 	// 内部使用标志性字段,用于判断是否重复设置代理,为空时代表从环境变量获取
 	clientProxy string
 	proxyUrl    string
+	tag         string // 默认json
 
 	// request
 	url, method        string
@@ -125,11 +126,9 @@ func newRequest(url, method string) *Request {
 }
 
 func DefaultHeaderRequest() *Request {
-	return &Request{ctx: context.Background(), client: defaultClient,
-		header:   DefaultHeader(),
-		logger:   defaultLog,
-		logLevel: globalLevel,
-	}
+	req := newRequest("", "")
+	req.Header(DefaultHeader())
+	return req
 }
 
 func NewGetRequest(url string) *Request {
@@ -148,6 +147,11 @@ func NewDeleteRequest(url string) *Request {
 	return newRequest(url, http.MethodDelete)
 }
 
+func (req *Request) Context(ctx context.Context) *Request {
+	req.ctx = ctx
+	return req
+}
+
 func (req *Request) Url(url string) *Request {
 	req.url = url
 	return req
@@ -163,7 +167,7 @@ func (req *Request) ContentType(contentType ContentType) *Request {
 	return req
 }
 
-func (req *Request) SetHeader(header Header) *Request {
+func (req *Request) Header(header Header) *Request {
 	req.header = header
 	return req
 }
@@ -178,7 +182,7 @@ func (req *Request) CachedHeader(key string) *Request {
 	return req
 }
 
-func (req *Request) WithLogger(logger LogCallback) *Request {
+func (req *Request) Logger(logger LogCallback) *Request {
 	if logger == nil {
 		return req
 	}
@@ -196,6 +200,11 @@ func (req *Request) LogLevel(lvl LogLevel) *Request {
 	return req
 }
 
+func (req *Request) Tag(tag string) *Request {
+	req.tag = tag
+	return req
+}
+
 // handler 返回值:是否重试,返回数据,错误
 func (req *Request) ResponseHandler(handler func(response *http.Response) (retry bool, data []byte, err error)) *Request {
 	req.responseHandler = handler
@@ -208,7 +217,7 @@ func (req *Request) Timeout(timeout time.Duration) *Request {
 	return req
 }
 
-func (req *Request) WithClient(client *http.Client) *Request {
+func (req *Request) Client(client *http.Client) *Request {
 	req.client = client
 	return req
 }
@@ -229,9 +238,13 @@ func (req *Request) RetryHandler(handle func(*Request)) *Request {
 	return req
 }
 
-func (req *Request) SetProxy(url string) *Request {
+func (req *Request) Proxy(url string) *Request {
 	req.proxyUrl = url
 	return req
+}
+
+func (req *Request) BasicAuth(authUser, authPass string) {
+
 }
 
 type ResponseBodyCheck interface {
@@ -260,7 +273,7 @@ func (req *Request) setHeader(request *http.Request) {
 		request.SetBasicAuth(req.AuthUser, req.AuthPass)
 	}
 	if req.contentType == ContentTypeJson {
-		request.Header.Set(httpi.HeaderContentType, httpi.ContentJSONHeaderValue)
+		request.Header.Set(httpi.HeaderContentType, httpi.ContentJsonHeaderValue)
 	} else if req.contentType == ContentTypeFormData {
 		request.Header.Set(httpi.HeaderContentType, httpi.ContentFormHeaderValue)
 	} else {
@@ -402,6 +415,11 @@ Retry:
 		return err
 	}
 
+	if httpresp, ok := response.(*http.Response); ok {
+		*httpresp = *resp
+		return err
+	}
+
 	if httpresp, ok := response.(**http.Response); ok {
 		*httpresp = resp
 		return err
@@ -417,6 +435,7 @@ Retry:
 	} else {
 		reader = resp.Body
 	}
+
 	if httpresp, ok := response.(*io.Reader); ok {
 		*httpresp = reader
 		return err
@@ -431,6 +450,7 @@ Retry:
 		if err != nil {
 			return err
 		}
+
 		if retry {
 			if req.logLevel > LogLevelSilent {
 				req.logger(url, method, req.AuthUser, reqBody, respBody, statusCode, time.Since(reqTime), errors.New("will retry"))
@@ -447,7 +467,7 @@ Retry:
 	respBody.Data = respBytes
 	if len(respBytes) > 0 && response != nil {
 		contentType := resp.Header.Get(httpi.HeaderContentType)
-		if strings.HasPrefix(contentType, httpi.ContentJSONHeaderValue) {
+		if strings.HasPrefix(contentType, httpi.ContentJsonHeaderValue) {
 			respBody.ContentType = ContentTypeJson
 		} else if strings.HasPrefix(contentType, httpi.ContentFormHeaderValue) {
 			respBody.ContentType = ContentTypeForm

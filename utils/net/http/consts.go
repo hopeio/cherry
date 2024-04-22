@@ -5,30 +5,30 @@ const (
 	ContentBinaryHeaderValue = "application/octet-stream"
 	// ContentWebassemblyHeaderValue header value for web assembly files.
 	ContentWebassemblyHeaderValue = "application/wasm"
-	// ContentHTMLHeaderValue is the  string of text/html response header's content type value.
-	ContentHTMLHeaderValue = "text/html"
-	// ContentJSONHeaderValue header value for JSON data.
-	ContentJSONHeaderValue = "application/json"
-	// ContentJSONProblemHeaderValue header value for JSON API problem error.
+	// ContentHtmlHeaderValue is the  string of text/html response header's content type value.
+	ContentHtmlHeaderValue = "text/html"
+	// ContentJsonHeaderValue header value for JSON data.
+	ContentJsonHeaderValue = "application/json"
+	// ContentJsonProblemHeaderValue header value for JSON API problem error.
 	// Read more at: https://tools.ietf.org/html/rfc7807
-	ContentJSONProblemHeaderValue = "application/problem+json"
-	// ContentXMLProblemHeaderValue header value for XML API problem error.
+	ContentJsonProblemHeaderValue = "application/problem+json"
+	// ContentXmlProblemHeaderValue header value for XML API problem error.
 	// Read more at: https://tools.ietf.org/html/rfc7807
-	ContentXMLProblemHeaderValue = "application/problem+xml"
+	ContentXmlProblemHeaderValue = "application/problem+xml"
 	// ContentJavascriptHeaderValue header value for JSONP & Javascript data.
 	ContentJavascriptHeaderValue = "text/javascript"
 	// ContentTextHeaderValue header value for Text data.
 	ContentTextHeaderValue = "text/plain"
-	// ContentXMLHeaderValue header value for XML data.
-	ContentXMLHeaderValue = "text/xml"
-	// ContentXMLUnreadableHeaderValue obselete header value for XML.
-	ContentXMLUnreadableHeaderValue = "application/xml"
+	// ContentXmlHeaderValue header value for XML data.
+	ContentXmlHeaderValue = "text/xml"
+	// ContentXmlUnreadableHeaderValue obselete header value for XML.
+	ContentXmlUnreadableHeaderValue = "application/xml"
 	// ContentMarkdownHeaderValue custom key/content type, the real is the text/html.
 	ContentMarkdownHeaderValue = "text/markdown"
-	// ContentYAMLHeaderValue header value for YAML data.
-	ContentYAMLHeaderValue = "application/x-yaml"
-	// ContentYAMLTextHeaderValue header value for YAML plain text.
-	ContentYAMLTextHeaderValue = "text/yaml"
+	// ContentYamlHeaderValue header value for YAML data.
+	ContentYamlHeaderValue = "application/x-yaml"
+	// ContentYamlTextHeaderValue header value for YAML plain text.
+	ContentYamlTextHeaderValue = "text/yaml"
 	// ContentProtobufHeaderValue header value for Protobuf messages data.
 	ContentProtobufHeaderValue = "application/x-protobuf"
 	// ContentMsgPackHeaderValue header value for MsgPack data.
@@ -39,11 +39,11 @@ const (
 	ContentFormHeaderValue = "application/x-www-form-urlencoded"
 	// ContentFormMultipartHeaderValue header value for post multipart form data.
 	ContentFormMultipartHeaderValue = "multipart/form-data"
-	// ContentGRPCHeaderValue Content-Type header value for gRPC.
-	ContentGRPCHeaderValue    = "application/grpc"
-	ContentGRPCWebHeaderValue = "application/grpc-web"
+	// ContentGrpcHeaderValue Content-Type header value for gRPC.
+	ContentGrpcHeaderValue    = "application/grpc"
+	ContentGrpcWebHeaderValue = "application/grpc-web"
 
-	ContentJSONUTF8HeaderValue = "application/json;charset=utf-8"
+	ContentJsonUtf8HeaderValue = "application/json;charset=utf-8"
 
 	ContentFormParamHeaderValue = "application/x-www-form-urlencoded;param=value"
 )

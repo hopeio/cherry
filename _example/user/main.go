@@ -23,7 +23,7 @@ func main() {
 	server.Start(&server.Server{
 		Config: config,
 		//为了可以自定义中间件
-		GRPCHandler: api.GrpcRegister,
+		GrpcHandler: api.GrpcRegister,
 		GinHandler:  api.GinRegister,
 		/*		GraphqlHandler: model.NewExecutableSchema(model.Config{
 				Resolvers: &model.GQLServer{

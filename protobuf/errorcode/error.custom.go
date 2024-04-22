@@ -22,7 +22,7 @@ func (x ErrCode) Rep() *ErrRep {
 }
 
 // example 实现
-func (x ErrCode) GRPCStatus() *status.Status {
+func (x ErrCode) GrpcStatus() *status.Status {
 	return status.New(codes.Code(x), x.String())
 }
 
@@ -99,7 +99,7 @@ func (x *ErrRep) Error() string {
 	return x.Message
 }
 
-func (x *ErrRep) GRPCStatus() *status.Status {
+func (x *ErrRep) GrpcStatus() *status.Status {
 	return status.New(codes.Code(x.Code), x.Message)
 }
 

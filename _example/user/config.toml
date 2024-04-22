@@ -4,7 +4,7 @@ Env = "dev"
 
 [dev]
 debug = true
-ConfigTemplateDir = "./_example/user"
+ConfigTemplateDir = "."
 
 [dev.configCenter]
 Format = "toml"
@@ -12,7 +12,7 @@ configType = "local"
 NoInject = ["Apollo","Etcd", "Es"]
 
 [dev.configCenter.local]
-ConfigPath = "D:/code/hopeio/hoper/server/go/local.toml"
+ConfigPath = "D:/local.toml"
 ReloadType = "fsnotify"
 
 [test]

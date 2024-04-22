@@ -86,6 +86,18 @@ enum UserStatus {
   UserStatusDeleted = 4 [(enum.enumvalue_cn)= "已注销"];
 }
 
+enum UserErr {
+  option (go.enum) = {stringer_name: 'OrigString'};
+  option (enum.enum_errorcode) = true;
+  option (enum.enum_jsonmarshal) = false;
+  UserErrPlaceholder = 0 [(enum.enumvalue_cn)= "占位"];
+  UserErrLogin = 1000 [(enum.enumvalue_cn)= "用户名或密码错误"];
+  UserErrNoActive = 1001 [(enum.enumvalue_cn)= "未激活账号"];
+  UserErrNoAuthority = 1002 [(enum.enumvalue_cn)= "无权限"];
+  UserErrLoginTimeout = 1003 [(enum.enumvalue_cn)= "登录超时"];
+  UserErrInvalidToken = 1004 [(enum.enumvalue_cn)= "Token错误"];
+  UserErrNoLogin = 1005 [(enum.enumvalue_cn)= "未登录"];
+}
 
 service UserService {
   //注册

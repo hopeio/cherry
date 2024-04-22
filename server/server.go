@@ -31,7 +31,7 @@ import (
 type Server struct {
 	Config *Config
 	// 注册 grpc 服务
-	GRPCHandler func(*grpc.Server)
+	GrpcHandler func(*grpc.Server)
 	// 注册 grpc-gateway 服务
 	GatewayHandler gateway.GatewayHandler
 	// 注册 gin 服务
@@ -50,7 +50,7 @@ func NewServer(config *Config, ginhandler func(*gin.Engine), grpchandler func(*g
 	return &Server{
 		Config:         config,
 		GinHandler:     ginhandler,
-		GRPCHandler:    grpchandler,
+		GrpcHandler:    grpchandler,
 		GatewayHandler: gatewayhandler,
 		GraphqlHandler: graphqlhandler,
 	}
@@ -130,7 +130,7 @@ func (s *Server) Start() {
 		defer func() {
 			if err := recover(); err != nil {
 				log.Errorw(fmt.Sprintf("panic: %v", err), zap.String(log.FieldStack, stringsi.BytesToString(debug.Stack())))
-				w.Header().Set(httpi.HeaderContentType, httpi.ContentJSONHeaderValue)
+				w.Header().Set(httpi.HeaderContentType, httpi.ContentJsonHeaderValue)
 				_, err := w.Write(httpi.ResponseSysErr)
 				if err != nil {
 					log.Error(err)
@@ -148,8 +148,8 @@ func (s *Server) Start() {
 		r = r.WithContext(ctx.ContextWrapper())
 
 		contentType := r.Header.Get(httpi.HeaderContentType)
-		if strings.HasPrefix(contentType, httpi.ContentGRPCHeaderValue) {
-			if strings.HasPrefix(contentType[len(httpi.ContentGRPCHeaderValue):], "-web") && wrappedGrpc != nil {
+		if strings.HasPrefix(contentType, httpi.ContentGrpcHeaderValue) {
+			if strings.HasPrefix(contentType[len(httpi.ContentGrpcHeaderValue):], "-web") && wrappedGrpc != nil {
 				wrappedGrpc.ServeHTTP(w, r)
 			} else if r.ProtoMajor == 2 && grpcServer != nil {
 				grpcServer.ServeHTTP(w, r) // gRPC Server

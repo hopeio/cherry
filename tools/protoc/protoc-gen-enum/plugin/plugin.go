@@ -195,7 +195,7 @@ func (b *Builder) generateErrorCode(f *protogen.File, e *protogen.Enum, g *proto
 
 	g.P("}")
 	g.P()
-	g.P("func (x ", ccTypeName, ") GRPCStatus() *", generateImport("Status", "google.golang.org/grpc/status", g), " {")
+	g.P("func (x ", ccTypeName, ") GrpcStatus() *", generateImport("Status", "google.golang.org/grpc/status", g), " {")
 
 	g.P(`return `, `status.New(`, generateImport("Code", "google.golang.org/grpc/codes", g), `(x), x.String())`)
 

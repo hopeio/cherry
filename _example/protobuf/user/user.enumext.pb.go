@@ -2,7 +2,11 @@ package user
 
 import (
 	errors "errors"
+	errorcode "github.com/hopeio/cherry/protobuf/errorcode"
+	log "github.com/hopeio/cherry/utils/log"
 	strings "github.com/hopeio/cherry/utils/strings"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 	io "io"
 )
 
@@ -31,7 +35,7 @@ func (x *Gender) UnmarshalJSON(data []byte) error {
 		*x = Gender(value)
 		return nil
 	}
-	return errors.New("无效的Gender")
+	return errors.New("invalidGender")
 }
 
 func (x Gender) MarshalGQL(w io.Writer) {
@@ -43,7 +47,7 @@ func (x *Gender) UnmarshalGQL(v interface{}) error {
 		*x = Gender(i)
 		return nil
 	}
-	return errors.New("枚举值需要数字类型")
+	return errors.New("enum need integer type")
 }
 
 func (x Role) String() string {
@@ -71,7 +75,7 @@ func (x *Role) UnmarshalJSON(data []byte) error {
 		*x = Role(value)
 		return nil
 	}
-	return errors.New("无效的Role")
+	return errors.New("invalidRole")
 }
 
 func (x Role) MarshalGQL(w io.Writer) {
@@ -83,7 +87,7 @@ func (x *Role) UnmarshalGQL(v interface{}) error {
 		*x = Role(i)
 		return nil
 	}
-	return errors.New("枚举值需要数字类型")
+	return errors.New("enum need integer type")
 }
 
 func (x UserStatus) String() string {
@@ -113,7 +117,7 @@ func (x *UserStatus) UnmarshalJSON(data []byte) error {
 		*x = UserStatus(value)
 		return nil
 	}
-	return errors.New("无效的UserStatus")
+	return errors.New("invalidUserStatus")
 }
 
 func (x UserStatus) MarshalGQL(w io.Writer) {
@@ -125,5 +129,72 @@ func (x *UserStatus) UnmarshalGQL(v interface{}) error {
 		*x = UserStatus(i)
 		return nil
 	}
-	return errors.New("枚举值需要数字类型")
+	return errors.New("enum need integer type")
+}
+
+func (x UserErr) String() string {
+
+	switch x {
+	case UserErrPlaceholder:
+		return "占位"
+	case UserErrLogin:
+		return "用户名或密码错误"
+	case UserErrNoActive:
+		return "未激活账号"
+	case UserErrNoAuthority:
+		return "无权限"
+	case UserErrLoginTimeout:
+		return "登录超时"
+	case UserErrInvalidToken:
+		return "Token错误"
+	case UserErrNoLogin:
+		return "未登录"
+	}
+	return ""
+}
+
+func (x UserErr) MarshalJSON() ([]byte, error) {
+	return strings.QuoteToBytes(x.String()), nil
+}
+
+func (x *UserErr) UnmarshalJSON(data []byte) error {
+	value, ok := UserErr_value[string(data)]
+	if ok {
+		*x = UserErr(value)
+		return nil
+	}
+	return errors.New("invalidUserErr")
+}
+
+func (x UserErr) Error() string {
+	return x.String()
+}
+
+func (x UserErr) ErrRep() *errorcode.ErrRep {
+	return &errorcode.ErrRep{Code: errorcode.ErrCode(x), Message: x.String()}
+}
+
+func (x UserErr) Message(msg string) error {
+	return &errorcode.ErrRep{Code: errorcode.ErrCode(x), Message: msg}
+}
+
+func (x UserErr) ErrorLog(err error) error {
+	log.Error(err)
+	return &errorcode.ErrRep{Code: errorcode.ErrCode(x), Message: x.String()}
+}
+
+func (x UserErr) GrpcStatus() *status.Status {
+	return status.New(codes.Code(x), x.String())
+}
+
+func (x UserErr) MarshalGQL(w io.Writer) {
+	w.Write(strings.QuoteToBytes(x.String()))
+}
+
+func (x *UserErr) UnmarshalGQL(v interface{}) error {
+	if i, ok := v.(int32); ok {
+		*x = UserErr(i)
+		return nil
+	}
+	return errors.New("enum need integer type")
 }

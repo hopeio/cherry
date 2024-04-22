@@ -1,6 +1,7 @@
 package client
 
 import (
+	"github.com/hopeio/cherry/utils/log"
 	"github.com/hopeio/cherry/utils/number"
 	stringsi "github.com/hopeio/cherry/utils/strings"
 	"net/http"
@@ -23,17 +24,28 @@ func UrlParam(param interface{}) string {
 }
 
 func parseParam(param interface{}, query url.Values) {
-	v := reflect.ValueOf(param).Elem()
+	v := reflect.ValueOf(param)
+	if v.Kind() == reflect.Interface || v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
 	t := v.Type()
 	for i := 0; i < v.NumField(); i++ {
 		filed := v.Field(i)
 		kind := filed.Kind()
-		if kind == reflect.Interface || kind == reflect.Ptr {
-			parseParam(filed.Interface(), query)
+		if kind == reflect.Interface || kind == reflect.Ptr || kind == reflect.Struct {
+			log.Panicf("unsupported sub field kind %v", kind)
+		}
+
+		if kind == reflect.Slice || kind == reflect.Array {
+			for i := 0; i < filed.Len(); i++ {
+				query.Add(t.Field(i).Tag.Get("json"), getFieldValue(filed.Index(i)))
+			}
 			continue
 		}
-		if kind == reflect.Struct {
-			parseParam(filed.Addr().Interface(), query)
+		if kind == reflect.Map {
+			for _, key := range filed.MapKeys() {
+				query.Set(key.Interface().(string), getFieldValue(filed.MapIndex(key)))
+			}
 			continue
 		}
 		value := getFieldValue(filed)
@@ -54,10 +66,8 @@ func getFieldValue(v reflect.Value) string {
 		return number.FormatFloat(v.Float())
 	case reflect.String:
 		return v.String()
-	case reflect.Interface, reflect.Ptr:
-		return getFieldValue(v.Elem())
-	case reflect.Struct:
-
+	case reflect.Interface, reflect.Ptr, reflect.Struct:
+		panic("unsupported kind " + v.Kind().String())
 	}
 	return ""
 }

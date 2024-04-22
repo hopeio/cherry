@@ -2,8 +2,11 @@ package service
 
 import (
 	"context"
+	"github.com/gin-gonic/gin"
+	"github.com/hopeio/cherry/_example/user/dao"
 	gormi "github.com/hopeio/cherry/utils/dao/db/gorm"
 	"google.golang.org/protobuf/types/known/wrapperspb"
+	"strconv"
 
 	"github.com/hopeio/cherry/_example/protobuf/user"
 	"github.com/hopeio/cherry/_example/user/confdao"
@@ -42,4 +45,15 @@ func (u *UserService) Signup(ctx context.Context, req *user.SignupReq) (*wrapper
 		return nil, ctxi.ErrorLog(errorcode.DBError.Message("新建出错"), err, "UserService.Creat")
 	}
 	return &wrapperspb.StringValue{Value: "注册成功"}, nil
+}
+
+func Test(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, _ := strconv.Atoi(idStr)
+	ctxi := http_context.ContextFromContext(ctx.Request.Context())
+	t, err := dao.GetDao(ctxi, confdao.Dao.GORMDB.DB).GetJsonArrayT(id)
+	if err != nil {
+		ctx.Writer.WriteString(err.Error())
+	}
+	ctx.JSON(200, t)
 }

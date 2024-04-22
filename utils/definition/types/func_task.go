@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-type GRPCServiceMethod[REQ, RES any] func(context.Context, REQ) (RES, error)
+type GrpcServiceMethod[REQ, RES any] func(context.Context, REQ) (RES, error)
 
 type Func func()
 
