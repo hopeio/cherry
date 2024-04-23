@@ -96,7 +96,7 @@ type Request struct {
 	// request
 	url, method        string
 	contentType        ContentType
-	AuthUser, AuthPass string
+	authUser, authPass string
 	header             Header
 	cachedHeaderKey    string
 
@@ -244,7 +244,7 @@ func (req *Request) Proxy(url string) *Request {
 }
 
 func (req *Request) BasicAuth(authUser, authPass string) {
-
+	req.authUser, req.authPass = authUser, authPass
 }
 
 type ResponseBodyCheck interface {
@@ -265,12 +265,12 @@ func (req *Request) DoEmpty() error {
 	return req.Do(nil, nil)
 }
 
-func (req *Request) setHeader(request *http.Request) {
+func (req *Request) addHeader(request *http.Request) {
 	for i := 0; i+1 < len(req.header); i += 2 {
 		request.Header.Set(req.header[i], req.header[i+1])
 	}
-	if req.AuthUser != "" && req.AuthPass != "" {
-		request.SetBasicAuth(req.AuthUser, req.AuthPass)
+	if req.authUser != "" && req.authPass != "" {
+		request.SetBasicAuth(req.authUser, req.authPass)
 	}
 	if req.contentType == ContentTypeJson {
 		request.Header.Set(httpi.HeaderContentType, httpi.ContentJsonHeaderValue)
@@ -314,7 +314,7 @@ func (req *Request) Do(param, response interface{}) error {
 	// 日志记录
 	defer func(now time.Time) {
 		if req.logLevel == LogLevelInfo || (err != nil && req.logLevel == LogLevelError) {
-			req.logger(url, method, req.AuthUser, reqBody, respBody, statusCode, time.Since(now), err)
+			req.logger(url, method, req.authUser, reqBody, respBody, statusCode, time.Since(now), err)
 		}
 	}(reqTime)
 
@@ -364,11 +364,11 @@ func (req *Request) Do(param, response interface{}) error {
 		if header, ok := headerMap.Load(req.cachedHeaderKey); ok {
 			request.Header = header.(http.Header)
 		} else {
-			req.setHeader(request)
+			req.addHeader(request)
 			headerMap.Store(req.cachedHeaderKey, request.Header)
 		}
 	} else {
-		req.setHeader(request)
+		req.addHeader(request)
 	}
 
 	var resp *http.Response
@@ -392,7 +392,7 @@ Retry:
 			return err
 		} else {
 			if req.logLevel > LogLevelSilent {
-				req.logger(url, method, req.AuthUser, reqBody, respBody, statusCode, time.Since(reqTime), errors.New(err.Error()+";will retry"))
+				req.logger(url, method, req.authUser, reqBody, respBody, statusCode, time.Since(reqTime), errors.New(err.Error()+";will retry"))
 			}
 			goto Retry
 		}
@@ -453,7 +453,7 @@ Retry:
 
 		if retry {
 			if req.logLevel > LogLevelSilent {
-				req.logger(url, method, req.AuthUser, reqBody, respBody, statusCode, time.Since(reqTime), errors.New("will retry"))
+				req.logger(url, method, req.authUser, reqBody, respBody, statusCode, time.Since(reqTime), errors.New("will retry"))
 			}
 			goto Retry
 		}

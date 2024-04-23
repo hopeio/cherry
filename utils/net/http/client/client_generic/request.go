@@ -134,6 +134,10 @@ func (req *Request[RES]) RetryHandler(handle func(*client.Request)) *Request[RES
 	return req
 }
 
+func (req *Request[RES]) BasicAuth(authUser, authPass string) {
+	(*client.Request)(req).BasicAuth(authUser, authPass)
+}
+
 func (req *Request[RES]) SetRequest(handle func(*client.Request)) *Request[RES] {
 	handle((*client.Request)(req))
 	return req
