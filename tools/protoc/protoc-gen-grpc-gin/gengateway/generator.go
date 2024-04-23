@@ -49,7 +49,7 @@ func New(reg *descriptor2.Registry, useRequestContext bool, registerFuncSuffix s
 		"github.com/grpc-ecosystem/grpc-gateway/v2/utilities",
 		"github.com/hopeio/cherry/utils/net/http/gin",
 		"github.com/hopeio/cherry/utils/net/http/grpc/gateway",
-		"github.com/hopeio/cherry/utils/net/http/request",
+		"github.com/hopeio/cherry/utils/net/http",
 	} {
 		pkg := descriptor2.GoPackage{
 			Path: pkgpath,

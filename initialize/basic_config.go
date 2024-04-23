@@ -13,8 +13,8 @@ type BasicConfig struct {
 
 // SingleFileConfig This is for illustrative purposes only and is not for practical use
 type SingleFileConfig struct {
-	BasicConfig
-	EnvConfig
+	BasicConfig `yaml:",inline"`
+	EnvConfig   `yaml:",inline"`
 }
 
 func (gc *globalConfig) setBasicConfig(data []byte) {

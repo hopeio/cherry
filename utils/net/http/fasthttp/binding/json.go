@@ -2,7 +2,7 @@ package binding
 
 import (
 	"fmt"
-	"github.com/hopeio/cherry/utils/net/http/request/binding"
+	"github.com/hopeio/cherry/utils/net/http/binding"
 	"github.com/valyala/fasthttp"
 )
 

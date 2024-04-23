@@ -3,6 +3,7 @@ package oauth
 import (
 	"context"
 	"fmt"
+	gin2 "github.com/hopeio/cherry/utils/net/http/gin"
 	"log"
 	"net/http"
 	"os"
@@ -10,7 +11,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/cherry/utils/net/http/gin/handler"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 )
@@ -47,7 +47,7 @@ func Test_Oauth(t *testing.T) {
 
 func Test_Oauth2(t *testing.T) {
 	r := gin.New()
-	r.GET("/", handler.Wrap(Index))
+	r.GET("/", gin2.Wrap(Index))
 	r.GET("/auth/{provider}", CallBack)
 	r.GET("/auth/{provider}/callback", CallBack)
 	r.GET("/logout/{provider}", Logout)

@@ -1,0 +1,11 @@
+module: user
+env: dev
+
+dev:
+  debug: true
+  configtemplatedir: "."
+  configcenter:
+    format: yaml
+    configtype: local
+    local:
+      configpath: local.yaml

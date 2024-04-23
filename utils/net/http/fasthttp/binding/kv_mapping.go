@@ -1,7 +1,7 @@
 package binding
 
 import (
-	"github.com/hopeio/cherry/utils/net/http/request/binding"
+	"github.com/hopeio/cherry/utils/net/http/binding"
 	stringsi "github.com/hopeio/cherry/utils/strings"
 	"github.com/valyala/fasthttp"
 	"reflect"

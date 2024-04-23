@@ -1,4 +1,4 @@
-package contexti
+package context
 
 type AuthInfo interface {
 	IdStr() string

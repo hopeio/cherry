@@ -1,4 +1,4 @@
-package request
+package http
 
 import (
 	timei "github.com/hopeio/cherry/utils/time"

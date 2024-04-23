@@ -2,8 +2,8 @@ package binding
 
 import (
 	"github.com/gofiber/fiber/v3"
-	fbinding "github.com/hopeio/cherry/utils/net/http/fasthttp/request/binding"
-	"github.com/hopeio/cherry/utils/net/http/request/binding"
+	"github.com/hopeio/cherry/utils/net/http/binding"
+	binding2 "github.com/hopeio/cherry/utils/net/http/fasthttp/binding"
 )
 
 type formBinding struct{}
@@ -15,7 +15,7 @@ func (formMultipartBinding) Name() string {
 }
 
 func (formMultipartBinding) Bind(ctx fiber.Ctx, obj interface{}) error {
-	if err := binding.MappingByPtr(obj, (*fbinding.MultipartRequest)(ctx.Request()), binding.Tag); err != nil {
+	if err := binding.MappingByPtr(obj, (*binding2.MultipartRequest)(ctx.Request()), binding.Tag); err != nil {
 		return err
 	}
 
@@ -27,7 +27,7 @@ func (formBinding) Name() string {
 }
 
 func (formBinding) Bind(ctx fiber.Ctx, obj interface{}) error {
-	if err := binding.MapForm(obj, (*fbinding.ArgsSource)(ctx.Request().PostArgs())); err != nil {
+	if err := binding.MapForm(obj, (*binding2.ArgsSource)(ctx.Request().PostArgs())); err != nil {
 		return err
 	}
 	return binding.Validate(obj)
@@ -38,7 +38,7 @@ func (formPostBinding) Name() string {
 }
 
 func (formPostBinding) Bind(ctx fiber.Ctx, obj interface{}) error {
-	if err := binding.MapForm(obj, (*fbinding.ArgsSource)(ctx.Request().PostArgs())); err != nil {
+	if err := binding.MapForm(obj, (*binding2.ArgsSource)(ctx.Request().PostArgs())); err != nil {
 		return err
 	}
 	return binding.Validate(obj)

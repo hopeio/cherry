@@ -2,7 +2,7 @@ package jsonpb
 
 import (
 	"github.com/hopeio/cherry/utils/encoding/json"
-	httpi "github.com/hopeio/cherry/utils/net/http"
+	responsei "github.com/hopeio/cherry/utils/net/http"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	"io"
 
@@ -26,7 +26,7 @@ func (j *JSONPb) Marshal(v any) ([]byte, error) {
 	if msg, ok := v.(*wrapperspb.StringValue); ok {
 		v = msg.Value
 	}
-	return json.Marshal(&httpi.ResAnyData{
+	return json.Marshal(&responsei.ResAnyData{
 		Code:    0,
 		Message: "OK",
 		Details: v,

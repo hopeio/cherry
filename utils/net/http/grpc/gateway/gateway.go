@@ -3,7 +3,6 @@ package gateway
 import (
 	"context"
 	httpi "github.com/hopeio/cherry/utils/net/http"
-	"github.com/hopeio/cherry/utils/net/http/request"
 	"net/http"
 	"net/url"
 
@@ -25,7 +24,7 @@ func Gateway(gatewayHandle GatewayHandler) *runtime.ServeMux {
 			if err != nil {
 				area = ""
 			}
-			var token = request.GetToken(req)
+			var token = httpi.GetToken(req)
 
 			return map[string][]string{
 				httpi.HeaderArea:          {area},

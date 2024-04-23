@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/cherry/utils/net/http/api/apidoc"
-	"github.com/hopeio/cherry/utils/net/http/gin/handler"
 )
 
 func OpenApi(mux *gin.Engine, filePath string) {
@@ -16,6 +15,6 @@ func OpenApi(mux *gin.Engine, filePath string) {
 		mod := ctx.Params.ByName("file")
 		http.ServeFile(ctx.Writer, ctx.Request, filePath+"/"+mod+"/"+mod+".apidoc.md")
 	})
-	mux.GET(apidoc.PrefixUri+"swagger", handler.Wrap(apidoc.ApiMod))
-	mux.GET(apidoc.PrefixUri+"swagger/*file", handler.Wrap(apidoc.HttpHandle))
+	mux.GET(apidoc.PrefixUri+"swagger", Wrap(apidoc.ApiMod))
+	mux.GET(apidoc.PrefixUri+"swagger/*file", Wrap(apidoc.HttpHandle))
 }

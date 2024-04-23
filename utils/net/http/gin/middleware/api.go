@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-openapi/spec"
 	"github.com/hopeio/cherry/utils/net/http/api/apidoc"
-	"github.com/hopeio/cherry/utils/reflect"
+	reflecti "github.com/hopeio/cherry/utils/reflect"
 )
 
 // Deprecated
@@ -114,8 +114,8 @@ func DefinitionsApi(definitions map[string]spec.Schema, v interface{}, exclude [
 			typ = "integer"
 		case reflect.Array, reflect.Slice:
 			typ = "array"
-			v = reflect.New(reflect.OriginalType(fieldType)).Interface()
-			subFieldName = reflect.OriginalType(fieldType).Name()
+			v = reflect.New(reflecti.OriginalType(fieldType)).Interface()
+			subFieldName = reflecti.OriginalType(fieldType).Name()
 		case reflect.Float32, reflect.Float64:
 			typ = "number"
 		case reflect.String:

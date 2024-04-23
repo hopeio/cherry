@@ -1,9 +1,9 @@
-package contexti
+package context
 
 import (
 	"context"
 	"github.com/google/uuid"
-	"github.com/hopeio/cherry/utils/net/http/request"
+	"github.com/hopeio/cherry/utils/net/http"
 	timei "github.com/hopeio/cherry/utils/time"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
@@ -31,7 +31,7 @@ type RequestContext[REQ any] struct {
 
 	*DeviceInfo
 
-	request.RequestAt
+	http.RequestAt
 	RequestCtx REQ
 	grpc.ServerTransportStream
 
@@ -113,7 +113,7 @@ func NewRequestContext[REQ any](ctx context.Context, traceId string) *RequestCon
 	return &RequestContext[REQ]{
 		ctx:     ctx,
 		TraceID: traceId,
-		RequestAt: request.RequestAt{
+		RequestAt: http.RequestAt{
 			Time:       now,
 			TimeStamp:  now.Unix(),
 			TimeString: now.Format(timei.TimeFormat),

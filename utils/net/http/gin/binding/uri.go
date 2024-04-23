@@ -2,7 +2,7 @@ package binding
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/cherry/utils/net/http/request/binding"
+	"github.com/hopeio/cherry/utils/net/http/binding"
 	"reflect"
 )
 

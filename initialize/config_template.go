@@ -8,6 +8,7 @@ import (
 	stringsi "github.com/hopeio/cherry/utils/strings"
 	"os"
 	"reflect"
+	"strings"
 )
 
 func (gc *globalConfig) genConfigTemplate(singleFileConfig bool) {
@@ -97,6 +98,9 @@ func struct2MapHelper(format encoding.Format, value reflect.Value, confMap map[s
 					}
 
 					newconfMap := make(map[string]any)
+					if format == encoding.Yaml || format == encoding.Yml {
+						name = strings.ToLower(name)
+					}
 					confMap[name] = newconfMap
 					struct2MapHelper(format, newValue, newconfMap)
 					if len(newconfMap) == 0 {
@@ -111,6 +115,9 @@ func struct2MapHelper(format encoding.Format, value reflect.Value, confMap map[s
 			name := fieldType.Tag.Get(string(format))
 			if name == "" {
 				name = fieldType.Name
+			}
+			if format == encoding.Yaml || format == encoding.Yml {
+				name = strings.ToLower(name)
 			}
 			confMap[name] = field.Interface()
 		}
@@ -129,10 +136,17 @@ func daoConfigTemplateMap(format encoding.Format, value reflect.Value, confMap m
 				name = fieldType.Name
 				tagSettings := ParseInitTagSettings(fieldType.Tag.Get(initTagName))
 				if tagSettings.ConfigName != "" {
-					name = stringsi.UpperCaseFirst(tagSettings.ConfigName)
+					if format == encoding.Yaml || format == encoding.Yml {
+						name = strings.ToLower(tagSettings.ConfigName)
+					} else {
+						name = stringsi.UpperCaseFirst(tagSettings.ConfigName)
+					}
+
 				}
 			}
-
+			if format == encoding.Yaml || format == encoding.Yml {
+				name = strings.ToLower(name)
+			}
 			confMap[name] = newconfMap
 			struct2MapHelper(format, reflect.ValueOf(field.Addr().Interface().(DaoField).Config()).Elem(), newconfMap)
 		}

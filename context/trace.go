@@ -1,4 +1,4 @@
-package contexti
+package context
 
 import (
 	"go.opentelemetry.io/otel"

@@ -3,10 +3,10 @@ package encoding
 type Format string
 
 const (
-	JSON     Format = "json"
-	YAML     Format = "yaml"
-	TOML     Format = "toml"
-	YML      Format = "yml"
+	Json     Format = "json"
+	Yaml     Format = "yaml"
+	Toml     Format = "toml"
+	Yml      Format = "yml"
 	Protobuf Format = "protobuf"
-	XML      Format = "xml"
+	Xml      Format = "xml"
 )

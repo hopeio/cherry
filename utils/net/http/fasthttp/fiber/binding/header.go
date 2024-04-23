@@ -2,8 +2,8 @@ package binding
 
 import (
 	"github.com/gofiber/fiber/v3"
-	fbinding "github.com/hopeio/cherry/utils/net/http/fasthttp/request/binding"
-	"github.com/hopeio/cherry/utils/net/http/request/binding"
+	"github.com/hopeio/cherry/utils/net/http/binding"
+	fbinding "github.com/hopeio/cherry/utils/net/http/fasthttp/binding"
 )
 
 type headerBinding struct{}

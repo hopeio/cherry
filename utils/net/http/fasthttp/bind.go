@@ -1,8 +1,8 @@
-package request
+package fasthttp
 
 import (
 	httpi "github.com/hopeio/cherry/utils/net/http"
-	"github.com/hopeio/cherry/utils/net/http/fasthttp/request/binding"
+	"github.com/hopeio/cherry/utils/net/http/fasthttp/binding"
 	"github.com/valyala/fasthttp"
 )
 

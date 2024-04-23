@@ -5,7 +5,7 @@
 package binding
 
 import (
-	"github.com/hopeio/cherry/utils/net/http/request/binding"
+	"github.com/hopeio/cherry/utils/net/http/binding"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

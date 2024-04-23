@@ -1,13 +1,12 @@
-package request
+package http
 
 import (
-	httpi "github.com/hopeio/cherry/utils/net/http"
-	"github.com/hopeio/cherry/utils/net/http/request/binding"
+	"github.com/hopeio/cherry/utils/net/http/binding"
 	"net/http"
 )
 
 func Bind(r *http.Request, obj interface{}) error {
-	b := binding.Default(r.Method, r.Header.Get(httpi.HeaderContentType))
+	b := binding.Default(r.Method, r.Header.Get(HeaderContentType))
 	return MustBindWith(r, obj, b)
 }
 
@@ -56,7 +55,7 @@ func MustBindWith(r *http.Request, obj interface{}, b binding.Binding) error {
 // It decodes the json payload into the struct specified as a pointer.
 // Like c.GinBind() but this method does not set the response status code to 400 and abort if the json is not valid.
 func ShouldBind(r *http.Request, obj interface{}) error {
-	b := binding.Default(r.Method, r.Header.Get(httpi.HeaderContentType))
+	b := binding.Default(r.Method, r.Header.Get(HeaderContentType))
 	return ShouldBindWith(r, obj, b)
 }
 

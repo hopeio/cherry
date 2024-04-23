@@ -10,14 +10,14 @@ package user
 
 import (
 	"context"
+	gin_0 "github.com/hopeio/cherry/utils/net/http/gin"
 	"io"
 
 	"github.com/gin-gonic/gin"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
-	gin_0 "github.com/hopeio/cherry/utils/net/http/gin"
 	"github.com/hopeio/cherry/utils/net/http/grpc/gateway"
-	"github.com/hopeio/cherry/utils/net/http/request"
+	"github.com/hopeio/cherry/utils/net/http"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
@@ -33,7 +33,7 @@ var _ status.Status
 var _ = runtime.String
 var _ = utilities.NewDoubleArray
 var _ = metadata.Join
-var _ = request.Error
+var _ = http.Error
 
 func request_UserService_Signup_0(ctx *gin.Context, client UserServiceClient) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq SignupReq

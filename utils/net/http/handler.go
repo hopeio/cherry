@@ -2,7 +2,6 @@ package http
 
 import (
 	"github.com/hopeio/cherry/utils/definition/types"
-	"github.com/hopeio/cherry/utils/net/http/request"
 	"net/http"
 )
 
@@ -38,7 +37,7 @@ func (hs *HandlerFuncs) Add(handler http.HandlerFunc) {
 func commonHandler[REQ, RES any](method types.GrpcServiceMethod[*REQ, *RES]) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		req := new(REQ)
-		err := request.Bind(r, req)
+		err := Bind(r, req)
 		if err != nil {
 			return
 		}

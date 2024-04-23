@@ -30,9 +30,9 @@ type EnvConfig struct {
 }
 
 const (
-	fixedFieldNameEnvConfig       = "EnvConfig"
-	fixedFieldNameBasicConfig     = "BasicConfig"
-	fixedFieldNameEnvConfigCenter = "ConfigCenter"
+	fixedFieldNameEnvConfig    = "EnvConfig"
+	fixedFieldNameBasicConfig  = "BasicConfig"
+	fixedFieldNameConfigCenter = "ConfigCenter"
 )
 
 func (gc *globalConfig) setEnvConfig(data []byte) {
@@ -43,7 +43,7 @@ func (gc *globalConfig) setEnvConfig(data []byte) {
 	confCenterTyp := confCenterValue.Type()
 	for i := 0; i < confCenterTyp.NumField(); i++ {
 		field := confCenterTyp.Field(i)
-		if field.Name == fixedFieldNameEnvConfigCenter {
+		if field.Name == fixedFieldNameConfigCenter {
 			continue
 		}
 		structFields = append(structFields, reflect.StructField{Name: field.Name, Type: field.Type, Tag: field.Tag})
@@ -58,8 +58,8 @@ func (gc *globalConfig) setEnvConfig(data []byte) {
 	envConfigTyp := envConfigValue.Type()
 	for i := 0; i < envConfigTyp.NumField(); i++ {
 		field := envConfigTyp.Field(i)
-		if field.Name == fixedFieldNameEnvConfigCenter {
-			envConfigStructFields = append(envConfigStructFields, reflect.StructField{Name: fixedFieldNameEnvConfigCenter, Type: newConfCenterTyp, Tag: field.Tag})
+		if field.Name == fixedFieldNameConfigCenter {
+			envConfigStructFields = append(envConfigStructFields, reflect.StructField{Name: fixedFieldNameConfigCenter, Type: newConfCenterTyp, Tag: field.Tag})
 			continue
 		}
 		envConfigStructFields = append(envConfigStructFields, reflect.StructField{Name: field.Name, Type: field.Type, Tag: field.Tag, Anonymous: field.Anonymous})
@@ -103,12 +103,12 @@ func (gc *globalConfig) setEnvConfig(data []byte) {
 	for i := 0; i < envConfigValue.NumField(); i++ {
 		field := envConfigValue.Field(i)
 		structField := envConfigTyp.Field(i)
-		if structField.Name == fixedFieldNameEnvConfigCenter {
+		if structField.Name == fixedFieldNameConfigCenter {
 			tmpccField := tmpEnvConfigValue.Field(i)
 			for j := 0; j < confCenterValue.NumField(); j++ {
 				ccField := confCenterValue.Field(j)
 				ccstructField := confCenterTyp.Field(j)
-				if ccstructField.Name == fixedFieldNameEnvConfigCenter {
+				if ccstructField.Name == fixedFieldNameConfigCenter {
 					ccField.Set(tmpccField.FieldByName(strings.UpperCaseFirst(gc.EnvConfig.ConfigCenter.ConfigType)))
 					continue
 				}
@@ -129,5 +129,4 @@ func (gc *globalConfig) setEnvConfig(data []byte) {
 			log.Fatal(err)
 		}
 	}
-
 }

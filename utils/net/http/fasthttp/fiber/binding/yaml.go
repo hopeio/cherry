@@ -2,7 +2,7 @@ package binding
 
 import (
 	"github.com/gofiber/fiber/v3"
-	"github.com/hopeio/cherry/utils/net/http/request/binding"
+	"github.com/hopeio/cherry/utils/net/http/binding"
 )
 
 type yamlBinding struct{}

@@ -3,9 +3,8 @@ package gin_context
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/cherry/context"
+	contexti "github.com/hopeio/cherry/context"
 	httpi "github.com/hopeio/cherry/utils/net/http"
-	"github.com/hopeio/cherry/utils/net/http/request"
 	"go.opentelemetry.io/otel/trace"
 
 	"google.golang.org/grpc/metadata"
@@ -63,7 +62,7 @@ func setWithHttpReq(c *contexti.RequestContext[*gin.Context], r *http.Request) {
 	}
 	c.DeviceInfo = DeviceFromHeader(r.Header)
 	c.Internal = r.Header.Get(httpi.HeaderGrpcInternal)
-	c.Token = request.GetToken(r)
+	c.Token = httpi.GetToken(r)
 }
 
 func DeviceFromHeader(r http.Header) *contexti.DeviceInfo {

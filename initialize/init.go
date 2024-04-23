@@ -31,9 +31,9 @@ func GlobalConfig() *globalConfig {
 // 全局配置
 type globalConfig struct {
 	// 配置文件路径
-	ConfUrl string `flag:"name:config;short:c;default:config.toml;usage:配置文件路径,默认./config.toml或./config/config.toml;env:CONFIG" json:"conf_url,omitempty"`
-	BasicConfig
-	EnvConfig
+	ConfUrl     string `flag:"name:config;short:c;default:config.toml;usage:配置文件路径,默认./config.toml或./config/config.toml;env:CONFIG" json:"conf_url,omitempty"`
+	BasicConfig `yaml:",inline"`
+	EnvConfig   `yaml:",inline"`
 	// confMap map[string]any TODO: Get("xxx.xxx")
 	conf        Config
 	dao         Dao
@@ -89,8 +89,8 @@ func (gc *globalConfig) loadConfig() {
 	if format != "" {
 		// remove .
 		format = format[1:]
-		if format == encoding.YML {
-			format = encoding.YAML
+		if format == encoding.Yml {
+			format = encoding.Yaml
 		}
 	}
 

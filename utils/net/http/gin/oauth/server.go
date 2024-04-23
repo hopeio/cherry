@@ -5,8 +5,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/cherry/protobuf/oauth"
 	"github.com/hopeio/cherry/protobuf/response"
-	httpi "github.com/hopeio/cherry/utils/net/http/request"
-	"github.com/hopeio/cherry/utils/net/http/request/binding"
+	httpi "github.com/hopeio/cherry/utils/net/http"
+	"github.com/hopeio/cherry/utils/net/http/binding"
 
 	"google.golang.org/grpc/metadata"
 )
