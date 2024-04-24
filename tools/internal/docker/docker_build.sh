@@ -8,6 +8,6 @@ fi
 
 dockerTmpDir=$cherry_dir/tools/protoc/_docker
 mkdir $dockerTmpDir && cd $dockerTmpDir
-docker build -t jybl/goprotoc --build-arg IMAGE=$goimage -f $cherry_dir/tools/internal/docker/Dockerfile $dockerTmpDir
+docker build -t jybl/protogen --build-arg IMAGE=$goimage -f $cherry_dir/tools/internal/docker/Dockerfile $dockerTmpDir
 rm -rf $dockerTmpDir
-docker push jybl/goprotoc
+docker push jybl/protogen

@@ -46,6 +46,6 @@ cp -r $cherry_dir/protobuf/_proto $dockerTmpDir/_proto
 cp -r $protoc $dockerTmpDir/protoc
 
 
-docker build -t jybl/goprotoc --build-arg IMAGE=$goimage -f $cherry_dir/tools/internal/docker/Dockerfile_local $dockerTmpDir
+docker build -t jybl/protogen --build-arg IMAGE=$goimage -f $cherry_dir/tools/internal/docker/Dockerfile_local $dockerTmpDir
 rm -rf $dockerTmpDir
-docker push jybl/goprotoc
+docker push jybl/protogen

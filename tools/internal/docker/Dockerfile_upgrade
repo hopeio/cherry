@@ -1,7 +1,7 @@
 ARG IMAGE=golang:latest
 
 # Builder Image
-FROM jybl/goprotoc AS source
+FROM jybl/protogen AS source
 
 FROM ${IMAGE} AS upgrade
 

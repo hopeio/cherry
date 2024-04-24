@@ -10,7 +10,7 @@
 #### generate protobuf
 `protogen go -e -w (-q) (-v) -p $proto_path -g $proto_output_path`
 #### (use docker)
-`docker run --rm -v $project:/work jybl/goprotoc protogen go -e -w -p $proto_path -g $proto_output_path`
+`docker run --rm -v $project:/work jybl/protogen protogen go -e -w -p $proto_path -g $proto_output_path`
 
 ##
 ### initialize
@@ -288,7 +288,7 @@ service UserService {
 - `protogen go -p $proto_path -g $proto_output_path`
 
 #### use docker
-`docker run --rm -v $project_path:/work jybl/goprotoc protogen go --proto=$proto_path --genpath=$proto_output_path`
+`docker run --rm -v $project_path:/work jybl/protogen protogen go --proto=$proto_path --genpath=$proto_output_path`
 
 ### utils
 
@@ -307,7 +307,7 @@ service UserService {
 `$cherry_dir/tools/internal/docker/docker_build_local.sh $GOPATH $PROTOC $Image`
 ```
 ### upgrade go
-`docker build -t jybl/goprotoc -f $cherry_dir/tools/internal/docker/Dockerfile_upgrade .`
+`docker build -t jybl/protogen -f $cherry_dir/tools/internal/docker/Dockerfile_upgrade .`
 ## TODO
 - unit test
 - english document

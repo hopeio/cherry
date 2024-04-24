@@ -1,5 +1,5 @@
 
-ARG BUILD_IMAGE=jybl/goprotoc
+ARG BUILD_IMAGE=jybl/protogen
 ARG RUN_IMAGE=frolvlad/alpine-glibc
 FROM ${BUILD_IMAGE} AS builder
 
