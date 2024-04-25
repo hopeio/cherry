@@ -35,7 +35,7 @@ const (
 	fixedFieldNameConfigCenter = "ConfigCenter"
 )
 
-func (gc *globalConfig) setEnvConfig(data []byte) {
+func (gc *globalConfig) setEnvConfig() {
 
 	fromat := gc.ConfigCenter.Format
 	var structFields []reflect.StructField
@@ -86,7 +86,11 @@ func (gc *globalConfig) setEnvConfig(data []byte) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fromat, err = common.Unmarshal(gc.ConfigCenter.Format, data, tmpFileConfig)
+	/*fromat, err = common.Unmarshal(gc.ConfigCenter.Format, data, tmpFileConfig)
+	if err != nil {
+		log.Fatal(err)
+	}*/
+	err = gc.Viper.Unmarshal(tmpFileConfig, decoderConfigOptions...)
 	if err != nil {
 		log.Fatal(err)
 	}

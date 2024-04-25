@@ -1,8 +1,8 @@
 package initialize
 
 import (
+	"bytes"
 	"github.com/hopeio/cherry/utils/encoding"
-	"github.com/hopeio/cherry/utils/encoding/common"
 	"github.com/hopeio/cherry/utils/log"
 	"github.com/hopeio/cherry/utils/slices"
 	stringsi "github.com/hopeio/cherry/utils/strings"
@@ -10,20 +10,32 @@ import (
 	"strings"
 )
 
-func (gc *globalConfig) UnmarshalAndSet(bytes []byte) {
+func (gc *globalConfig) UnmarshalAndSet(data []byte) {
 	gc.lock.Lock()
-
-	tmpConfig := gc.newStruct()
-	format, err := common.Unmarshal(gc.ConfigCenter.Format, bytes, tmpConfig)
+	err := gc.Viper.MergeConfig(bytes.NewReader(data))
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	tmpConfig := gc.newStruct()
+	/*	format, err := common.Unmarshal(gc.ConfigCenter.Format, data, tmpConfig)
+		if err != nil {
+			log.Fatal(err)
+		}*/
+	//gc.ConfigCenter.Format = format
 	commandLine := newCommandLine()
 	injectFlagConfig(commandLine, reflect.ValueOf(tmpConfig).Elem())
+
+	err = gc.Viper.BindPFlags(commandLine)
+	if err != nil {
+		log.Fatal(err)
+	}
 	parseFlag(commandLine)
 
-	gc.ConfigCenter.Format = format
+	err = gc.Viper.Unmarshal(tmpConfig, decoderConfigOptions...)
+	if err != nil {
+		log.Fatal(err)
+	}
 	gc.inject()
 	gc.lock.Unlock()
 	log.Debugf("Configuration:  %+v", tmpConfig)
@@ -119,14 +131,14 @@ func (gc *globalConfig) setNewStruct(value reflect.Value, typValueMap map[string
 
 // 注入配置及生成DAO
 func (gc *globalConfig) inject() {
-	setConf(gc.conf)
+	confAfterInjectCall(gc.conf)
 	if !gc.initialized && gc.dao != nil {
-		setDaoConf(gc.dao)
-		setDao(gc.dao)
+		daoAfterInjectConfCall(gc.dao)
+		injectDao(gc.dao)
 	}
 }
 
-func setConf(conf Config) {
+func confAfterInjectCall(conf Config) {
 	v := reflect.ValueOf(conf).Elem()
 	if !v.IsValid() {
 		return
@@ -143,7 +155,7 @@ func setConf(conf Config) {
 	conf.InitAfterInject()
 }
 
-func setDaoConf(dao Dao) {
+func daoAfterInjectConfCall(dao Dao) {
 	v := reflect.ValueOf(dao).Elem()
 	if !v.IsValid() {
 		return
@@ -172,7 +184,7 @@ func setDaoConf(dao Dao) {
 	}
 	dao.InitAfterInjectConfig()
 }
-func setDao(dao Dao) {
+func injectDao(dao Dao) {
 	v := reflect.ValueOf(dao).Elem()
 	if !v.IsValid() {
 		return

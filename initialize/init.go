@@ -5,8 +5,8 @@ import (
 	"github.com/hopeio/cherry/initialize/conf_center/local"
 	"github.com/hopeio/cherry/utils/encoding"
 	"github.com/hopeio/cherry/utils/errors/multierr"
+	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
-	"os"
 	"path"
 	"reflect"
 	"strings"
@@ -20,7 +20,18 @@ var (
 	globalConfig1 = &globalConfig{
 		ConfUrl:   "./config.toml",
 		EnvConfig: EnvConfig{Debug: true},
+		Viper:     viper.New(),
 		lock:      sync.RWMutex{},
+	}
+	decoderConfigOptions = []viper.DecoderConfigOption{
+		viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
+			mapstructure.StringToTimeDurationHookFunc(),
+			mapstructure.TextUnmarshallerHookFunc(),
+			mapstructure.StringToSliceHookFunc(","),
+		)),
+		func(config *mapstructure.DecoderConfig) {
+			config.Squash = true
+		},
 	}
 )
 
@@ -35,13 +46,13 @@ type globalConfig struct {
 	ConfUrl     string `flag:"name:config;short:c;default:config.toml;usage:配置文件路径,默认./config.toml或./config/config.toml;env:CONFIG" json:"conf_url,omitempty"`
 	BasicConfig `yaml:",inline"`
 	EnvConfig   `yaml:",inline"`
-	// confMap map[string]any TODO: Get("xxx.xxx")
 	conf        Config
 	dao         Dao
 	deferFuncs  []func()
 	initialized bool
-	*viper.Viper
-	lock sync.RWMutex
+	Logger      *log.Logger
+	Viper       *viper.Viper
+	lock        sync.RWMutex
 }
 
 func Start(conf Config, dao Dao, configCenter ...conf_center.ConfigCenter) func() {
@@ -79,13 +90,13 @@ func (gc *globalConfig) setConfDao(conf Config, dao Dao) {
 
 func (gc *globalConfig) loadConfig() {
 	log.Infof("Load config from: %s\n", gc.ConfUrl)
-	if _, err := os.Stat(gc.ConfUrl); os.IsNotExist(err) {
+	/*	if _, err := os.Stat(gc.ConfUrl); os.IsNotExist(err) {
 		log.Fatalf("配置路径错误: 请确保可执行文件和配置文件在同一目录下或在config目录下或指定配置文件")
-	}
-	data, err := os.ReadFile(gc.ConfUrl)
-	if err != nil {
-		log.Fatalf("读取配置错误: %v", err)
-	}
+	}*/
+	/*	data, err := os.ReadFile(gc.ConfUrl)
+		if err != nil {
+			log.Fatalf("读取配置错误: %v", err)
+		}*/
 
 	format := encoding.Format(path.Ext(gc.ConfUrl))
 	if format != "" {
@@ -95,10 +106,16 @@ func (gc *globalConfig) loadConfig() {
 			format = encoding.Yaml
 		}
 	}
-
+	gc.Viper.SetConfigType(string(format))
+	gc.Viper.SetConfigFile(gc.ConfUrl)
+	gc.Viper.AutomaticEnv()
+	err := gc.Viper.ReadInConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
 	gc.ConfigCenter.Format = format
-	gc.setBasicConfig(data)
-	gc.setEnvConfig(data)
+	gc.setBasicConfig()
+	gc.setEnvConfig()
 	for i := range gc.NoInject {
 		gc.NoInject[i] = strings.ToUpper(gc.NoInject[i])
 	}
@@ -205,4 +222,8 @@ func GetDao[T any]() *T {
 		}
 	}
 	return new(T)
+}
+
+func (gc *globalConfig) Get(key string) any {
+	return gc.Viper.Get(key)
 }

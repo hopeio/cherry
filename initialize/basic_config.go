@@ -1,6 +1,8 @@
 package initialize
 
-import "github.com/hopeio/cherry/utils/encoding/common"
+import (
+	"github.com/hopeio/cherry/utils/log"
+)
 
 // BasicConfig
 // zh: 基本配置，包含模块名
@@ -17,16 +19,20 @@ type SingleFileConfig struct {
 	EnvConfig   `yaml:",inline"`
 }
 
-func (gc *globalConfig) setBasicConfig(data []byte) {
+func (gc *globalConfig) setBasicConfig() {
+	format := gc.ConfigCenter.Format
 	basicConfig := &SingleFileConfig{}
-	format, err := common.Unmarshal(gc.ConfigCenter.Format, data, basicConfig)
+	/*format, err := common.Unmarshal(gc.ConfigCenter.Format, data, basicConfig)
 	if err != nil {
 		return
+	}*/
+	err := gc.Viper.Unmarshal(basicConfig, decoderConfigOptions...)
+	if err != nil {
+		log.Fatal(err)
 	}
 	gc.BasicConfig = basicConfig.BasicConfig
 	gc.EnvConfig = basicConfig.EnvConfig
 	gc.ConfigCenter.Format = format
-
 	if gc.Module == "" {
 		gc.Module = "cherry-app"
 	}
