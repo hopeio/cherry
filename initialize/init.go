@@ -5,6 +5,7 @@ import (
 	"github.com/hopeio/cherry/initialize/conf_center/local"
 	"github.com/hopeio/cherry/utils/encoding"
 	"github.com/hopeio/cherry/utils/errors/multierr"
+	"github.com/spf13/viper"
 	"os"
 	"path"
 	"reflect"
@@ -39,7 +40,8 @@ type globalConfig struct {
 	dao         Dao
 	deferFuncs  []func()
 	initialized bool
-	lock        sync.RWMutex
+	*viper.Viper
+	lock sync.RWMutex
 }
 
 func Start(conf Config, dao Dao, configCenter ...conf_center.ConfigCenter) func() {
