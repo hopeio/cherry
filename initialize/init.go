@@ -6,6 +6,7 @@ import (
 	"github.com/hopeio/cherry/utils/encoding"
 	"github.com/hopeio/cherry/utils/errors/multierr"
 	"github.com/mitchellh/mapstructure"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"path"
 	"reflect"
@@ -18,10 +19,14 @@ import (
 // 约定大于配置
 var (
 	globalConfig1 = &globalConfig{
-		ConfUrl:   "./config.toml",
-		EnvConfig: EnvConfig{Debug: true},
-		Viper:     viper.New(),
-		lock:      sync.RWMutex{},
+		InitConfig: InitConfig{
+			ConfUrl:   "./config.toml",
+			EnvConfig: EnvConfig{Debug: true},
+		},
+		Logger: log.Default(),
+		Viper:  viper.New(),
+		flag:   newCommandLine(),
+		lock:   sync.RWMutex{},
 	}
 	decoderConfigOptions = []viper.DecoderConfigOption{
 		viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
@@ -39,19 +44,29 @@ func GlobalConfig() *globalConfig {
 	return globalConfig1
 }
 
-// globalConfig
-// 全局配置
-type globalConfig struct {
+type InitConfig struct {
 	// 配置文件路径
 	ConfUrl     string `flag:"name:config;short:c;default:config.toml;usage:配置文件路径,默认./config.toml或./config/config.toml;env:CONFIG" json:"conf_url,omitempty"`
 	BasicConfig `yaml:",inline"`
 	EnvConfig   `yaml:",inline"`
-	conf        Config
-	dao         Dao
+}
+
+// globalConfig
+// 全局配置
+type globalConfig struct {
+	InitConfig
+
+	conf Config
+	dao  Dao
+
+	Logger *log.Logger
+	Viper  *viper.Viper
+
+	/*
+		cacheConf      any*/
+	flag        *pflag.FlagSet
 	deferFuncs  []func()
 	initialized bool
-	Logger      *log.Logger
-	Viper       *viper.Viper
 	lock        sync.RWMutex
 }
 
@@ -129,8 +144,8 @@ func (gc *globalConfig) loadConfig() {
 		}
 	}
 
-	gc.applyFlagConfig()
-
+	//gc.applyFlagConfig()
+	parseFlag(gc.flag)
 	gc.conf.InitBeforeInject()
 	if !gc.initialized && gc.dao != nil {
 		gc.dao.InitBeforeInject()

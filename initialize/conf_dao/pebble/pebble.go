@@ -12,14 +12,14 @@ type Config struct {
 
 func (c *Config) InitBeforeInject() {
 }
-func (c *Config) InitAfterInject() {
+func (c *Config) Init() {
 	if c.DirName == "" {
 		log.Fatal("pebble config not set dirname")
 	}
 }
 
 func (c *Config) Build() *pebble.DB {
-	c.InitAfterInject()
+	c.Init()
 	db, err := pebble.Open(c.DirName, &c.Options)
 	if err != nil {
 		log.Fatal(err)

@@ -54,7 +54,8 @@ type Config struct {
 	BaseContext              func() context.Context
 }
 
-func (c *Config) InitBeforeInject() {
+func NewConfig() *Config {
+	c := &Config{}
 	c.Http.Addr = ":8080"
 	c.Http.ReadTimeout = 5 * time.Second
 	c.Http.WriteTimeout = 5 * time.Second
@@ -66,9 +67,10 @@ func (c *Config) InitBeforeInject() {
 	c.Tracing = true
 	c.Metrics = true
 	c.GenDoc = true
+	return c
 }
 
-func (c *Config) InitAfterInject() {
+func (c *Config) Init() {
 
 	if c.Http.Addr == "" {
 		c.Http.Addr = ":8080"
@@ -100,9 +102,8 @@ func (c *Config) InitAfterInject() {
 }
 
 func defaultServerConfig() *Config {
-	c := &Config{}
-	c.InitBeforeInject()
-	c.InitAfterInject()
+	c := NewConfig()
+	c.Init()
 	return c
 }
 

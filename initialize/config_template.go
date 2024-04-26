@@ -2,13 +2,12 @@ package initialize
 
 import (
 	"github.com/hopeio/cherry/utils/encoding"
-	"github.com/hopeio/cherry/utils/encoding/common"
 	"github.com/hopeio/cherry/utils/log"
 	"github.com/hopeio/cherry/utils/slices"
 	stringsi "github.com/hopeio/cherry/utils/strings"
 	"os"
 	"reflect"
-	"strings"
+	"unsafe"
 )
 
 func (gc *globalConfig) genConfigTemplate(singleFileConfig bool) {
@@ -28,12 +27,16 @@ func (gc *globalConfig) genConfigTemplate(singleFileConfig bool) {
 		filename = "config.template." + string(format)
 		struct2MapHelper(format, reflect.ValueOf(&gc.BasicConfig).Elem(), confMap)
 		struct2MapHelper(format, reflect.ValueOf(&gc.EnvConfig).Elem(), confMap)
+		delete(confMap, "ConfigCenter")
 	}
 	struct2MapHelper(format, reflect.ValueOf(gc.conf).Elem(), confMap)
 	if gc.dao != nil {
 		daoConfigTemplateMap(format, reflect.ValueOf(gc.dao).Elem(), confMap)
 	}
-	data, err := common.Marshal(format, confMap)
+
+	encoderRegistry := reflect.ValueOf(gc.Viper).Elem().FieldByName("encoderRegistry").Elem()
+	fieldValue := reflect.NewAt(encoderRegistry.Type(), unsafe.Pointer(encoderRegistry.UnsafeAddr()))
+	data, err := fieldValue.Interface().(Encoder).Encode(string(format), confMap)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -98,9 +101,6 @@ func struct2MapHelper(format encoding.Format, value reflect.Value, confMap map[s
 					}
 
 					newconfMap := make(map[string]any)
-					if format == encoding.Yaml || format == encoding.Yml {
-						name = strings.ToLower(name)
-					}
 					confMap[name] = newconfMap
 					struct2MapHelper(format, newValue, newconfMap)
 					if len(newconfMap) == 0 {
@@ -115,9 +115,6 @@ func struct2MapHelper(format encoding.Format, value reflect.Value, confMap map[s
 			name := fieldType.Tag.Get(string(format))
 			if name == "" {
 				name = fieldType.Name
-			}
-			if format == encoding.Yaml || format == encoding.Yml {
-				name = strings.ToLower(name)
 			}
 			confMap[name] = field.Interface()
 		}
@@ -136,17 +133,10 @@ func daoConfigTemplateMap(format encoding.Format, value reflect.Value, confMap m
 				name = fieldType.Name
 				tagSettings := ParseInitTagSettings(fieldType.Tag.Get(initTagName))
 				if tagSettings.ConfigName != "" {
-					if format == encoding.Yaml || format == encoding.Yml {
-						name = strings.ToLower(tagSettings.ConfigName)
-					} else {
-						name = stringsi.UpperCaseFirst(tagSettings.ConfigName)
-					}
-
+					name = stringsi.UpperCaseFirst(tagSettings.ConfigName)
 				}
 			}
-			if format == encoding.Yaml || format == encoding.Yml {
-				name = strings.ToLower(name)
-			}
+
 			confMap[name] = newconfMap
 			struct2MapHelper(format, reflect.ValueOf(field.Addr().Interface().(DaoField).Config()).Elem(), newconfMap)
 		}

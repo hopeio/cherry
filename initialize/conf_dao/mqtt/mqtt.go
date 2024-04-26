@@ -18,7 +18,7 @@ func (c *Config) InitBeforeInject() {
 	c.ClientOptions = mqtt.NewClientOptions()
 }
 
-func (c *Config) InitAfterInject() {
+func (c *Config) Init() {
 	tlsConfig, err := tls.Certificate(c.CertFile, c.KeyFile)
 	if err != nil {
 		log.Fatal(err)

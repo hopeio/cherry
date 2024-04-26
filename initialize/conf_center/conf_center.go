@@ -3,7 +3,8 @@ package conf_center
 import (
 	"github.com/hopeio/cherry/utils/encoding"
 	"github.com/hopeio/cherry/utils/log"
-	strings "github.com/hopeio/cherry/utils/strings"
+	stringsi "github.com/hopeio/cherry/utils/strings"
+	"strings"
 )
 
 type ConfigType string
@@ -26,8 +27,8 @@ var configCenter = map[string]ConfigCenter{}
 
 func RegisterConfigCenter(c ConfigCenter) {
 	if c != nil {
-		typ := c.Type()
-		if !strings.IsASCIILetters(typ) {
+		typ := strings.ToLower(c.Type())
+		if !stringsi.IsASCIILetters(typ) {
 			log.Fatal("config type must be letters")
 		}
 		if _, ok := configCenter[typ]; !ok {

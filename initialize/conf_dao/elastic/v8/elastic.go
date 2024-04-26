@@ -11,14 +11,14 @@ type Config elasticsearch.Config
 
 func (c *Config) InitBeforeInject() {
 }
-func (c *Config) InitAfterInject() {
+func (c *Config) Init() {
 	if c.Header == nil {
 		c.Header = http.Header{}
 	}
 }
 
 func (c *Config) Build() *elasticsearch.Client {
-	c.InitAfterInject()
+	c.Init()
 	if c.Username != "" && c.Password != "" {
 		auth.SetBasicAuth(c.Header, c.Username, c.Password)
 	}

@@ -13,6 +13,11 @@ import (
 	"time"
 )
 
+const (
+	stdout = "stdout"
+	stderr = "stderr"
+)
+
 func NewProductionConfig(appName string) *Config {
 	return &Config{
 		AppName:           appName,
@@ -26,7 +31,7 @@ func NewProductionConfig(appName string) *Config {
 		},
 		OutputPaths: OutPutPaths{
 			Console: nil,
-			Json:    []string{"stderr"},
+			Json:    []string{stdout},
 		},
 		EncoderConfig: NewProductionEncoderConfig(),
 	}
@@ -56,7 +61,7 @@ func NewDevelopmentConfig(appName string) *Config {
 		Level:           zapcore.DebugLevel,
 		EncodeLevelType: EncodeLevelTypeCapitalColor,
 		OutputPaths: OutPutPaths{
-			Console: []string{"stderr"},
+			Console: []string{"stdout"},
 			Json:    nil,
 		},
 		EncoderConfig: NewDevelopmentEncoderConfig(),
@@ -114,11 +119,11 @@ func (lc *Config) Init() {
 			lc.EncoderConfig.FunctionKey = FieldFunc
 		}
 		if len(lc.OutputPaths.Console) == 0 && len(lc.OutputPaths.Json) == 0 {
-			lc.OutputPaths.Json = []string{"stderr"}
+			lc.OutputPaths.Json = []string{stdout}
 		}
 	} else {
 		if len(lc.OutputPaths.Console) == 0 && len(lc.OutputPaths.Json) == 0 {
-			lc.OutputPaths.Console = []string{"stderr"}
+			lc.OutputPaths.Console = []string{stdout}
 		}
 	}
 
@@ -216,26 +221,26 @@ func (lc *Config) initLogger(cores ...zapcore.Core) *zap.Logger {
 	if len(lc.OutputPaths.Console) > 0 {
 		consoleEncoder = zapcore.NewConsoleEncoder(lc.EncoderConfig)
 		// 如果输出同时有stdout和stderr,那么warn级别及以下的用stdout,error级别及以上的用stderr
-		stdout, stderr := false, false
+		ustdout, ustderr := false, false
 		consolePaths := make([]string, 0, len(lc.OutputPaths.Console))
 		slices.ForEachIndex(lc.OutputPaths.Console, func(i int) {
-			if lc.OutputPaths.Console[i] == "stdout" {
-				stdout = true
+			if lc.OutputPaths.Console[i] == stdout {
+				ustdout = true
 			} else if lc.OutputPaths.Console[i] == "stderr" {
-				stderr = true
+				ustderr = true
 			} else {
 				consolePaths = append(consolePaths, lc.OutputPaths.Console[i])
 			}
 		})
-		if stdout && stderr {
+		if ustdout && ustderr {
 			cores = append(cores, zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), StdOutLevel(lc.Level)),
 				zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stderr), StdErrLevel(lc.Level)))
 		} else {
-			if stdout {
-				consolePaths = append(consolePaths, "stdout")
+			if ustdout {
+				consolePaths = append(consolePaths, stdout)
 			}
-			if stderr {
-				consolePaths = append(consolePaths, "stderr")
+			if ustderr {
+				consolePaths = append(consolePaths, stderr)
 			}
 		}
 		sink, _, err := zap.Open(consolePaths...)

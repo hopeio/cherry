@@ -30,6 +30,7 @@ func (gc *globalConfig) setBasicConfig() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	parseFlag(gc.flag)
 	gc.BasicConfig = basicConfig.BasicConfig
 	gc.EnvConfig = basicConfig.EnvConfig
 	gc.ConfigCenter.Format = format

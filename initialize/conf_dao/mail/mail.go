@@ -29,11 +29,11 @@ func (c *Config) InitBeforeInject() {
 
 }
 
-func (c *Config) InitAfterInject() {
+func (c *Config) Init() {
 }
 
 func (c *Config) Build() smtp.Auth {
-	c.InitAfterInject()
+	c.Init()
 	if strings.ToUpper(c.AuthType) == "PLAINAUTH" {
 		pc := c.PlainAuth
 		return smtp.PlainAuth(pc.Identity, pc.From, pc.Password, pc.Host)

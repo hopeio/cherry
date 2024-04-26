@@ -9,7 +9,7 @@ type Config[K ristretto.Key, V any] ristretto.Config[K, V]
 
 func (c *Config[K, V]) InitBeforeInject() {
 }
-func (c *Config[K, V]) InitAfterInject() {
+func (c *Config[K, V]) Init() {
 	if c.NumCounters == 0 {
 		c.NumCounters = 10000000
 	}
@@ -22,7 +22,7 @@ func (c *Config[K, V]) InitAfterInject() {
 }
 
 func (c *Config[K, V]) Build() *ristretto.Cache[K, V] {
-	c.InitAfterInject()
+	c.Init()
 	cache, err := ristretto.NewCache((*ristretto.Config[K, V])(c))
 	if err != nil {
 		log.Fatal(err)

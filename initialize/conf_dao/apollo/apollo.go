@@ -10,12 +10,12 @@ type Config apollo.Config
 func (c *Config) InitBeforeInject() {
 }
 
-func (c *Config) InitAfterInject() {
+func (c *Config) Init() {
 
 }
 
 func (c *Config) Build() *apollo.Client {
-	c.InitAfterInject()
+	c.Init()
 	//初始化更新配置，这里不需要，开启实时更新时初始化会更新一次
 	client, err := (*apollo.Config)(c).NewClient()
 	if err != nil {

@@ -9,10 +9,18 @@ var foo1 = func() {
 	log.Println("foo1")
 }
 
-func llog() { log.Println("log") }
+func foo2() {
+	log.Println("foo1")
+}
+func before() { log.Println("before") }
+func after()  { log.Println("after") }
 
 func TestAop(t *testing.T) {
-	Invoke(llog, &foo1)
+	Invoke(before, &foo1, after)
 	foo1()
-	foo1()
+
+	log.Println("----------------------------------------")
+	aop(before, foo2, after)
+	foo2()
+	
 }

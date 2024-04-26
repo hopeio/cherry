@@ -9,11 +9,11 @@ type ProducerConfig struct {
 
 func (c *ProducerConfig) InitBeforeInject() {
 }
-func (c *ProducerConfig) InitAfterInject() {
+func (c *ProducerConfig) Init() {
 }
 
 func (c *ProducerConfig) Build() *nsq.Producer {
-	c.InitAfterInject()
+	c.Init()
 	producer, err := nsq.NewProducer(c.Addr, c.Config)
 	if err != nil {
 		panic(err)

@@ -10,12 +10,12 @@ type ConsumerConfig Config
 func (c *ConsumerConfig) InitBeforeInject() {
 }
 
-func (c *ConsumerConfig) InitAfterInject() {
+func (c *ConsumerConfig) Init() {
 	(*Config)(c).Init()
 }
 
 func (c *ConsumerConfig) Build() sarama.Consumer {
-	c.InitAfterInject()
+	c.Init()
 	consumer, err := sarama.NewConsumer(c.Addrs, c.Config)
 	if err != nil {
 		log.Fatal(err)

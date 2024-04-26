@@ -70,7 +70,7 @@ func ParseTagSettingIntoStruct(tagStr string, sep string, settings any, metaTag 
 			}
 		}
 		if flagtag, ok := tagSettings[strings.ToUpper(name)]; ok {
-			err := reflecti.SetFieldByString(flagtag, settingsValue.Field(i))
+			err := reflecti.SetValueByString(settingsValue.Field(i), flagtag)
 			if err != nil {
 				return err
 			}

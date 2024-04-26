@@ -66,7 +66,7 @@ type dao struct {
 	StdDB    *sql.DB
 	PebbleDB pebble.DB
 	// RedisPool Redis连接池
-	Redis redis.Redis
+	Redis redis.Client
 	Cache ristretto.Cache[string, any]
 	//elastic
 	Mail mail.Mail `init:"config:Mail"`

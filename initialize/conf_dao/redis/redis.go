@@ -18,7 +18,7 @@ type Config struct {
 func (c *Config) InitBeforeInject() {
 }
 
-func (c *Config) InitAfterInject() {
+func (c *Config) Init() {
 	tlsConfig, err := tls.Certificate(c.CertFile, c.KeyFile)
 	if err != nil {
 		log.Fatal(err)
@@ -28,24 +28,24 @@ func (c *Config) InitAfterInject() {
 }
 
 func (c *Config) Build() *redis.Client {
-	c.InitAfterInject()
+	c.Init()
 	return redis.NewClient(&c.Options)
 }
 
-type Redis struct {
+type Client struct {
 	*redis.Client
 	Conf Config
 }
 
-func (db *Redis) Config() any {
+func (db *Client) Config() any {
 	return &db.Conf
 }
 
-func (db *Redis) SetEntity() {
+func (db *Client) SetEntity() {
 	db.Client = db.Conf.Build()
 }
 
-func (db *Redis) Close() error {
+func (db *Client) Close() error {
 	if db.Client == nil {
 		return nil
 	}

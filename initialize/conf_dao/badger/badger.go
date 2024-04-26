@@ -9,11 +9,11 @@ type Config badger.Options
 
 func (c *Config) InitBeforeInject() {
 }
-func (c *Config) InitAfterInject() {
+func (c *Config) Init() {
 
 }
 func (c *Config) Build() *badger.DB {
-	c.InitAfterInject()
+	c.Init()
 	db, err := badger.Open(badger.Options(*c))
 	if err != nil {
 		log.Fatal(err)

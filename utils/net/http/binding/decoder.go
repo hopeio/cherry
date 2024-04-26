@@ -58,7 +58,7 @@ func (d *Decoder) IgnoreUnknownKeys(i bool) {
 }
 
 // RegisterConverter registers a converter function for a custom type.
-func (d *Decoder) RegisterConverter(value interface{}, converterFunc reflecti.Converter) {
+func (d *Decoder) RegisterConverter(value interface{}, converterFunc reflecti.StringConverter) {
 	d.cache.registerConverter(value, converterFunc)
 }
 
@@ -273,7 +273,7 @@ func (d *Decoder) decode(v reflect.Value, path string, parts []pathPart, values 
 		// Try to get a converter for the element type.
 		conv := d.cache.converter(elemT)
 		if conv == nil {
-			conv = reflecti.ConverterArrays[elemT.Kind()]
+			conv = reflecti.StringConverterArrays[elemT.Kind()].Converter()
 			if conv == nil {
 				// As we are not dealing with slice of structs here, we don't need to check if the type
 				// implements TextUnmarshaler interface
@@ -398,7 +398,7 @@ func (d *Decoder) decode(v reflect.Value, path string, parts []pathPart, values 
 			if d.zeroEmpty {
 				v.Set(reflect.Zero(t))
 			}
-		} else if conv := reflecti.ConverterArrays[t.Kind()]; conv != nil {
+		} else if conv := reflecti.StringConverterArrays[t.Kind()].Converter(); conv != nil {
 			if value := reflect.ValueOf(conv(val)); value.IsValid() {
 				v.Set(value.Convert(t))
 			} else {

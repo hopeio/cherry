@@ -24,7 +24,7 @@ func IgnoreUnknownKeys(i bool) {
 }
 
 // RegisterConverter registers a converter function for a custom type.
-func RegisterConverter(value interface{}, converterFunc reflecti.Converter) {
+func RegisterConverter(value interface{}, converterFunc reflecti.StringConverter) {
 	defaultDecoder.cache.registerConverter(value, converterFunc)
 }
 

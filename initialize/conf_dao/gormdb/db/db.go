@@ -17,11 +17,9 @@ type Config pkdb.Config
 func (c *Config) InitBeforeInject() {
 	(*pkdb.Config)(c).InitBeforeInject()
 }
-func (c *Config) InitAfterInject() {
-	(*pkdb.Config)(c).InitAfterInject()
-}
 
 func (c *Config) Build() *gorm.DB {
+	(*pkdb.Config)(c).Init()
 	if c.Type == dbi.Mysql {
 		(*mysql.Config)(c).Build()
 	} else if c.Type == dbi.Postgres {

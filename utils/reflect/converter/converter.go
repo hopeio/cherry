@@ -5,213 +5,274 @@
 package converter
 
 import (
-	"encoding/json"
+	"encoding"
 	"errors"
+	"fmt"
+	"github.com/spf13/cast"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
-type Converter func(string) any
+type StringConverter func(string) any
+type StringConverterE func(string) (any, error)
+
+func (c StringConverterE) Converter() StringConverter {
+	if c == nil {
+		return nil
+	}
+	return func(value string) any {
+		r, _ := c(value)
+		return r
+	}
+}
 
 var (
 	invalidValue = reflect.Value{}
 )
 
 // Default converters for basic types.
-/*var ConverterMaps = map[reflect.Kind]Converter{
-	reflect.Bool:    convertBool,
-	reflect.Float32: convertFloat32,
-	reflect.Float64: convertFloat64,
-	reflect.Int:     convertInt,
-	reflect.Int8:    convertInt8,
-	reflect.Int16:   convertInt16,
-	reflect.Int32:   convertInt32,
-	reflect.Int64:   convertInt64,
-	reflect.String:  convertString,
-	reflect.Uint:    convertUint,
-	reflect.Uint8:   convertUint8,
-	reflect.Uint16:  convertUint16,
-	reflect.Uint32:  convertUint32,
-	reflect.Uint64:  convertUint64,
+/*var ConverterMaps = map[reflect.Kind]StringConverter{
+	reflect.Bool:    stringConvertBool,
+	reflect.Float32: stringConvertFloat32,
+	reflect.Float64: stringConvertFloat64,
+	reflect.Int:     stringConvertInt,
+	reflect.Int8:    stringConvertInt8,
+	reflect.Int16:   stringConvertInt16,
+	reflect.Int32:   stringConvertInt32,
+	reflect.Int64:   stringConvertInt64,
+	reflect.String:  stringConvertString,
+	reflect.Uint:    stringConvertUint,
+	reflect.Uint8:   stringConvertUint8,
+	reflect.Uint16:  stringConvertUint16,
+	reflect.Uint32:  stringConvertUint32,
+	reflect.Uint64:  stringConvertUint64,
 }*/
 
-// TODO: support slices map
-var ConverterArrays = []Converter{
-	reflect.Bool:    convertBool,
-	reflect.Int:     convertInt,
-	reflect.Int8:    convertInt8,
-	reflect.Int16:   convertInt16,
-	reflect.Int32:   convertInt32,
-	reflect.Int64:   convertInt64,
-	reflect.Uint:    convertUint,
-	reflect.Uint8:   convertUint8,
-	reflect.Uint16:  convertUint16,
-	reflect.Uint32:  convertUint32,
-	reflect.Uint64:  convertUint64,
-	reflect.Float32: convertFloat32,
-	reflect.Float64: convertFloat64,
-	reflect.String:  convertString,
+// Deprecated: unsupported slices array map
+var StringConverterArrays = []StringConverterE{
+	reflect.Bool:    stringConvertBool,
+	reflect.Int:     stringConvertInt,
+	reflect.Int8:    stringConvertInt8,
+	reflect.Int16:   stringConvertInt16,
+	reflect.Int32:   stringConvertInt32,
+	reflect.Int64:   stringConvertInt64,
+	reflect.Uint:    stringConvertUint,
+	reflect.Uint8:   stringConvertUint8,
+	reflect.Uint16:  stringConvertUint16,
+	reflect.Uint32:  stringConvertUint32,
+	reflect.Uint64:  stringConvertUint64,
+	reflect.Float32: stringConvertFloat32,
+	reflect.Float64: stringConvertFloat64,
+	reflect.String:  stringConvertString,
 }
 
-func convertBool(value string) any {
+const (
+	array        = 100
+	ArrayBool    = reflect.Bool + array
+	ArrayInt     = reflect.Int + array
+	ArrayInt8    = reflect.Int8 + array
+	ArrayInt16   = reflect.Int16 + array
+	ArrayInt32   = reflect.Int32 + array
+	ArrayInt64   = reflect.Int64 + array
+	ArrayUint    = reflect.Uint + array
+	ArrayUint8   = reflect.Uint8 + array
+	ArrayUint16  = reflect.Uint16 + array
+	ArrayUint32  = reflect.Uint32 + array
+	ArrayUint64  = reflect.Uint64 + array
+	ArrayFloat32 = reflect.Float32 + array
+	ArrayFloat64 = reflect.Float64 + array
+	ArrayString  = reflect.String + array
+)
+
+const (
+	slice        = 200
+	SliceBool    = reflect.Bool + slice
+	SliceInt     = reflect.Int + slice
+	SliceInt8    = reflect.Int8 + slice
+	SliceInt16   = reflect.Int16 + slice
+	SliceInt32   = reflect.Int32 + slice
+	SliceInt64   = reflect.Int64 + slice
+	SliceUint    = reflect.Uint + slice
+	SliceUint8   = reflect.Uint8 + slice
+	SliceUint16  = reflect.Uint16 + slice
+	SliceUint32  = reflect.Uint32 + slice
+	SliceUint64  = reflect.Uint64 + slice
+	SliceFloat32 = reflect.Float32 + slice
+	SliceFloat64 = reflect.Float64 + slice
+	SliceString  = reflect.String + slice
+)
+
+func stringConvertBool(value string) (any, error) {
 	if value == "on" {
-		return true
-	} else if v, err := strconv.ParseBool(value); err == nil {
-		return v
+		return true, nil
 	}
-	return nil
+	return strconv.ParseBool(value)
 }
 
-func convertFloat32(value string) any {
-	if v, err := strconv.ParseFloat(value, 32); err == nil {
-		return v
-	}
-	return nil
+func stringConvertFloat32(value string) (any, error) {
+	return strconv.ParseFloat(value, 32)
 }
 
-func convertFloat64(value string) any {
-	if v, err := strconv.ParseFloat(value, 64); err == nil {
-		return v
-	}
-	return nil
+func stringConvertFloat64(value string) (any, error) {
+	return strconv.ParseFloat(value, 64)
 }
 
-func convertInt(value string) any {
-	if v, err := strconv.ParseInt(value, 10, 0); err == nil {
-		return v
-	}
-	return nil
+func stringConvertInt(value string) (any, error) {
+	return strconv.ParseInt(value, 10, 0)
 }
 
-func convertInt8(value string) any {
-	if v, err := strconv.ParseInt(value, 10, 8); err == nil {
-		return v
-	}
-	return nil
+func stringConvertInt8(value string) (any, error) {
+	return strconv.ParseInt(value, 10, 8)
 }
 
-func convertInt16(value string) any {
-	if v, err := strconv.ParseInt(value, 10, 16); err == nil {
-		return v
-	}
-	return nil
+func stringConvertInt16(value string) (any, error) {
+	return strconv.ParseInt(value, 10, 16)
 }
 
-func convertInt32(value string) any {
-	if v, err := strconv.ParseInt(value, 10, 32); err == nil {
-		return v
-	}
-	return nil
+func stringConvertInt32(value string) (any, error) {
+	return strconv.ParseInt(value, 10, 32)
 }
 
-func convertInt64(value string) any {
-	if v, err := strconv.ParseInt(value, 10, 64); err == nil {
-		return v
-	}
-	return nil
+func stringConvertInt64(value string) (any, error) {
+	return strconv.ParseInt(value, 10, 64)
 }
 
-func convertString(value string) any {
-	return value
+func stringConvertString(value string) (any, error) {
+	return value, nil
 }
 
-func convertUint(value string) any {
-	if v, err := strconv.ParseUint(value, 10, 0); err == nil {
-		return v
-	}
-	return nil
+func stringConvertArray(value string) (any, error) {
+	return value, nil
 }
 
-func convertUint8(value string) any {
-	if v, err := strconv.ParseUint(value, 10, 8); err == nil {
-		return v
-	}
-	return nil
+func stringConvertUint(value string) (any, error) {
+	return strconv.ParseUint(value, 10, 0)
 }
 
-func convertUint16(value string) any {
-	if v, err := strconv.ParseUint(value, 10, 16); err == nil {
-		return reflect.ValueOf(uint16(v))
-	}
-	return nil
+func stringConvertUint8(value string) (any, error) {
+	return strconv.ParseUint(value, 10, 8)
 }
 
-func convertUint32(value string) any {
-	if v, err := strconv.ParseUint(value, 10, 32); err == nil {
-		return v
-	}
-	return nil
+func stringConvertUint16(value string) (any, error) {
+	return strconv.ParseUint(value, 10, 16)
 }
 
-func convertUint64(value string) any {
-	if v, err := strconv.ParseUint(value, 10, 64); err == nil {
-		return v
-	}
-	return nil
+func stringConvertUint32(value string) (any, error) {
+	return strconv.ParseUint(value, 10, 32)
+}
+
+func stringConvertUint64(value string) (any, error) {
+	return strconv.ParseUint(value, 10, 64)
 }
 
 func ConvertInt64(v interface{}) int64 {
-	switch v := v.(type) {
-	case int:
-		return int64(v)
-	case int64:
-		return v
-	case json.Number:
-		f, _ := v.Int64()
-		return f
-	default:
-		return 0
-	}
+	return cast.ToInt64(v)
 }
 
-func SetStructFieldByString(field, value string, dst any) error {
+func SetFieldByString(dst any, field, value string) error {
 	if value == "" {
 		return nil
 	}
+
 	fieldValue := reflect.ValueOf(dst).Elem().FieldByName(field)
-	return SetFieldByString(value, fieldValue)
+	return SetValueByString(fieldValue, value)
 }
 
-func SetFieldByString(value string, field reflect.Value) error {
+func SetValueByString(field reflect.Value, value string) error {
 	if value == "" {
 		return nil
 	}
-	converter := ConverterArrays[field.Kind()]
-	if converter != nil {
-		if v := converter(value); v != nil {
-			field.Set(reflect.ValueOf(v))
-			return nil
+
+	v := field.Interface()
+	if t, ok := v.(encoding.TextUnmarshaler); ok {
+		return t.UnmarshalText([]byte(value))
+	}
+	kind := field.Kind()
+	if kind == reflect.Ptr {
+		if field.IsNil() {
+			field.Set(reflect.New(field.Type().Elem()))
+		}
+		field = field.Elem()
+		v = field.Interface()
+		if t, ok := v.(encoding.TextUnmarshaler); ok {
+			return t.UnmarshalText([]byte(value))
+		}
+		kind = field.Kind()
+	}
+	switch kind {
+	case reflect.Array, reflect.Slice:
+		eKind := field.Type().Elem().Kind()
+		if eKind == reflect.Array || eKind == reflect.Slice || eKind == reflect.Map {
+			return fmt.Errorf("unsupported kind %v", eKind)
+		}
+		strs := strings.Split(value, ",")
+		if kind == reflect.Slice {
+			field.Set(reflect.MakeSlice(field.Type(), len(strs), len(strs)))
+		}
+		for i := 0; i < field.Len(); i++ {
+			if err := SetValueByString(field.Index(i), strs[i]); err != nil {
+				return err
+			}
+		}
+	case reflect.Map:
+		eKind := field.Type().Elem().Kind()
+		if eKind == reflect.Array || eKind == reflect.Slice || eKind == reflect.Map {
+			return fmt.Errorf("unsupported kind %v", eKind)
+		}
+		strs := strings.Split(value, ",")
+		field.Set(reflect.MakeMapWithSize(field.Type(), len(strs)/2))
+		for i := 0; i < len(strs)/2; i += 2 {
+			key := reflect.New(field.Type().Key())
+			err := SetValueByString(key, strs[i])
+			if err != nil {
+				return err
+			}
+			v := reflect.New(field.Type().Elem())
+			err = SetValueByString(v, strs[i+1])
+			if err != nil {
+				return err
+			}
+			field.SetMapIndex(key, v)
 		}
 	}
-	return errors.New("unsupported kind")
+
+	v, err := StringConvert(kind, value)
+	if err == nil {
+		field.Set(reflect.ValueOf(v))
+		return nil
+	}
+	return err
 }
 
-func StringConvert(value string, kind reflect.Kind) (any, error) {
-	converter := ConverterArrays[kind]
+func StringConvert(kind reflect.Kind, value string) (any, error) {
+	converter := StringConverterArrays[kind]
 	if converter != nil {
-		if v := converter(value); v != nil {
-			return v, nil
-		}
+		return converter(value)
 	}
 	return nil, errors.New("unsupported kind")
 }
 
 func StringConvertFor[T any](value string) (T, error) {
 	kind := reflect.TypeFor[T]().Kind()
-	converter := ConverterArrays[kind]
+	converter := StringConverterArrays[kind]
 	if converter != nil {
-		if v := converter(value); v != nil {
+		if v, err := converter(value); err != nil {
+			return *new(T), err
+		} else {
 			return v.(T), nil
 		}
 	}
 	return *new(T), errors.New("unsupported kind")
 }
 
-func AnyConvert[T any](v any) T {
-	return v.(T)
-}
-
 func String(value reflect.Value) string {
+	v := value.Interface()
+	if t, ok := v.(encoding.TextMarshaler); ok {
+		s, _ := t.MarshalText()
+		return string(s)
+	}
+
 	kind := value.Kind()
 	switch kind {
 	case reflect.Int, reflect.Int8, reflect.Int32, reflect.Int64, reflect.Pointer, reflect.UnsafePointer:
@@ -224,6 +285,12 @@ func String(value reflect.Value) string {
 		return strconv.FormatUint(value.Uint(), 10)
 	case reflect.Float64, reflect.Float32:
 		return strconv.FormatFloat(value.Float(), 'g', -1, 64)
+	case reflect.Array, reflect.Slice:
+		var strs []string
+		for i := 0; i < value.Len(); i++ {
+			strs = append(strs, String(value.Index(i)))
+		}
+		return strings.Join(strs, ",")
 	}
 	return ""
 }

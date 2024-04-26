@@ -2,11 +2,12 @@ package initialize
 
 import (
 	"github.com/hopeio/cherry/initialize/conf_center"
-	"github.com/hopeio/cherry/utils/encoding/common"
 	"github.com/hopeio/cherry/utils/log"
-	"github.com/hopeio/cherry/utils/strings"
+	"github.com/hopeio/cherry/utils/reflect/mtos"
 	"os"
 	"reflect"
+	"strings"
+	"unsafe"
 )
 
 // FileConfig
@@ -16,7 +17,7 @@ import (
 type FileConfig struct {
 	// 模块名
 	BasicConfig
-	EnvConfig *EnvConfig `init:"fixed"`
+	EnvConfig *EnvConfig `init:"fixed"` // field name can be dev,test,prod ... and anything you like
 }
 
 type EnvConfig struct {
@@ -36,99 +37,64 @@ const (
 )
 
 func (gc *globalConfig) setEnvConfig() {
-
-	fromat := gc.ConfigCenter.Format
-	var structFields []reflect.StructField
-	confCenterValue := reflect.ValueOf(&gc.EnvConfig.ConfigCenter).Elem()
-	confCenterTyp := confCenterValue.Type()
-	for i := 0; i < confCenterTyp.NumField(); i++ {
-		field := confCenterTyp.Field(i)
-		if field.Name == fixedFieldNameConfigCenter {
-			continue
-		}
-		structFields = append(structFields, reflect.StructField{Name: field.Name, Type: field.Type, Tag: field.Tag})
-	}
-
-	for name, v := range conf_center.GetRegisteredConfigCenter() {
-		structFields = append(structFields, reflect.StructField{Name: strings.UpperCaseFirst(name), Type: reflect.TypeOf(v)})
-	}
-	newConfCenterTyp := reflect.StructOf(structFields)
-	var envConfigStructFields []reflect.StructField
-	envConfigValue := reflect.ValueOf(&gc.EnvConfig).Elem()
-	envConfigTyp := envConfigValue.Type()
-	for i := 0; i < envConfigTyp.NumField(); i++ {
-		field := envConfigTyp.Field(i)
-		if field.Name == fixedFieldNameConfigCenter {
-			envConfigStructFields = append(envConfigStructFields, reflect.StructField{Name: fixedFieldNameConfigCenter, Type: newConfCenterTyp, Tag: field.Tag})
-			continue
-		}
-		envConfigStructFields = append(envConfigStructFields, reflect.StructField{Name: field.Name, Type: field.Type, Tag: field.Tag, Anonymous: field.Anonymous})
-	}
-	newEnvConfigTyp := reflect.StructOf(envConfigStructFields)
-
-	var fileConfigStructFields []reflect.StructField
-	fileConfigTyp := reflect.TypeOf(FileConfig{})
-	for i := 0; i < fileConfigTyp.NumField(); i++ {
-		field := fileConfigTyp.Field(i)
-		if field.Name == fixedFieldNameEnvConfig {
-			fileConfigStructFields = append(fileConfigStructFields, reflect.StructField{Name: strings.UpperCaseFirst(gc.Env), Type: newEnvConfigTyp, Tag: reflect.StructTag(genEncodingTag(gc.Env))})
-			continue
-		}
-		fileConfigStructFields = append(fileConfigStructFields, reflect.StructField{Name: field.Name, Type: field.Type, Tag: field.Tag, Anonymous: field.Anonymous})
-	}
-
-	newFileConfigTyp := reflect.StructOf(fileConfigStructFields)
-	tmpFileConfigValue := reflect.New(newFileConfigTyp)
-	tmpFileConfig := tmpFileConfigValue.Interface()
-
-	confMap := struct2Map(gc.ConfigCenter.Format, reflect.ValueOf(tmpFileConfig).Elem()) // 仅用于模板输出
-	ndata, err := common.Marshal(gc.ConfigCenter.Format, confMap)
-	if err != nil {
-		log.Fatal(err)
-	}
-	/*fromat, err = common.Unmarshal(gc.ConfigCenter.Format, data, tmpFileConfig)
-	if err != nil {
-		log.Fatal(err)
-	}*/
-	err = gc.Viper.Unmarshal(tmpFileConfig, decoderConfigOptions...)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if gc.ConfigCenter.Format == "" {
-		gc.ConfigCenter.Format = fromat
-	}
-	tmpEnvConfigValue := tmpFileConfigValue.Elem().FieldByName(strings.UpperCaseFirst(gc.Env))
-	if !tmpEnvConfigValue.IsValid() || tmpEnvConfigValue.IsZero() {
+	gc.Viper.AllSettings()
+	format := gc.ConfigCenter.Format
+	envConfig, ok := gc.Viper.Get(gc.Env).(map[string]any)
+	if !ok {
 		log.Warn("lack of environment configuration, try single config file")
 		return
 	}
-
-	// config字段顺序不能变,ConfigCenter 保持在最后
-	for i := 0; i < envConfigValue.NumField(); i++ {
-		field := envConfigValue.Field(i)
-		structField := envConfigTyp.Field(i)
-		if structField.Name == fixedFieldNameConfigCenter {
-			tmpccField := tmpEnvConfigValue.Field(i)
-			for j := 0; j < confCenterValue.NumField(); j++ {
-				ccField := confCenterValue.Field(j)
-				ccstructField := confCenterTyp.Field(j)
-				if ccstructField.Name == fixedFieldNameConfigCenter {
-					ccField.Set(tmpccField.FieldByName(strings.UpperCaseFirst(gc.EnvConfig.ConfigCenter.ConfigType)))
-					continue
-				}
-				ccField.Set(tmpccField.Field(j))
-			}
-			continue
-		}
-		field.Set(tmpEnvConfigValue.Field(i))
+	err := mtos.Unmarshal(&gc.EnvConfig, envConfig)
+	if err != nil {
+		log.Fatal(err)
 	}
+	parseFlag(gc.flag)
+	if gc.EnvConfig.ConfigCenter.ConfigType == "" {
+		log.Warn("lack of configCenter configType, try single config file")
+		return
+	}
+
+	cc, ok := conf_center.GetRegisteredConfigCenter()[strings.ToLower(gc.EnvConfig.ConfigCenter.ConfigType)]
+	if !ok {
+		log.Warn("lack of registered configCenter, try single config file")
+		return
+	}
+
+	ccConfig, ok := gc.Viper.Get(gc.Env + ".ConfigCenter." + gc.EnvConfig.ConfigCenter.ConfigType).(map[string]any)
+	if !ok {
+		log.Warn("lack of configCenter config, try single config file")
+		return
+	}
+	err = mtos.Unmarshal(cc, ccConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+	injectFlagConfig(gc.flag, reflect.ValueOf(cc).Elem())
+	parseFlag(gc.flag)
+	gc.EnvConfig.ConfigCenter.ConfigCenter = cc
+
+	confMap := make(map[string]any)
+	struct2MapHelper(format, reflect.ValueOf(&gc.BasicConfig).Elem(), confMap)
+	envMap := make(map[string]any)
+	struct2MapHelper(format, reflect.ValueOf(&gc.EnvConfig).Elem(), envMap)
+	confMap[gc.Env] = envMap
+	ccMap := envMap["ConfigCenter"].(map[string]any)
+	for name, v := range conf_center.GetRegisteredConfigCenter() {
+		cc := make(map[string]any)
+		struct2MapHelper(format, reflect.ValueOf(v).Elem(), cc)
+		ccMap[name] = cc
+	}
+	// unsafe
+	encoderRegistry := reflect.ValueOf(gc.Viper).Elem().FieldByName("encoderRegistry").Elem()
+	fieldValue := reflect.NewAt(encoderRegistry.Type(), unsafe.Pointer(encoderRegistry.UnsafeAddr()))
+	ndata, err := fieldValue.Interface().(Encoder).Encode(string(format), confMap)
 
 	if gc.EnvConfig.ConfigTemplateDir != "" {
 		dir := gc.EnvConfig.ConfigTemplateDir
 		if dir[len(dir)-1] != '/' {
 			dir += "/"
 		}
-		err = os.WriteFile(dir+"config.template."+string(fromat), ndata, 0644)
+		err = os.WriteFile(dir+"config.template."+string(format), ndata, 0644)
 		if err != nil {
 			log.Fatal(err)
 		}

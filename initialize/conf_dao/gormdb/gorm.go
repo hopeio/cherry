@@ -20,7 +20,7 @@ func (c *Config) InitBeforeInject() {
 	c.EnableStdLogger = initialize2.GlobalConfig().Debug
 }
 
-func (c *Config) InitAfterInject() {
+func (c *Config) Init() {
 	(*gormi.Config)(c).Init()
 }
 

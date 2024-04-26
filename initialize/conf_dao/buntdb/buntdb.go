@@ -14,7 +14,7 @@ func (c *Config) InitBeforeInject() {
 
 }
 
-func (c *Config) InitAfterInject() {
+func (c *Config) Init() {
 }
 
 func (c *Config) Build() *buntdb.DB {

@@ -16,7 +16,10 @@ func (gc *globalConfig) UnmarshalAndSet(data []byte) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	/*	tmpConfig := gc.cacheConf
+		if tmpConfig == nil {
+			gc.cacheConf = tmpConfig
+		}*/
 	tmpConfig := gc.newStruct()
 	/*	format, err := common.Unmarshal(gc.ConfigCenter.Format, data, tmpConfig)
 		if err != nil {
@@ -36,7 +39,7 @@ func (gc *globalConfig) UnmarshalAndSet(data []byte) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	gc.inject()
+	gc.inject(tmpConfig)
 	gc.lock.Unlock()
 	log.Debugf("Configuration:  %+v", tmpConfig)
 }
@@ -130,60 +133,31 @@ func (gc *globalConfig) setNewStruct(value reflect.Value, typValueMap map[string
 }
 
 // 注入配置及生成DAO
-func (gc *globalConfig) inject() {
-	confAfterInjectCall(gc.conf)
+func (gc *globalConfig) inject(tmpConfig any) {
+	confAfterInjectCall(tmpConfig)
+	gc.conf.InitAfterInject()
 	if !gc.initialized && gc.dao != nil {
-		daoAfterInjectConfCall(gc.dao)
+		gc.dao.InitAfterInjectConfig()
 		injectDao(gc.dao)
 	}
 }
 
-func confAfterInjectCall(conf Config) {
-	v := reflect.ValueOf(conf).Elem()
+func confAfterInjectCall(tmpConfig any) {
+	v := reflect.ValueOf(tmpConfig).Elem()
 	if !v.IsValid() {
 		return
 	}
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Field(i)
-		if field.Addr().CanInterface() {
-			inter := field.Addr().Interface()
+		if field.CanInterface() {
+			inter := field.Interface()
 			if subconf, ok := inter.(InitAfterInject); ok {
 				subconf.InitAfterInject()
 			}
 		}
 	}
-	conf.InitAfterInject()
 }
 
-func daoAfterInjectConfCall(dao Dao) {
-	v := reflect.ValueOf(dao).Elem()
-	if !v.IsValid() {
-		return
-	}
-
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-
-		if field.Addr().CanInterface() {
-			inter := field.Addr().Interface()
-
-			if field.Kind() != reflect.Struct {
-				log.Debug(field.String(), "指针类型，忽略注入")
-				continue
-			}
-
-			// 方式二:根据DaoField接口实现获取配置和要注入的类型
-
-			if daofield, ok := inter.(DaoField); ok {
-				conf := daofield.Config()
-				if c, ok := conf.(InitAfterInject); ok {
-					c.InitAfterInject()
-				}
-			}
-		}
-	}
-	dao.InitAfterInjectConfig()
-}
 func injectDao(dao Dao) {
 	v := reflect.ValueOf(dao).Elem()
 	if !v.IsValid() {
@@ -198,7 +172,7 @@ func injectDao(dao Dao) {
 			inter := field.Addr().Interface()
 
 			if field.Kind() != reflect.Struct {
-				log.Debug(field.String(), "指针类型，忽略注入")
+				log.Debug("ignore inject pointer type: ", field.Type().String())
 				continue
 			}
 			confName := strings.ToUpper(structFiled.Name)

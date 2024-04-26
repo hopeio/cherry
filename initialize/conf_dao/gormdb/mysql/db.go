@@ -12,12 +12,9 @@ type Config pkdb.Config
 func (c *Config) InitBeforeInject() {
 	(*pkdb.Config)(c).InitBeforeInject()
 }
-func (c *Config) InitAfterInject() {
-	(*pkdb.Config)(c).InitAfterInject()
-}
 
 func (c *Config) Build() *gorm.DB {
-	c.InitAfterInject()
+	(*pkdb.Config)(c).Init()
 	url := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=%s&loc=%s",
 		c.User, c.Password, c.Host,
 		c.Port, c.Database, c.Charset, c.Mysql.ParseTime, c.Mysql.Loc)

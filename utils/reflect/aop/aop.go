@@ -1,46 +1,75 @@
 package aop
 
 import (
-	"log"
+	"bou.ke/monkey"
 	"reflect"
 	"unsafe"
 )
 
-func Aop(before, fs, after []AnyFunc) AnyFunc {
+type AnyFunc func()
+
+func (f AnyFunc) Aop(before, after AnyFunc) AnyFunc {
 	return func() {
-		for _, f := range before {
-			f()
-		}
-		for _, f := range fs {
-			f()
-		}
-		for _, f := range after {
-			f()
-		}
+		before()
+		f()
+		after()
 	}
 }
 
-func Invoke(aop func(), self interface{}) {
-	v2 := reflect.ValueOf(self).Elem()
+// Deprecated only support func var
+func Invoke(before func(), target any, after func()) {
+	v2 := reflect.ValueOf(target).Elem()
 	if v2.Kind() != reflect.Func {
 		panic("错误的类型")
 	}
-	log.Println(v2.Pointer())
-	code := reflect.ValueOf(v2).FieldByName("ptr").Pointer()
-	ptr := *(*unsafe.Pointer)(*(*unsafe.Pointer)(unsafe.Pointer(code)))
+
 	oldFuncVal := reflect.MakeFunc(v2.Type(), nil)
 	funcValuePtr := reflect.ValueOf(oldFuncVal).FieldByName("ptr").Pointer()
 	funcPtr := (*Func)(unsafe.Pointer(funcValuePtr))
-	funcPtr.codePtr = uintptr(ptr)
+	funcPtr.codePtr = v2.Pointer()
 	newFuncVal := reflect.MakeFunc(v2.Type(), func(in []reflect.Value) []reflect.Value {
-		aop()
+		if before != nil {
+			before()
+		}
+		if after != nil {
+			defer after()
+		}
+
 		return oldFuncVal.Call(in)
 	})
 	v2.Set(newFuncVal)
 
-	log.Println(v2.Pointer())
 }
 
 type Func struct {
 	codePtr uintptr
+}
+
+// TODO: 不可用,太深了,放弃
+func aop(before func(), target any, after func()) {
+	v2 := reflect.ValueOf(target)
+	if v2.Kind() != reflect.Func {
+		panic("错误的类型")
+	}
+
+	oldFuncVal := reflect.MakeFunc(v2.Type(), nil)
+	funcValuePtr := reflect.ValueOf(oldFuncVal).FieldByName("ptr").Pointer()
+	funcPtr := (*Func)(unsafe.Pointer(funcValuePtr))
+	funcPtr.codePtr = v2.Pointer()
+	newFuncVal := reflect.MakeFunc(v2.Type(), func(in []reflect.Value) []reflect.Value {
+		if before != nil {
+			before()
+		}
+		if after != nil {
+			defer after()
+		}
+
+		return oldFuncVal.Call(in)
+	})
+	monkey.Patch(target, newFuncVal.Interface())
+}
+
+type value struct {
+	_   uintptr
+	ptr unsafe.Pointer
 }

@@ -6,10 +6,10 @@ import "github.com/hopeio/cherry/server"
 type Config server.Config
 
 func (c *Config) InitBeforeInject() {
-	(*server.Config)(c).InitBeforeInject()
+	*c = Config(*server.NewConfig())
 }
 func (c *Config) InitAfterInject() {
-	(*server.Config)(c).InitAfterInject()
+	(*server.Config)(c).Init()
 }
 
 // TODO: 是否会随着配置而更新

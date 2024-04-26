@@ -12,12 +12,8 @@ func (c *Config) InitBeforeInject() {
 	(*pkdb.Config)(c).InitBeforeInject()
 }
 
-func (c *Config) InitAfterInject() {
-	(*pkdb.Config)(c).InitAfterInject()
-}
-
 func (c *Config) Build() *gorm.DB {
-	c.InitAfterInject()
+	(*pkdb.Config)(c).Init()
 	return (*pkdb.Config)(c).Build(sqlite.Open(c.Sqlite.Path))
 }
 

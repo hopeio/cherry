@@ -2,6 +2,7 @@ package initialize
 
 import (
 	"flag"
+	"github.com/hopeio/cherry/utils/log"
 	reflecti "github.com/hopeio/cherry/utils/reflect/converter"
 	"github.com/spf13/pflag"
 	"net/http"
@@ -31,12 +32,24 @@ type FlagTagSettings struct {
 
 func init() {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
-	commandLine := newCommandLine()
-	injectFlagConfig(commandLine, reflect.ValueOf(globalConfig1).Elem())
-	parseFlag(commandLine)
+	//commandLine := newCommandLine()
+	injectFlagConfig(globalConfig1.flag, reflect.ValueOf(&globalConfig1.InitConfig).Elem())
+	// TODO: 绑定flag会在Unmarshal覆盖同名配置,parseFlag会纠正,但设计似乎不太合理,还是有不一致的情况
+	err := globalConfig1.Viper.BindPFlags(globalConfig1.flag)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = globalConfig1.Viper.Unmarshal(&globalConfig1.InitConfig, decoderConfigOptions...)
+	if err != nil {
+		log.Fatal(err)
+	}
+	parseFlag(globalConfig1.flag)
 
 	if globalConfig1.Proxy != "" {
-		proxyURL, _ := url.Parse(globalConfig1.Proxy)
+		proxyURL, err := url.Parse(globalConfig1.Proxy)
+		if err != nil {
+			log.Fatal(err)
+		}
 		http.DefaultClient.Transport = &http.Transport{
 			Proxy: http.ProxyURL(proxyURL),
 		}
@@ -58,7 +71,7 @@ func (a anyValue) Type() string {
 }
 
 func (a anyValue) Set(v string) error {
-	return reflecti.SetFieldByString(v, reflect.Value(a))
+	return reflecti.SetValueByString(reflect.Value(a), v)
 }
 
 func injectFlagConfig(commandLine *pflag.FlagSet, fcValue reflect.Value) {
@@ -83,8 +96,6 @@ func injectFlagConfig(commandLine *pflag.FlagSet, fcValue reflect.Value) {
 			injectFlagConfig(commandLine, fieldValue.Elem())
 		case reflect.Struct:
 			injectFlagConfig(commandLine, fieldValue)
-		case reflect.Slice, reflect.Array, reflect.Map:
-			// TODO: support
 		}
 
 		if flagTag != "" {
@@ -92,8 +103,12 @@ func injectFlagConfig(commandLine *pflag.FlagSet, fcValue reflect.Value) {
 			ParseTagSetting(flagTag, ";", &flagTagSettings)
 			// 从环境变量设置
 			if flagTagSettings.Env != "" {
+				globalConfig1.Viper.BindEnv(flagTagSettings.Env)
 				if value, ok := os.LookupEnv(flagTagSettings.Env); ok {
-					reflecti.SetFieldByString(value, fcValue.Field(i))
+					err := reflecti.SetValueByString(fcValue.Field(i), value)
+					if err != nil {
+						log.Fatal(err)
+					}
 				}
 			}
 			// flag设置
@@ -105,12 +120,17 @@ func injectFlagConfig(commandLine *pflag.FlagSet, fcValue reflect.Value) {
 	}
 }
 
+// Deprecated
 func (gc *globalConfig) applyFlagConfig() {
 	commandLine := newCommandLine()
 	fcValue := reflect.ValueOf(&gc.BasicConfig).Elem()
 	injectFlagConfig(commandLine, fcValue)
 	fcValue = reflect.ValueOf(&gc.EnvConfig).Elem()
 	injectFlagConfig(commandLine, fcValue)
+	err := gc.Viper.BindPFlags(commandLine)
+	if err != nil {
+		log.Fatal(err)
+	}
 	parseFlag(commandLine)
 }
 
@@ -121,5 +141,8 @@ func newCommandLine() *pflag.FlagSet {
 }
 
 func parseFlag(commandLine *pflag.FlagSet) {
-	commandLine.Parse(os.Args[1:])
+	err := commandLine.Parse(os.Args[1:])
+	if err != nil {
+		log.Fatal(err)
+	}
 }

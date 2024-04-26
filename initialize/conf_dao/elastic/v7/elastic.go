@@ -11,12 +11,12 @@ type Config config.Config
 func (c *Config) InitBeforeInject() {
 }
 
-func (c *Config) InitAfterInject() {
+func (c *Config) Init() {
 
 }
 
 func (c *Config) Build() *elastic.Client {
-	c.InitAfterInject()
+	c.Init()
 	client, err := elastic.NewClientFromConfig((*config.Config)(c))
 	if err != nil {
 		log.Fatal(err)

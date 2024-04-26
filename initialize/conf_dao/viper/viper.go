@@ -34,7 +34,7 @@ type RemoteProvider struct {
 func (c *Config) InitBeforeInject() {
 	c.ConfigFile = initialize.GlobalConfig().ConfUrl
 }
-func (c *Config) InitAfterInject() {
+func (c *Config) Init() {
 	if c.ConfigType == "" {
 		c.ConfigType = "toml"
 	}

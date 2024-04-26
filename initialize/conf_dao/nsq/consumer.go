@@ -17,11 +17,11 @@ type ConsumerConfig struct {
 func (c *ConsumerConfig) InitBeforeInject() {
 }
 
-func (c *ConsumerConfig) InitAfterInject() {
+func (c *ConsumerConfig) Init() {
 }
 
 func (c *ConsumerConfig) Build() *nsq.Consumer {
-	c.InitAfterInject()
+	c.Init()
 	consumer, err := nsq.NewConsumer(c.Topic, c.Channel, c.Config)
 	if err != nil {
 		log.Fatal(err)

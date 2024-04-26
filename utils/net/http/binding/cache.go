@@ -19,7 +19,7 @@ var invalidPath = errors.New("schema: invalid path")
 func newCache() *cache {
 	c := cache{
 		m:       make(map[reflect.Type]*structInfo),
-		regconv: make(map[reflect.Type]reflecti.Converter),
+		regconv: make(map[reflect.Type]reflecti.StringConverter),
 		tag:     Tag,
 	}
 	return &c
@@ -29,12 +29,12 @@ func newCache() *cache {
 type cache struct {
 	l       sync.RWMutex
 	m       map[reflect.Type]*structInfo
-	regconv map[reflect.Type]reflecti.Converter
+	regconv map[reflect.Type]reflecti.StringConverter
 	tag     string
 }
 
 // registerConverter registers a converter function for a custom type.
-func (c *cache) registerConverter(value interface{}, converterFunc reflecti.Converter) {
+func (c *cache) registerConverter(value interface{}, converterFunc reflecti.StringConverter) {
 	c.regconv[reflect.TypeOf(value)] = converterFunc
 }
 
@@ -183,7 +183,7 @@ func (c *cache) createField(field reflect.StructField, parentAlias string) *fiel
 		}
 	}
 	if isStruct = ft.Kind() == reflect.Struct; !isStruct {
-		if c.converter(ft) == nil && reflecti.ConverterArrays[ft.Kind()] == nil {
+		if c.converter(ft) == nil && reflecti.StringConverterArrays[ft.Kind()] == nil {
 			// Type is not supported.
 			return nil
 		}
@@ -202,7 +202,7 @@ func (c *cache) createField(field reflect.StructField, parentAlias string) *fiel
 }
 
 // converter returns the converter for a type.
-func (c *cache) converter(t reflect.Type) reflecti.Converter {
+func (c *cache) converter(t reflect.Type) reflecti.StringConverter {
 	return c.regconv[t]
 }
 
