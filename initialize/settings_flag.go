@@ -33,20 +33,16 @@ type FlagTagSettings struct {
 func init() {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 	//commandLine := newCommandLine()
-	injectFlagConfig(globalConfig1.flag, reflect.ValueOf(&globalConfig1.InitConfig).Elem())
+	injectFlagConfig(gConfig.flag, reflect.ValueOf(&gConfig.InitConfig).Elem())
 	// TODO: 绑定flag会在Unmarshal覆盖同名配置,parseFlag会纠正,但设计似乎不太合理,还是有不一致的情况
-	err := globalConfig1.Viper.BindPFlags(globalConfig1.flag)
+	err := gConfig.Viper.BindPFlags(gConfig.flag)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = globalConfig1.Viper.Unmarshal(&globalConfig1.InitConfig, decoderConfigOptions...)
-	if err != nil {
-		log.Fatal(err)
-	}
-	parseFlag(globalConfig1.flag)
+	parseFlag(gConfig.flag)
 
-	if globalConfig1.Proxy != "" {
-		proxyURL, err := url.Parse(globalConfig1.Proxy)
+	if gConfig.InitConfig.Proxy != "" {
+		proxyURL, err := url.Parse(gConfig.InitConfig.Proxy)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -103,7 +99,7 @@ func injectFlagConfig(commandLine *pflag.FlagSet, fcValue reflect.Value) {
 			ParseTagSetting(flagTag, ";", &flagTagSettings)
 			// 从环境变量设置
 			if flagTagSettings.Env != "" {
-				globalConfig1.Viper.BindEnv(flagTagSettings.Env)
+				gConfig.Viper.BindEnv(flagTagSettings.Env)
 				if value, ok := os.LookupEnv(flagTagSettings.Env); ok {
 					err := reflecti.SetValueByString(fcValue.Field(i), value)
 					if err != nil {
@@ -123,9 +119,9 @@ func injectFlagConfig(commandLine *pflag.FlagSet, fcValue reflect.Value) {
 // Deprecated
 func (gc *globalConfig) applyFlagConfig() {
 	commandLine := newCommandLine()
-	fcValue := reflect.ValueOf(&gc.BasicConfig).Elem()
+	fcValue := reflect.ValueOf(&gc.InitConfig.BasicConfig).Elem()
 	injectFlagConfig(commandLine, fcValue)
-	fcValue = reflect.ValueOf(&gc.EnvConfig).Elem()
+	fcValue = reflect.ValueOf(&gc.InitConfig.EnvConfig).Elem()
 	injectFlagConfig(commandLine, fcValue)
 	err := gc.Viper.BindPFlags(commandLine)
 	if err != nil {

@@ -3,6 +3,7 @@ package initialize
 import (
 	"github.com/hopeio/cherry/initialize/conf_center"
 	"github.com/hopeio/cherry/initialize/conf_center/local"
+	"github.com/hopeio/cherry/initialize/initconf"
 	"github.com/hopeio/cherry/utils/encoding"
 	"github.com/hopeio/cherry/utils/errors/multierr"
 	"github.com/mitchellh/mapstructure"
@@ -18,15 +19,15 @@ import (
 
 // 约定大于配置
 var (
-	globalConfig1 = &globalConfig{
-		InitConfig: InitConfig{
+	gConfig = &globalConfig{
+		InitConfig: initconf.InitConfig{
 			ConfUrl:   "./config.toml",
-			EnvConfig: EnvConfig{Debug: true},
+			EnvConfig: initconf.EnvConfig{Debug: true},
 		},
-		Logger: log.Default(),
-		Viper:  viper.New(),
-		flag:   newCommandLine(),
-		lock:   sync.RWMutex{},
+
+		Viper: viper.New(),
+		flag:  newCommandLine(),
+		lock:  sync.RWMutex{},
 	}
 	decoderConfigOptions = []viper.DecoderConfigOption{
 		viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
@@ -41,26 +42,19 @@ var (
 )
 
 func GlobalConfig() *globalConfig {
-	return globalConfig1
-}
-
-type InitConfig struct {
-	// 配置文件路径
-	ConfUrl     string `flag:"name:config;short:c;default:config.toml;usage:配置文件路径,默认./config.toml或./config/config.toml;env:CONFIG" json:"conf_url,omitempty"`
-	BasicConfig `yaml:",inline"`
-	EnvConfig   `yaml:",inline"`
+	return gConfig
 }
 
 // globalConfig
 // 全局配置
 type globalConfig struct {
-	InitConfig
+	InitConfig initconf.InitConfig `mapstructure:",squash"`
+	BuiltinConfig
 
 	conf Config
 	dao  Dao
 
-	Logger *log.Logger
-	Viper  *viper.Viper
+	*viper.Viper
 
 	/*
 		cacheConf      any*/
@@ -74,7 +68,7 @@ func Start(conf Config, dao Dao, configCenter ...conf_center.ConfigCenter) func(
 	if conf == nil {
 		log.Fatalf("初始化错误: 配置不能为空")
 	}
-	globalConfig1.initialized = false
+	gConfig.initialized = false
 
 	// 为支持自定义配置中心,并且遵循依赖最小化原则,配置中心改为可插拔的,考虑将配置序列话也照此重做
 	// 注册配置中心,默认注册本地文件
@@ -83,11 +77,11 @@ func Start(conf Config, dao Dao, configCenter ...conf_center.ConfigCenter) func(
 		conf_center.RegisterConfigCenter(cc)
 	}
 
-	globalConfig1.setConfDao(conf, dao)
-	globalConfig1.loadConfig()
-	globalConfig1.initialized = true
+	gConfig.setConfDao(conf, dao)
+	gConfig.loadConfig()
+	gConfig.initialized = true
 	return func() {
-		for _, f := range globalConfig1.deferFuncs {
+		for _, f := range gConfig.deferFuncs {
 			f()
 		}
 	}
@@ -104,7 +98,7 @@ func (gc *globalConfig) setConfDao(conf Config, dao Dao) {
 }
 
 func (gc *globalConfig) loadConfig() {
-	log.Infof("Load config from: %s\n", gc.ConfUrl)
+	log.Infof("Load config from: %s\n", gc.InitConfig.ConfUrl)
 	/*	if _, err := os.Stat(gc.ConfUrl); os.IsNotExist(err) {
 		log.Fatalf("配置路径错误: 请确保可执行文件和配置文件在同一目录下或在config目录下或指定配置文件")
 	}*/
@@ -113,7 +107,7 @@ func (gc *globalConfig) loadConfig() {
 			log.Fatalf("读取配置错误: %v", err)
 		}*/
 
-	format := encoding.Format(path.Ext(gc.ConfUrl))
+	format := encoding.Format(path.Ext(gc.InitConfig.ConfUrl))
 	if format != "" {
 		// remove .
 		format = format[1:]
@@ -122,38 +116,45 @@ func (gc *globalConfig) loadConfig() {
 		}
 	}
 	gc.Viper.SetConfigType(string(format))
-	gc.Viper.SetConfigFile(gc.ConfUrl)
+	gc.Viper.SetConfigFile(gc.InitConfig.ConfUrl)
 	gc.Viper.AutomaticEnv()
 	err := gc.Viper.ReadInConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
-	gc.ConfigCenter.Format = format
+	gc.InitConfig.ConfigCenter.Format = format
 	gc.setBasicConfig()
 	gc.setEnvConfig()
-	for i := range gc.NoInject {
-		gc.NoInject[i] = strings.ToUpper(gc.NoInject[i])
+	for i := range gc.InitConfig.NoInject {
+		gc.InitConfig.NoInject[i] = strings.ToUpper(gc.InitConfig.NoInject[i])
 	}
 
 	var singleFileConfig bool
-	if gc.EnvConfig.ConfigCenter.ConfigCenter == nil {
+	if gc.InitConfig.EnvConfig.ConfigCenter.ConfigCenter == nil {
 		singleFileConfig = true
 		// 单配置文件
-		gc.ConfigCenter.ConfigCenter = &local.Local{
-			ConfigPath: gc.ConfUrl,
+		gc.InitConfig.ConfigCenter.ConfigCenter = &local.Local{
+			ConfigPath: gc.InitConfig.ConfUrl,
 		}
+		injectFlagConfig(gc.flag, reflect.ValueOf(gc.InitConfig.ConfigCenter.ConfigCenter).Elem())
+		parseFlag(gc.flag)
 	}
 
-	//gc.applyFlagConfig()
-	parseFlag(gc.flag)
+	// hook function
 	gc.conf.InitBeforeInject()
+	if c, ok := gc.conf.(InitBeforeInjectWithInitConfig); ok {
+		c.InitBeforeInjectWithInitConfig(&gc.InitConfig)
+	}
 	if !gc.initialized && gc.dao != nil {
 		gc.dao.InitBeforeInject()
+		if c, ok := gc.dao.(InitBeforeInjectWithInitConfig); ok {
+			c.InitBeforeInjectWithInitConfig(&gc.InitConfig)
+		}
 	}
 
 	gc.genConfigTemplate(singleFileConfig)
 
-	cfgcenter := gc.ConfigCenter.ConfigCenter
+	cfgcenter := gc.InitConfig.ConfigCenter.ConfigCenter
 	err = cfgcenter.HandleConfig(gc.UnmarshalAndSet)
 	if err != nil {
 		log.Fatalf("配置错误: %v", err)
@@ -162,9 +163,9 @@ func (gc *globalConfig) loadConfig() {
 }
 
 func RegisterDeferFunc(deferf ...func()) {
-	globalConfig1.lock.Lock()
-	defer globalConfig1.lock.Unlock()
-	globalConfig1.deferFuncs = append(globalConfig1.deferFuncs, deferf...)
+	gConfig.lock.Lock()
+	defer gConfig.lock.Unlock()
+	gConfig.deferFuncs = append(gConfig.deferFuncs, deferf...)
 }
 
 func (gc *globalConfig) Config() Config {
@@ -208,12 +209,12 @@ func closeDao(dao Dao) error {
 }
 
 func GetConfig[T any]() *T {
-	globalConfig1.lock.RLock()
-	defer globalConfig1.lock.RUnlock()
-	if globalConfig1.initialized == false {
+	gConfig.lock.RLock()
+	defer gConfig.lock.RUnlock()
+	if gConfig.initialized == false {
 		log.Fatalf("配置未初始化")
 	}
-	conf := globalConfig1.conf
+	conf := gConfig.conf
 	value := reflect.ValueOf(conf).Elem()
 	for i := 0; i < value.NumField(); i++ {
 		if conf, ok := value.Field(i).Interface().(T); ok {
@@ -224,12 +225,12 @@ func GetConfig[T any]() *T {
 }
 
 func GetDao[T any]() *T {
-	globalConfig1.lock.RLock()
-	defer globalConfig1.lock.RUnlock()
-	if globalConfig1.initialized == false {
+	gConfig.lock.RLock()
+	defer gConfig.lock.RUnlock()
+	if gConfig.initialized == false {
 		log.Fatalf("配置未初始化")
 	}
-	dao := globalConfig1.dao
+	dao := gConfig.dao
 	value := reflect.ValueOf(dao).Elem()
 	for i := 0; i < value.NumField(); i++ {
 		if dao, ok := value.Field(i).Interface().(T); ok {
@@ -237,8 +238,4 @@ func GetDao[T any]() *T {
 		}
 	}
 	return new(T)
-}
-
-func (gc *globalConfig) Get(key string) any {
-	return gc.Viper.Get(key)
 }

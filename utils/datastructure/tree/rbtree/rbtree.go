@@ -2,7 +2,7 @@ package rbtree
 
 import (
 	"fmt"
-	"github.com/hopeio/cherry/utils/definition/constraints"
+	"github.com/hopeio/cherry/utils/constraints"
 )
 
 type color uint32

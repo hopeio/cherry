@@ -47,21 +47,65 @@ func (gc *globalConfig) UnmarshalAndSet(data []byte) {
 func (gc *globalConfig) newStruct() any {
 	nameValueMap := make(map[string]reflect.Value)
 	var structFields []reflect.StructField
-	confValue := reflect.ValueOf(gc.conf).Elem()
+
+	confValue := reflect.ValueOf(&gc.BuiltinConfig).Elem()
 	confType := confValue.Type()
 	for i := 0; i < confValue.NumField(); i++ {
 		field := confValue.Field(i).Addr()
-		if field.CanInterface() {
-			inter := field.Interface()
-			if c, ok := inter.(InitBeforeInject); ok {
-				c.InitBeforeInject()
-			}
-		}
+
 		structField := confType.Field(i)
 		name := structField.Name
 		tagSettings := ParseInitTagSettings(structField.Tag.Get(initTagName))
 		if tagSettings.ConfigName != "" {
 			name = stringsi.UpperCaseFirst(tagSettings.ConfigName)
+		}
+
+		if field.CanInterface() {
+			inter := field.Interface()
+			if c, ok := inter.(InitBeforeInject); ok {
+				c.InitBeforeInject()
+			}
+			if c, ok := inter.(InitBeforeInjectWithInitConfig); ok {
+				c.InitBeforeInjectWithInitConfig(&gc.InitConfig)
+			}
+		}
+		structFields = append(structFields, reflect.StructField{
+			Name:      name,
+			Type:      field.Type(),
+			Tag:       structField.Tag,
+			Anonymous: structField.Anonymous,
+		})
+
+		nameValueMap[name] = field
+	}
+	confValue = reflect.ValueOf(gc.conf).Elem()
+	confType = confValue.Type()
+	for i := 0; i < confValue.NumField(); i++ {
+		field := confValue.Field(i).Addr()
+
+		structField := confType.Field(i)
+		name := structField.Name
+		tagSettings := ParseInitTagSettings(structField.Tag.Get(initTagName))
+		if tagSettings.ConfigName != "" {
+			name = stringsi.UpperCaseFirst(tagSettings.ConfigName)
+		}
+
+		if v, ok := nameValueMap[name]; ok {
+			if v.Type() == field.Type() {
+				log.Fatalf(`exists builtin config field: %s, please delete the field`, name)
+			} else {
+				log.Fatalf(`exists builtin config field: %s, please rename or use init tag [init:"config:{{other config name}}"]`, name)
+			}
+		}
+
+		if field.CanInterface() {
+			inter := field.Interface()
+			if c, ok := inter.(InitBeforeInject); ok {
+				c.InitBeforeInject()
+			}
+			if c, ok := inter.(InitBeforeInjectWithInitConfig); ok {
+				c.InitBeforeInjectWithInitConfig(&gc.InitConfig)
+			}
 		}
 
 		structFields = append(structFields, reflect.StructField{
@@ -90,10 +134,6 @@ func (gc *globalConfig) newStruct() any {
 						log.Fatalf("dao %s Config() return nil", structField.Name)
 					}
 
-					if c, ok := daoConfig.(InitBeforeInject); ok {
-						c.InitBeforeInject()
-					}
-
 					name := structField.Name
 					daoConfigValue := reflect.ValueOf(daoConfig)
 					daoConfigType := reflect.TypeOf(daoConfig)
@@ -101,6 +141,18 @@ func (gc *globalConfig) newStruct() any {
 					if tagSettings.ConfigName != "" {
 						name = stringsi.UpperCaseFirst(tagSettings.ConfigName)
 					}
+
+					if c, ok := daoConfig.(InitBeforeInject); ok {
+						c.InitBeforeInject()
+					}
+					if c, ok := inter.(InitBeforeInjectWithInitConfig); ok {
+						c.InitBeforeInjectWithInitConfig(&gc.InitConfig)
+					}
+
+					if _, ok := nameValueMap[name]; ok {
+						log.Fatalf(`exists Field: %s, please rename or use init tag [init:"{{otherConfigName}}"]`, name)
+					}
+
 					structFields = append(structFields, reflect.StructField{
 						Name: name,
 						Type: daoConfigType,
@@ -134,15 +186,21 @@ func (gc *globalConfig) setNewStruct(value reflect.Value, typValueMap map[string
 
 // 注入配置及生成DAO
 func (gc *globalConfig) inject(tmpConfig any) {
-	confAfterInjectCall(tmpConfig)
+	gc.confAfterInjectCall(tmpConfig)
 	gc.conf.InitAfterInject()
+	if c, ok := gc.conf.(InitAfterInjectWithInitConfig); ok {
+		c.InitAfterInjectWithInitConfig(&gc.InitConfig)
+	}
 	if !gc.initialized && gc.dao != nil {
 		gc.dao.InitAfterInjectConfig()
-		injectDao(gc.dao)
+		if c, ok := gc.conf.(InitAfterInjectConfigWithInitConfig); ok {
+			c.InitAfterInjectConfigWithInitConfig(&gc.InitConfig)
+		}
+		gc.injectDao()
 	}
 }
 
-func confAfterInjectCall(tmpConfig any) {
+func (gc *globalConfig) confAfterInjectCall(tmpConfig any) {
 	v := reflect.ValueOf(tmpConfig).Elem()
 	if !v.IsValid() {
 		return
@@ -154,12 +212,15 @@ func confAfterInjectCall(tmpConfig any) {
 			if subconf, ok := inter.(InitAfterInject); ok {
 				subconf.InitAfterInject()
 			}
+			if subconf, ok := inter.(InitAfterInjectWithInitConfig); ok {
+				subconf.InitAfterInjectWithInitConfig(&gc.InitConfig)
+			}
 		}
 	}
 }
 
-func injectDao(dao Dao) {
-	v := reflect.ValueOf(dao).Elem()
+func (gc *globalConfig) injectDao() {
+	v := reflect.ValueOf(gc.dao).Elem()
 	if !v.IsValid() {
 		return
 	}
@@ -176,7 +237,7 @@ func injectDao(dao Dao) {
 				continue
 			}
 			confName := strings.ToUpper(structFiled.Name)
-			if slices.Contains(globalConfig1.NoInject, confName) {
+			if slices.Contains(gConfig.InitConfig.NoInject, confName) {
 				continue
 			}
 
@@ -186,7 +247,10 @@ func injectDao(dao Dao) {
 			}
 		}
 	}
-	dao.InitAfterInject()
+	gc.dao.InitAfterInject()
+	if c, ok := gc.dao.(InitAfterInjectWithInitConfig); ok {
+		c.InitAfterInjectWithInitConfig(&gc.InitConfig)
+	}
 }
 
 // get field name, return filed config name and skip flag

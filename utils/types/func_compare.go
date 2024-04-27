@@ -1,7 +1,7 @@
 package types
 
 import (
-	constraintsi "github.com/hopeio/cherry/utils/definition/constraints"
+	constraintsi "github.com/hopeio/cherry/utils/constraints"
 	"golang.org/x/exp/constraints"
 )
 

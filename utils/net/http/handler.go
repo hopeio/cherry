@@ -1,7 +1,7 @@
 package http
 
 import (
-	"github.com/hopeio/cherry/utils/definition/types"
+	"github.com/hopeio/cherry/utils/types"
 	"net/http"
 )
 

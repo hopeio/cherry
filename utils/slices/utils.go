@@ -2,7 +2,7 @@ package slices
 
 import (
 	"fmt"
-	"github.com/hopeio/cherry/utils/definition/constraints"
+	"github.com/hopeio/cherry/utils/constraints"
 	"strings"
 )
 
@@ -76,7 +76,7 @@ func Min[S ~[]T, T constraints.Number](slices S) T {
 }
 
 // 将切片转换为map
-func SlicesToMap[S ~[]T, T any, K comparable, V any](slices S, getKV func(T) (K, V)) map[K]V {
+func SliceToMap[S ~[]T, T any, K comparable, V any](slices S, getKV func(T) (K, V)) map[K]V {
 	m := make(map[K]V)
 	for _, s := range slices {
 		k, v := getKV(s)
@@ -86,7 +86,7 @@ func SlicesToMap[S ~[]T, T any, K comparable, V any](slices S, getKV func(T) (K,
 }
 
 // 将切片按照某个key分类
-func SlicesClassify[S ~[]T, T any, K comparable, V any](slices S, getKV func(T) (K, V)) map[K][]V {
+func SliceClassify[S ~[]T, T any, K comparable, V any](slices S, getKV func(T) (K, V)) map[K][]V {
 	m := make(map[K][]V)
 	for _, s := range slices {
 		k, v := getKV(s)

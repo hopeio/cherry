@@ -1,18 +1,18 @@
 package slices
 
-type Slices[T any] []T
+type Slice[T any] []T
 
-func (slices Slices[T]) Len() int { return len(slices) }
+func (slice Slice[T]) Len() int { return len(slice) }
 
-func (slices Slices[T]) ForEach(fn func(T)) {
-	for _, t := range slices {
+func (slice Slice[T]) ForEach(fn func(T)) {
+	for _, t := range slice {
 		fn(t)
 	}
 }
 
-func (slices Slices[T]) Filter(fn func(T) bool) []T {
+func (slice Slice[T]) Filter(fn func(T) bool) []T {
 	var newSlices []T
-	for _, t := range slices {
+	for _, t := range slice {
 		if fn(t) {
 			newSlices = append(newSlices, t)
 		}
@@ -20,8 +20,8 @@ func (slices Slices[T]) Filter(fn func(T) bool) []T {
 	return newSlices
 }
 
-func (slices Slices[T]) Every(fn func(T) bool) bool {
-	for _, t := range slices {
+func (slice Slice[T]) Every(fn func(T) bool) bool {
+	for _, t := range slice {
 		if !fn(t) {
 			return false
 		}
@@ -29,8 +29,8 @@ func (slices Slices[T]) Every(fn func(T) bool) bool {
 	return true
 }
 
-func (slices Slices[T]) Some(fn func(T) bool) bool {
-	for _, t := range slices {
+func (slice Slice[T]) Some(fn func(T) bool) bool {
+	for _, t := range slice {
 		if fn(t) {
 			return true
 		}
@@ -38,23 +38,23 @@ func (slices Slices[T]) Some(fn func(T) bool) bool {
 	return false
 }
 
-func (slices Slices[T]) Zip(s []T) [][2]T {
+func (slice Slice[T]) Zip(s []T) [][2]T {
 	var newSlices [][2]T
-	for i := range slices {
-		newSlices = append(newSlices, [2]T{slices[i], s[i]})
+	for i := range slice {
+		newSlices = append(newSlices, [2]T{slice[i], s[i]})
 	}
 	return newSlices
 }
 
-func (slices Slices[T]) Reduce(fn func(T, T) T) T {
-	ret := fn(slices[0], slices[1])
-	for i := 2; i < len(slices); i++ {
-		ret = fn(ret, slices[i])
+func (slice Slice[T]) Reduce(fn func(T, T) T) T {
+	ret := fn(slice[0], slice[1])
+	for i := 2; i < len(slice); i++ {
+		ret = fn(ret, slice[i])
 	}
 	return ret
 }
 
-type MapSlices[T, V any] Slices[T]
+type MapSlices[T, V any] Slice[T]
 
 func (slices MapSlices[T, V]) Map(fn func(T) V) []V {
 	ret := make([]V, 0, len(slices))

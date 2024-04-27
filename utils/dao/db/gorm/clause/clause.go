@@ -4,7 +4,7 @@ package clause
 
 import (
 	dbi "github.com/hopeio/cherry/utils/dao/db"
-	"github.com/hopeio/cherry/utils/definition/types/request"
+	"github.com/hopeio/cherry/utils/types/request"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )

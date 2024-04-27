@@ -13,7 +13,7 @@ func TestDingDing(t *testing.T) {
 		Caller:      true,
 		Level:       zapcore.DebugLevel,
 		OutputPaths: log.OutPutPaths{},
-		AppName:     "",
+		Name:        "",
 	}, NewCore("", "", zapcore.DebugLevel))
 	log.Info("测试")
 }

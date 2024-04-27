@@ -3,7 +3,7 @@
 package clause
 
 import (
-	request2 "github.com/hopeio/cherry/utils/definition/types/request"
+	request2 "github.com/hopeio/cherry/utils/types/request"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )

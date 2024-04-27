@@ -1,6 +1,7 @@
 package initialize
 
 import (
+	"github.com/hopeio/cherry/initialize/initconf"
 	"io"
 	"reflect"
 )
@@ -9,12 +10,24 @@ type InitBeforeInject interface {
 	InitBeforeInject()
 }
 
+type InitBeforeInjectWithInitConfig interface {
+	InitBeforeInjectWithInitConfig(*initconf.InitConfig)
+}
+
 type InitAfterInject interface {
 	InitAfterInject()
 }
 
+type InitAfterInjectWithInitConfig interface {
+	InitAfterInjectWithInitConfig(*initconf.InitConfig)
+}
+
 type InitAfterInjectConfig interface {
 	InitAfterInjectConfig()
+}
+
+type InitAfterInjectConfigWithInitConfig interface {
+	InitAfterInjectConfigWithInitConfig(*initconf.InitConfig)
 }
 
 type Config interface {
@@ -27,7 +40,7 @@ type Config interface {
 type Dao interface {
 	InitBeforeInject
 	// 注入config后执行
-	InitAfterInjectConfig()
+	InitAfterInjectConfig
 	// 注入dao后执行
 	InitAfterInject
 }

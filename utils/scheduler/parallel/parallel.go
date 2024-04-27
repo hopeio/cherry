@@ -1,8 +1,8 @@
 package parallel
 
 import (
-	"github.com/hopeio/cherry/utils/definition/types"
 	"github.com/hopeio/cherry/utils/errors/multierr"
+	"github.com/hopeio/cherry/utils/types"
 	"sync"
 )
 

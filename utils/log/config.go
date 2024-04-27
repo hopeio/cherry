@@ -20,7 +20,7 @@ const (
 
 func NewProductionConfig(appName string) *Config {
 	return &Config{
-		AppName:           appName,
+		Name:              appName,
 		Level:             zapcore.InfoLevel,
 		EncodeLevelType:   "",
 		DisableCaller:     true,
@@ -56,7 +56,7 @@ func NewProductionEncoderConfig() zapcore.EncoderConfig {
 
 func NewDevelopmentConfig(appName string) *Config {
 	return &Config{
-		AppName:         appName,
+		Name:            appName,
 		Development:     true,
 		Level:           zapcore.DebugLevel,
 		EncodeLevelType: EncodeLevelTypeCapitalColor,
@@ -89,7 +89,7 @@ func NewDevelopmentEncoderConfig() zapcore.EncoderConfig {
 type ZipConfig = zap.Config
 
 type Config struct {
-	AppName           string `json:"moduleName,omitempty"` //系统名称namespace.service
+	Name              string `json:"name,omitempty"` //系统名称namespace.service
 	Development       bool
 	DisableCaller     bool
 	DisableStacktrace bool
@@ -104,12 +104,12 @@ type Config struct {
 }
 
 func (lc *Config) Init() {
-	if lc.AppName == "" {
-		lc.AppName = "app"
+	if lc.Name == "" {
+		lc.Name = "app"
 	}
 
 	if !lc.Development {
-		if lc.AppName != "" && lc.EncoderConfig.NameKey == "" {
+		if lc.Name != "" && lc.EncoderConfig.NameKey == "" {
 			lc.EncoderConfig.NameKey = FieldApp
 		}
 		if lc.EncoderConfig.EncodeName == nil {
@@ -269,8 +269,8 @@ func (lc *Config) initLogger(cores ...zapcore.Core) *zap.Logger {
 	core := zapcore.NewTee(cores...)
 
 	logger := zap.New(core, lc.hook()...)
-	if lc.AppName != "" {
-		logger = logger.Named(lc.AppName)
+	if lc.Name != "" {
+		logger = logger.Named(lc.Name)
 	}
 	return logger
 }

@@ -2,7 +2,7 @@ package gin
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/cherry/utils/definition/types"
+	"github.com/hopeio/cherry/utils/types"
 )
 
 // TODO:

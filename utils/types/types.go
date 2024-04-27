@@ -1,13 +1,8 @@
 package types
 
 import (
-	constraintsi "github.com/hopeio/cherry/utils/definition/constraints"
-	"golang.org/x/exp/constraints"
+	constraintsi "github.com/hopeio/cherry/utils/constraints"
 )
-
-type Enum[T constraints.Integer] struct {
-	Value T
-}
 
 type String string
 
@@ -22,11 +17,6 @@ func (s Int) Key() int {
 }
 
 type Basic struct {
-}
-
-func ZeroValue[T any]() T {
-	var zero T
-	return zero
 }
 
 type ID[T constraintsi.ID] struct {

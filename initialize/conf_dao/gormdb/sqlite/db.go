@@ -2,14 +2,15 @@ package sqlite
 
 import (
 	pkdb "github.com/hopeio/cherry/initialize/conf_dao/gormdb"
+	"github.com/hopeio/cherry/initialize/initconf"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
 type Config pkdb.Config
 
-func (c *Config) InitBeforeInject() {
-	(*pkdb.Config)(c).InitBeforeInject()
+func (c *Config) InitBeforeInjectWithInitConfig(conf *initconf.InitConfig) {
+	(*pkdb.Config)(c).InitBeforeInjectWithInitConfig(conf)
 }
 
 func (c *Config) Build() *gorm.DB {

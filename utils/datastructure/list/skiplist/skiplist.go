@@ -1,7 +1,7 @@
 package skiplist
 
 import (
-	constraints2 "github.com/hopeio/cherry/utils/definition/constraints"
+	constraints2 "github.com/hopeio/cherry/utils/constraints"
 	"golang.org/x/exp/constraints"
 	"math/rand"
 )

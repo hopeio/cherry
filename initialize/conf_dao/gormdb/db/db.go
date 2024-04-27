@@ -5,6 +5,7 @@ import (
 	"github.com/hopeio/cherry/initialize/conf_dao/gormdb/mysql"
 	"github.com/hopeio/cherry/initialize/conf_dao/gormdb/postgres"
 	"github.com/hopeio/cherry/initialize/conf_dao/gormdb/sqlite"
+	"github.com/hopeio/cherry/initialize/initconf"
 	dbi "github.com/hopeio/cherry/utils/dao/db"
 	"github.com/hopeio/cherry/utils/log"
 
@@ -14,8 +15,8 @@ import (
 // Deprecated 每个驱动分开，不然每次都要编译所有驱动
 type Config pkdb.Config
 
-func (c *Config) InitBeforeInject() {
-	(*pkdb.Config)(c).InitBeforeInject()
+func (c *Config) InitBeforeInjectWithInitConfig(conf *initconf.InitConfig) {
+	(*pkdb.Config)(c).InitBeforeInjectWithInitConfig(conf)
 }
 
 func (c *Config) Build() *gorm.DB {

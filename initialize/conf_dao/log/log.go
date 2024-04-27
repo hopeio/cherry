@@ -1,31 +1,28 @@
 package log
 
 import (
-	initialize2 "github.com/hopeio/cherry/initialize"
+	"github.com/hopeio/cherry/initialize/initconf"
 	"github.com/hopeio/cherry/utils/log"
 )
 
 // 全局变量,只一个实例,只提供config
 type Config log.Config
 
-func (c *Config) InitBeforeInject() {
-	c.Development = initialize2.GlobalConfig().Debug
-	c.AppName = initialize2.GlobalConfig().Module
+func (c *Config) InitBeforeInjectWithInitConfig(conf *initconf.InitConfig) {
+	c.Development = conf.Debug
 }
 
 func (c *Config) InitAfterInject() {
-	logConf := (*log.Config)(c)
-	log.SetDefaultLogger(logConf)
+	log.SetDefaultLogger((*log.Config)(c))
 }
 
-/*func (c *Config) Build() *log.Logger {
-	c.Init()
+func (c *Config) Build() *log.Logger {
 	return (*log.Config)(c).NewLogger()
-}*/
+}
 
-/*type Logger struct {
-	*log.Logger `
-	Conf        Config
+type Logger struct {
+	*log.Logger
+	Conf Config
 }
 
 func (l *Logger) Config() any {
@@ -42,4 +39,3 @@ func (l *Logger) Close() error {
 	}
 	return l.Logger.Sync()
 }
-*/

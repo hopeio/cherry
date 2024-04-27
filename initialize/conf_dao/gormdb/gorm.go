@@ -1,7 +1,7 @@
 package gormdb
 
 import (
-	initialize2 "github.com/hopeio/cherry/initialize"
+	"github.com/hopeio/cherry/initialize/initconf"
 	dbi "github.com/hopeio/cherry/utils/dao/db"
 	gormi "github.com/hopeio/cherry/utils/dao/db/gorm"
 	loggeri "github.com/hopeio/cherry/utils/dao/db/gorm/logger"
@@ -16,8 +16,8 @@ import (
 
 type Config gormi.Config
 
-func (c *Config) InitBeforeInject() {
-	c.EnableStdLogger = initialize2.GlobalConfig().Debug
+func (c *Config) InitBeforeInjectWithInitConfig(conf *initconf.InitConfig) {
+	c.EnableStdLogger = conf.Debug
 }
 
 func (c *Config) Init() {

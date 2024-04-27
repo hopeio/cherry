@@ -30,14 +30,21 @@ func (b Bool) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (b *Bool) UnmarshalJSON(data []byte) error {
-	switch string(data) {
-	case "true":
-		*b = 1
-	case "false":
-		*b = 2
-	case "null":
-		*b = 0
+	if len(data) <= 5 {
+		switch string(data) {
+		case "true":
+			*b = 1
+		case "false":
+			*b = 2
+		case "null":
+			*b = 0
+		case "1":
+			*b = 1
+		case "2":
+			*b = 2
+		}
 	}
+
 	return errors.New("invalid bool value")
 }
 
@@ -56,13 +63,19 @@ func (b Bool) MarshalText() ([]byte, error) {
 
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (b *Bool) UnmarshalText(data []byte) error {
-	switch string(data) {
-	case "true":
-		*b = 1
-	case "false":
-		*b = 2
-	case "null":
-		*b = 0
+	if len(data) <= 5 {
+		switch string(data) {
+		case "true":
+			*b = 1
+		case "false":
+			*b = 2
+		case "null":
+			*b = 0
+		case "1":
+			*b = 1
+		case "2":
+			*b = 2
+		}
 	}
 	return errors.New("invalid bool value")
 }

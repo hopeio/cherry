@@ -1,7 +1,6 @@
 package viper
 
 import (
-	"github.com/hopeio/cherry/initialize"
 	"github.com/hopeio/cherry/utils/log"
 	"github.com/spf13/viper"
 	_ "github.com/spf13/viper/remote"
@@ -32,16 +31,21 @@ type RemoteProvider struct {
 }
 
 func (c *Config) InitBeforeInject() {
-	c.ConfigFile = initialize.GlobalConfig().ConfUrl
+
 }
 func (c *Config) Init() {
 	if c.ConfigType == "" {
 		c.ConfigType = "toml"
 	}
+}
+
+func (c *Config) InitAfterInject() {
+	c.Init()
 	c.build(viper.GetViper())
 }
 
 func (c *Config) Build() *viper.Viper {
+	c.Init()
 	var runtimeViper = viper.New()
 	c.build(runtimeViper)
 	return runtimeViper

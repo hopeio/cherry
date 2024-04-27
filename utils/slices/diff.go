@@ -1,7 +1,7 @@
 package slices
 
 import (
-	_interface "github.com/hopeio/cherry/utils/definition/constraints"
+	_interface "github.com/hopeio/cherry/utils/constraints"
 	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/maps"
 )

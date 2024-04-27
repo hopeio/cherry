@@ -1,7 +1,7 @@
 package request
 
 import (
-	"github.com/hopeio/cherry/utils/definition/constraints"
+	"github.com/hopeio/cherry/utils/constraints"
 	"time"
 )
 
