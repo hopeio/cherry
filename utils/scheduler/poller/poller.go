@@ -2,7 +2,7 @@ package poller
 
 import (
 	"context"
-	"github.com/hopeio/cherry/utils/scheduler/rate"
+	"github.com/hopeio/cherry/utils/datastructure/timer"
 	"time"
 )
 
@@ -44,7 +44,7 @@ func (task *Poller) Run(ctx context.Context, interval time.Duration, do TaskFunc
 
 func (task *Poller) RandRun(ctx context.Context, minInterval, maxInterval time.Duration, do TaskFunc) {
 	task.do = do
-	timer := rate.NewRandSpeedLimiter(minInterval, maxInterval)
+	timer := timer.NewRandTimer(minInterval, maxInterval)
 	ch := timer.Channel()
 	task.times = 1
 	task.do(ctx)

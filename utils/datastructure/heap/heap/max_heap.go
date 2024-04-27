@@ -1,23 +1,23 @@
 package heap
 
 import (
-	constraintsi "github.com/hopeio/cherry/utils/constraints"
+	constraints2 "github.com/hopeio/cherry/utils/constraints"
 	"github.com/hopeio/cherry/utils/types"
 	"golang.org/x/exp/constraints"
 )
 
-type MaxHeap[T constraintsi.OrderKey[V], V constraints.Ordered] Heap[T, V]
+type MaxHeap[T constraints2.OrderKey[V], V constraints.Ordered] Heap[T, V]
 
-func NewMaxHeap[T constraintsi.OrderKey[V], V constraints.Ordered](l int) MaxHeap[T, V] {
+func NewMaxHeap[T constraints2.OrderKey[V], V constraints.Ordered](l int) MaxHeap[T, V] {
 	maxHeap := make([]T, 0, l)
 	return MaxHeap[T, V]{
 		entry: maxHeap,
-		less:  types.GreaterFunc[V],
+		less:  types.Greater[V],
 	}
 }
 
-func NewMaxHeapFromArray[T constraintsi.OrderKey[V], V constraints.Ordered](arr []T) MaxHeap[T, V] {
-	heap := NewHeapFromArray[T, V](arr, types.GreaterFunc[V])
+func NewMaxHeapFromArray[T constraints2.OrderKey[V], V constraints.Ordered](arr []T) MaxHeap[T, V] {
+	heap := NewHeapFromArray[T, V](arr, types.Greater[V])
 	return MaxHeap[T, V](heap)
 }
 

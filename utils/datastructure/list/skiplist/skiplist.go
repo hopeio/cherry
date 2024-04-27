@@ -1,7 +1,7 @@
 package skiplist
 
 import (
-	constraints2 "github.com/hopeio/cherry/utils/constraints"
+	"github.com/hopeio/cherry/utils/types"
 	"golang.org/x/exp/constraints"
 	"math/rand"
 )
@@ -14,15 +14,15 @@ type SkipList[K constraints.Ordered, V any] struct {
 	header   *skiplistitem[K, V]
 	len      int
 	MaxLevel int
-	less     constraints2.CompareFunc[K]
+	compare  types.FCompare[K]
 }
 
 // New returns a skiplist.
-func New[K constraints.Ordered, V any](less constraints2.CompareFunc[K]) *SkipList[K, V] {
+func New[K constraints.Ordered, V any](compare types.FCompare[K]) *SkipList[K, V] {
 	return &SkipList[K, V]{
 		header:   &skiplistitem[K, V]{forward: []*skiplistitem[K, V]{nil}},
 		MaxLevel: 32,
-		less:     less,
+		compare:  compare,
 	}
 }
 
@@ -37,7 +37,7 @@ func (s *SkipList[K, V]) Set(k interface{}, v interface{}) {
 	update := make([]*skiplistitem[K, V], s.level()+1, s.effectiveMaxLevel()+1) // make(type, len, cap)
 
 	x := s.path(s.header, update[K, V], k)
-	if x != nil && (s.less(x.k, k) || s.less(x.k, k)) { // if key Exist, update
+	if x != nil && (s.compare(x.k, k) || s.compare(x.k, k)) { // if key Exist, update
 		x.v = v
 		return
 	}
@@ -66,7 +66,7 @@ func (s *SkipList[K, V]) Set(k interface{}, v interface{}) {
 func (s *SkipList[K, V]) path(x *skiplistitem[K, V], update []*skiplistitem[K, V], k interface{}) (candidate *skiplistitem[K, V]) {
 	depth := len(x.forward) - 1
 	for i := depth; i >= 0; i-- {
-		for x.forward[i] != nil && s.less(x.forward[i].k, k) {
+		for x.forward[i] != nil && s.compare(x.forward[i].k, k) {
 			x = x.forward[i]
 		}
 		if update != nil {
@@ -85,7 +85,7 @@ func (s *SkipList[K, V]) randomLevel() (n int) {
 // Get returns corresponding v with given k.
 func (s *SkipList[K, V]) Get(k interface{}) (v interface{}, ok bool) {
 	x := s.path(s.header, nil, k)
-	if x == nil || (s.less(x.k, k) || s.less(x.k, k)) {
+	if x == nil || (s.compare(x.k, k) || s.compare(x.k, k)) {
 		return nil, false
 	}
 	return x.v, true
@@ -104,7 +104,7 @@ func (s *SkipList[K, V]) Search(k interface{}) (ok bool) {
 // Range interates `from` to `to` with `op`.
 func (s *SkipList[K, V]) Range(from, to interface{}, op func(v interface{})) {
 	for start := s.path(s.header, nil, from); start.next() != nil; start = start.next() {
-		if !s.less(start.k, to) {
+		if !s.compare(start.k, to) {
 			return
 		}
 
@@ -117,7 +117,7 @@ func (s *SkipList[K, V]) Del(k K) (v V, ok bool) {
 	update := make([]*skiplistitem[K, V], s.level()+1, s.effectiveMaxLevel())
 
 	x := s.path(s.header, update, k)
-	if x == nil || (s.less(x.k, k) || s.less(x.k, k)) {
+	if x == nil || (s.compare(x.k, k) || s.compare(x.k, k)) {
 		ok = false
 		return
 	}

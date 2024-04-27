@@ -1,8 +1,8 @@
 package list
 
 type Node[T any] struct {
-	Data T
-	next *Node[T]
+	Value T
+	Next  *Node[T]
 }
 
 type List[T any] struct {
@@ -41,7 +41,7 @@ func (l *List[T]) First() T {
 		panic("list is empty")
 		return *new(T)
 	}
-	return l.head.Data
+	return l.head.Value
 }
 
 func (l *List[T]) Last() T {
@@ -49,7 +49,7 @@ func (l *List[T]) Last() T {
 		panic("list is empty")
 		return *new(T)
 	}
-	return l.tail.Data
+	return l.tail.Value
 }
 
 func (l *List[T]) Pop() T {
@@ -59,12 +59,12 @@ func (l *List[T]) Pop() T {
 	}
 
 	p := l.head
-	l.head = p.next
+	l.head = p.Next
 	if l.size == 1 {
 		l.tail = nil
 	}
 	l.size--
-	return p.Data
+	return p.Value
 }
 
 func (l *List[T]) Push(v T) {
@@ -75,7 +75,7 @@ func (l *List[T]) Push(v T) {
 		l.size++
 		return
 	}
-	l.tail.next = node
+	l.tail.Next = node
 	l.tail = node
 	l.size++
 }
