@@ -22,7 +22,7 @@ func (gc *globalConfig) setBasicConfig() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	parseFlag(gc.flag)
+	parseFlag(gc.flag) // TODO: 缺少环境变量覆盖
 	gc.InitConfig.BasicConfig = basicConfig.BasicConfig
 	gc.InitConfig.EnvConfig = basicConfig.EnvConfig
 	gc.InitConfig.ConfigCenter.Format = format

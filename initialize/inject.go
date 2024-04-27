@@ -2,7 +2,6 @@ package initialize
 
 import (
 	"bytes"
-	"github.com/hopeio/cherry/utils/encoding"
 	"github.com/hopeio/cherry/utils/log"
 	"github.com/hopeio/cherry/utils/slices"
 	stringsi "github.com/hopeio/cherry/utils/strings"
@@ -252,51 +251,3 @@ func (gc *globalConfig) injectDao() {
 		c.InitAfterInjectWithInitConfig(&gc.InitConfig)
 	}
 }
-
-// get field name, return filed config name and skip flag
-func getFieldConfigName(v reflect.StructField, format encoding.Format) (string, bool) {
-	tag := v.Tag.Get(string(format))
-	if tag == "" {
-		return v.Name, false
-	}
-	if tag == "-" {
-		return "", true
-	}
-	name, _ := parseTag(tag)
-	return name, false
-}
-
-// tagOptions is the string following a comma in a struct field's "json"
-// tag, or the empty string. It does not include the leading comma.
-type tagOptions string
-
-// parseTag splits a struct field's json tag into its name and
-// comma-separated options.
-func parseTag(tag string) (string, tagOptions) {
-	tag, opt, _ := strings.Cut(tag, ",")
-	return tag, tagOptions(opt)
-}
-
-// Contains reports whether a comma-separated list of options
-// contains a particular substr flag. substr must be surrounded by a
-// string boundary or commas.
-func (o tagOptions) Contains(optionName string) bool {
-	if len(o) == 0 {
-		return false
-	}
-	s := string(o)
-	for s != "" {
-		var name string
-		name, s, _ = strings.Cut(s, ",")
-		if name == optionName {
-			return true
-		}
-	}
-	return false
-}
-
-// 整合viper,提供单个注入,viper实现也挺简单的,原来的方案就能实现啊
-/*func Inject(v Config, path string) {
-
-}
-*/

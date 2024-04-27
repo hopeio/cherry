@@ -23,7 +23,7 @@ func formatDecoderConfigOption(format encoding.Format) []viper.DecoderConfigOpti
 }
 
 // 递归的根据反射将对象中的指针变量赋值
-func struct2Map(format encoding.Format, value reflect.Value, confMap map[string]any) {
+func struct2Map(value reflect.Value, confMap map[string]any) {
 	typ := value.Type()
 	for i := 0; i < value.NumField(); i++ {
 		field := value.Field(i)
@@ -56,22 +56,20 @@ func struct2Map(format encoding.Format, value reflect.Value, confMap map[string]
 				}
 
 				// 判断是匿名字段
-				name := fieldType.Tag.Get(string(format))
-
-				if name == "" && fieldType.Anonymous {
-					struct2Map(format, newValue, confMap)
+				name, opt, ok := getFieldConfigName(fieldType)
+				if !ok {
+					continue
+				}
+				if opt == "squash" || fieldType.Anonymous {
+					struct2Map(newValue, confMap)
 				} else {
-					if name == "" {
-						name = fieldType.Name
-						tagSettings := ParseInitTagSettings(fieldType.Tag.Get(initTagName))
-						if tagSettings.ConfigName != "" {
-							name = stringsi.UpperCaseFirst(tagSettings.ConfigName)
-						}
+					tagSettings := ParseInitTagSettings(fieldType.Tag.Get(initTagName))
+					if tagSettings.ConfigName != "" {
+						name = stringsi.UpperCaseFirst(tagSettings.ConfigName)
 					}
-
 					newconfMap := make(map[string]any)
 					confMap[name] = newconfMap
-					struct2Map(format, newValue, newconfMap)
+					struct2Map(newValue, newconfMap)
 					if len(newconfMap) == 0 {
 						delete(confMap, name)
 					}
@@ -81,9 +79,14 @@ func struct2Map(format encoding.Format, value reflect.Value, confMap map[string]
 		}
 
 		if field.CanInterface() {
-			name := fieldType.Tag.Get(string(format))
-			if name == "" {
-				name = fieldType.Name
+			name, _, ok := getFieldConfigName(fieldType)
+			if !ok {
+				continue
+			}
+
+			tagSettings := ParseInitTagSettings(fieldType.Tag.Get(initTagName))
+			if tagSettings.ConfigName != "" {
+				name = stringsi.UpperCaseFirst(tagSettings.ConfigName)
 			}
 			confMap[name] = field.Interface()
 		}

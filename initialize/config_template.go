@@ -24,11 +24,11 @@ func (gc *globalConfig) genConfigTemplate(singleFileConfig bool) {
 	confMap := make(map[string]any)
 	if singleFileConfig {
 		filename = prefixConfigTemplate + string(format)
-		struct2Map(format, reflect.ValueOf(&gc.InitConfig.BasicConfig).Elem(), confMap)
-		struct2Map(format, reflect.ValueOf(&gc.InitConfig.EnvConfig).Elem(), confMap)
+		struct2Map(reflect.ValueOf(&gc.InitConfig.BasicConfig).Elem(), confMap)
+		struct2Map(reflect.ValueOf(&gc.InitConfig.EnvConfig).Elem(), confMap)
 		delete(confMap, fixedFieldNameConfigCenter)
 	}
-	struct2Map(format, reflect.ValueOf(gc.conf).Elem(), confMap)
+	struct2Map(reflect.ValueOf(gc.conf).Elem(), confMap)
 	if gc.dao != nil {
 		daoConfigTemplateMap(format, reflect.ValueOf(gc.dao).Elem(), confMap)
 	}
@@ -63,7 +63,7 @@ func daoConfigTemplateMap(format encoding.Format, value reflect.Value, confMap m
 			}
 
 			confMap[name] = newconfMap
-			struct2Map(format, reflect.ValueOf(field.Addr().Interface().(DaoField).Config()).Elem(), newconfMap)
+			struct2Map(reflect.ValueOf(field.Addr().Interface().(DaoField).Config()).Elem(), newconfMap)
 		}
 	}
 }

@@ -5,7 +5,6 @@ import (
 	"github.com/hopeio/cherry/initialize/initconf"
 	"github.com/hopeio/cherry/utils/log"
 	"github.com/hopeio/cherry/utils/reflect/mtos"
-	"github.com/mitchellh/mapstructure"
 	"os"
 	"reflect"
 	"strings"
@@ -28,7 +27,7 @@ const (
 	fixedFieldNameConfigCenter    = "ConfigCenter"
 	fixedFieldNameEncoderRegistry = "encoderRegistry"
 	prefixConfigTemplate          = "config.template."
-	prefixLocalTemplate           = "config.template."
+	prefixLocalTemplate           = "local.template."
 	skipTypeTlsConfig             = "tls.Config"
 )
 
@@ -39,13 +38,11 @@ func (gc *globalConfig) setEnvConfig() {
 		log.Warn("lack of environment configuration, try single config file")
 		return
 	}
-	err := mtos.Unmarshal(&gc.InitConfig.EnvConfig, envConfig, func(config *mapstructure.DecoderConfig) {
-		config.TagName = string(format)
-	})
+	err := mtos.Unmarshal(&gc.InitConfig.EnvConfig, envConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
-	parseFlag(gc.flag)
+	parseFlag(gc.flag) // TODO: 缺少环境变量覆盖
 	if gc.InitConfig.EnvConfig.ConfigCenter.ConfigType == "" {
 		log.Warn("lack of configCenter configType, try single config file")
 		return
@@ -62,9 +59,7 @@ func (gc *globalConfig) setEnvConfig() {
 		log.Warn("lack of configCenter config, try single config file")
 		return
 	}
-	err = mtos.Unmarshal(cc, ccConfig, func(config *mapstructure.DecoderConfig) {
-		config.TagName = string(format)
-	})
+	err = mtos.Unmarshal(cc, ccConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -73,14 +68,14 @@ func (gc *globalConfig) setEnvConfig() {
 	gc.InitConfig.EnvConfig.ConfigCenter.ConfigCenter = cc
 	// template
 	confMap := make(map[string]any)
-	struct2Map(format, reflect.ValueOf(&gc.InitConfig.BasicConfig).Elem(), confMap)
+	struct2Map(reflect.ValueOf(&gc.InitConfig.BasicConfig).Elem(), confMap)
 	envMap := make(map[string]any)
-	struct2Map(format, reflect.ValueOf(&gc.InitConfig.EnvConfig).Elem(), envMap)
+	struct2Map(reflect.ValueOf(&gc.InitConfig.EnvConfig).Elem(), envMap)
 	confMap[gc.InitConfig.Env] = envMap
 	ccMap := envMap[fixedFieldNameConfigCenter].(map[string]any)
 	for name, v := range conf_center.GetRegisteredConfigCenter() {
 		cc := make(map[string]any)
-		struct2Map(format, reflect.ValueOf(v).Elem(), cc)
+		struct2Map(reflect.ValueOf(v).Elem(), cc)
 		ccMap[name] = cc
 	}
 	// unsafe

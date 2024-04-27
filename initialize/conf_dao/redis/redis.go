@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"context"
 	"github.com/hopeio/cherry/utils/configor"
 	"github.com/hopeio/cherry/utils/crypto/tls"
 	"github.com/hopeio/cherry/utils/log"
@@ -29,7 +30,12 @@ func (c *Config) Init() {
 
 func (c *Config) Build() *redis.Client {
 	c.Init()
-	return redis.NewClient(&c.Options)
+	client := redis.NewClient(&c.Options)
+	err := client.Ping(context.Background()).Err()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return client
 }
 
 type Client struct {
