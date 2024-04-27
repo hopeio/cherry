@@ -2,6 +2,8 @@ package initialize
 
 import (
 	"flag"
+	"github.com/spf13/viper"
+
 	"github.com/hopeio/cherry/utils/log"
 	reflecti "github.com/hopeio/cherry/utils/reflect/converter"
 	"github.com/spf13/pflag"
@@ -32,14 +34,9 @@ type FlagTagSettings struct {
 
 func init() {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
-	//commandLine := newCommandLine()
-	injectFlagConfig(gConfig.flag, reflect.ValueOf(&gConfig.InitConfig).Elem())
+
 	// TODO: 绑定flag会在Unmarshal覆盖同名配置,parseFlag会纠正,但设计似乎不太合理,还是有不一致的情况
-	err := gConfig.Viper.BindPFlags(gConfig.flag)
-	if err != nil {
-		log.Fatal(err)
-	}
-	parseFlag(gConfig.flag)
+	applyFlagConfig(gConfig.Viper, &gConfig.InitConfig)
 
 	if gConfig.InitConfig.Proxy != "" {
 		proxyURL, err := url.Parse(gConfig.InitConfig.Proxy)
@@ -70,7 +67,7 @@ func (a anyValue) Set(v string) error {
 	return reflecti.SetValueByString(reflect.Value(a), v)
 }
 
-func injectFlagConfig(commandLine *pflag.FlagSet, fcValue reflect.Value) {
+func injectFlagConfig(commandLine *pflag.FlagSet, viper *viper.Viper, fcValue reflect.Value) {
 	if !fcValue.IsValid() || fcValue.IsZero() {
 		return
 	}
@@ -89,9 +86,9 @@ func injectFlagConfig(commandLine *pflag.FlagSet, fcValue reflect.Value) {
 			if !fieldValue.IsValid() || fieldValue.IsNil() {
 				fieldValue.Set(reflect.New(fieldValue.Type().Elem()))
 			}
-			injectFlagConfig(commandLine, fieldValue.Elem())
+			injectFlagConfig(commandLine, viper, fieldValue.Elem())
 		case reflect.Struct:
-			injectFlagConfig(commandLine, fieldValue)
+			injectFlagConfig(commandLine, viper, fieldValue)
 		}
 
 		if flagTag != "" {
@@ -99,7 +96,13 @@ func injectFlagConfig(commandLine *pflag.FlagSet, fcValue reflect.Value) {
 			ParseTagSetting(flagTag, ";", &flagTagSettings)
 			// 从环境变量设置
 			if flagTagSettings.Env != "" {
-				gConfig.Viper.BindEnv(flagTagSettings.Env)
+				if viper != nil {
+					err := viper.BindEnv(flagTagSettings.Env)
+					if err != nil {
+						log.Fatal(err)
+					}
+				}
+
 				if value, ok := os.LookupEnv(flagTagSettings.Env); ok {
 					err := reflecti.SetValueByString(fcValue.Field(i), value)
 					if err != nil {
@@ -116,16 +119,17 @@ func injectFlagConfig(commandLine *pflag.FlagSet, fcValue reflect.Value) {
 	}
 }
 
-// Deprecated
-func (gc *globalConfig) applyFlagConfig() {
+func applyFlagConfig(viper *viper.Viper, confs ...any) {
 	commandLine := newCommandLine()
-	fcValue := reflect.ValueOf(&gc.InitConfig.BasicConfig).Elem()
-	injectFlagConfig(commandLine, fcValue)
-	fcValue = reflect.ValueOf(&gc.InitConfig.EnvConfig).Elem()
-	injectFlagConfig(commandLine, fcValue)
-	err := gc.Viper.BindPFlags(commandLine)
-	if err != nil {
-		log.Fatal(err)
+	for _, conf := range confs {
+		fcValue := reflect.ValueOf(conf).Elem()
+		injectFlagConfig(commandLine, viper, fcValue)
+	}
+	if viper != nil {
+		err := viper.BindPFlags(commandLine)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 	parseFlag(commandLine)
 }

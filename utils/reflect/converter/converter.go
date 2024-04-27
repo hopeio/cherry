@@ -202,9 +202,10 @@ func SetValueByString(field reflect.Value, value string) error {
 	}
 	switch kind {
 	case reflect.Array, reflect.Slice:
-		eKind := field.Type().Elem().Kind()
+		subType := field.Type().Elem()
+		eKind := subType.Kind()
 		if eKind == reflect.Array || eKind == reflect.Slice || eKind == reflect.Map {
-			return fmt.Errorf("unsupported kind %v", eKind)
+			return fmt.Errorf("unsupported sub type %v", subType)
 		}
 		strs := strings.Split(value, ",")
 		if kind == reflect.Slice {
@@ -216,9 +217,10 @@ func SetValueByString(field reflect.Value, value string) error {
 			}
 		}
 	case reflect.Map:
-		eKind := field.Type().Elem().Kind()
+		subType := field.Type().Elem()
+		eKind := subType.Kind()
 		if eKind == reflect.Array || eKind == reflect.Slice || eKind == reflect.Map {
-			return fmt.Errorf("unsupported kind %v", eKind)
+			return fmt.Errorf("unsupported sub type %v", subType)
 		}
 		strs := strings.Split(value, ",")
 		field.Set(reflect.MakeMapWithSize(field.Type(), len(strs)/2))

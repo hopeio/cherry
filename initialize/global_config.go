@@ -7,7 +7,6 @@ import (
 	"github.com/hopeio/cherry/utils/encoding"
 	"github.com/hopeio/cherry/utils/errors/multierr"
 	"github.com/mitchellh/mapstructure"
-	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"path"
 	"reflect"
@@ -26,7 +25,6 @@ var (
 		},
 
 		Viper: viper.New(),
-		flag:  newCommandLine(),
 		lock:  sync.RWMutex{},
 	}
 	decoderConfigOptions = []viper.DecoderConfigOption{
@@ -58,7 +56,7 @@ type globalConfig struct {
 
 	/*
 		cacheConf      any*/
-	flag        *pflag.FlagSet
+
 	deferFuncs  []func()
 	initialized bool
 	lock        sync.RWMutex
@@ -136,8 +134,7 @@ func (gc *globalConfig) loadConfig() {
 		gc.InitConfig.ConfigCenter.ConfigCenter = &local.Local{
 			ConfigPath: gc.InitConfig.ConfUrl,
 		}
-		injectFlagConfig(gc.flag, reflect.ValueOf(gc.InitConfig.ConfigCenter.ConfigCenter).Elem())
-		parseFlag(gc.flag)
+		applyFlagConfig(gc.Viper, gc.InitConfig.ConfigCenter.ConfigCenter)
 	}
 
 	// hook function

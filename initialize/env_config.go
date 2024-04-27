@@ -42,7 +42,7 @@ func (gc *globalConfig) setEnvConfig() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	parseFlag(gc.flag) // TODO: 缺少环境变量覆盖
+	applyFlagConfig(nil, &gc.InitConfig.EnvConfig)
 	if gc.InitConfig.EnvConfig.ConfigCenter.ConfigType == "" {
 		log.Warn("lack of configCenter configType, try single config file")
 		return
@@ -63,8 +63,7 @@ func (gc *globalConfig) setEnvConfig() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	injectFlagConfig(gc.flag, reflect.ValueOf(cc).Elem())
-	parseFlag(gc.flag)
+	applyFlagConfig(gc.Viper, cc)
 	gc.InitConfig.EnvConfig.ConfigCenter.ConfigCenter = cc
 	// template
 	confMap := make(map[string]any)

@@ -25,14 +25,8 @@ func (gc *globalConfig) UnmarshalAndSet(data []byte) {
 			log.Fatal(err)
 		}*/
 	//gc.ConfigCenter.Format = format
-	commandLine := newCommandLine()
-	injectFlagConfig(commandLine, reflect.ValueOf(tmpConfig).Elem())
 
-	err = gc.Viper.BindPFlags(commandLine)
-	if err != nil {
-		log.Fatal(err)
-	}
-	parseFlag(commandLine)
+	applyFlagConfig(gc.Viper, tmpConfig)
 
 	err = gc.Viper.Unmarshal(tmpConfig, decoderConfigOptions...)
 	if err != nil {

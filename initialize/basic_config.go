@@ -14,15 +14,12 @@ type SingleFileConfig struct {
 func (gc *globalConfig) setBasicConfig() {
 	format := gc.InitConfig.ConfigCenter.Format
 	basicConfig := &SingleFileConfig{}
-	/*format, err := common.Unmarshal(gc.ConfigCenter.Format, data, basicConfig)
-	if err != nil {
-		return
-	}*/
+
 	err := gc.Viper.Unmarshal(basicConfig, decoderConfigOptions...)
 	if err != nil {
 		log.Fatal(err)
 	}
-	parseFlag(gc.flag) // TODO: 缺少环境变量覆盖
+	applyFlagConfig(nil, basicConfig)
 	gc.InitConfig.BasicConfig = basicConfig.BasicConfig
 	gc.InitConfig.EnvConfig = basicConfig.EnvConfig
 	gc.InitConfig.ConfigCenter.Format = format
