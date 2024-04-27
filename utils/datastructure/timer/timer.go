@@ -1,11 +1,11 @@
-package rate
+package timer
 
 import (
 	"math/rand"
 	"time"
 )
 
-type SpeedLimiter interface {
+type Timer interface {
 	Reset(time.Duration) bool
 	Stop() bool
 
@@ -34,11 +34,11 @@ func (t *Ticker) Channel() <-chan time.Time {
 	return t.C
 }
 
-func NewSpeedLimiter(interval time.Duration) SpeedLimiter {
+func NewTimer(interval time.Duration) Timer {
 	return (*Ticker)(time.NewTicker(interval))
 }
 
-var _ SpeedLimiter = &RandTimer{}
+var _ Timer = &RandTimer{}
 
 type RandTimer struct {
 	timer                 *time.Timer
@@ -74,7 +74,7 @@ func (t *RandTimer) Channel() <-chan time.Time {
 // minInterval:最小等待时间
 // maxInterval：最大等待时间
 // maxInterval-minInterval: 等待范围
-func NewRandSpeedLimiter(minInterval, maxInterval time.Duration) SpeedLimiter {
+func NewRandTimer(minInterval, maxInterval time.Duration) Timer {
 	limitRange := maxInterval - minInterval
 	if limitRange == 0 {
 		return (*Ticker)(time.NewTicker(minInterval))

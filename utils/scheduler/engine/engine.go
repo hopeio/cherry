@@ -6,9 +6,9 @@ import (
 	"github.com/dgraph-io/ristretto"
 	"github.com/hopeio/cherry/utils/datastructure/heap"
 	"github.com/hopeio/cherry/utils/datastructure/list/list"
+	"github.com/hopeio/cherry/utils/datastructure/timer"
 	"github.com/hopeio/cherry/utils/io/fs"
 	"github.com/hopeio/cherry/utils/log"
-	rate2 "github.com/hopeio/cherry/utils/scheduler/rate"
 	"github.com/hopeio/cherry/utils/slices"
 	"golang.org/x/time/rate"
 	"sync"
@@ -40,7 +40,7 @@ type Engine[KEY Key] struct {
 	cancel                               context.CancelFunc // 手动停止执行
 	wg                                   sync.WaitGroup     // 控制确保所有任务执行完
 	fixedWorkers                         []*Worker[KEY]     // 固定只执行一种任务的worker,避免并发问题
-	speedLimit                           rate2.SpeedLimiter
+	speedLimit                           timer.Timer
 	rateLimiter                          *rate.Limiter
 	//TODO
 	monitorInterval              time.Duration // 全局检测定时器间隔时间，任务的卡住检测，worker panic recover都可以用这个检测
@@ -57,7 +57,7 @@ type Engine[KEY Key] struct {
 
 type KindHandler[KEY Key] struct {
 	Skip        bool
-	speedLimit  rate2.SpeedLimiter
+	speedLimit  timer.Timer
 	rateLimiter *rate.Limiter
 	// TODO 指定Kind的Handler
 	HandleFun TaskFunc[KEY]
@@ -166,28 +166,28 @@ func (e *Engine[KEY]) StopCallBack(callBack func()) *Engine[KEY] {
 }
 
 func (e *Engine[KEY]) SpeedLimited(interval time.Duration) *Engine[KEY] {
-	e.speedLimit = rate2.NewSpeedLimiter(interval)
+	e.speedLimit = timer.NewTimer(interval)
 	return e
 }
 
 func (e *Engine[KEY]) RandSpeedLimited(minInterval, maxInterval time.Duration) *Engine[KEY] {
-	e.speedLimit = rate2.NewRandSpeedLimiter(minInterval, maxInterval)
+	e.speedLimit = timer.NewRandTimer(minInterval, maxInterval)
 	return e
 }
 
 func (e *Engine[KEY]) KindSpeedLimit(kind Kind, interval time.Duration) *Engine[KEY] {
-	limiter := rate2.NewRandSpeedLimiter(interval, interval)
+	limiter := timer.NewRandTimer(interval, interval)
 	e.kindSpeedLimit(kind, limiter)
 	return e
 }
 
 func (e *Engine[KEY]) KindRandSpeedLimit(kind Kind, minInterval, maxInterval time.Duration) *Engine[KEY] {
-	limiter := rate2.NewRandSpeedLimiter(minInterval, maxInterval)
+	limiter := timer.NewRandTimer(minInterval, maxInterval)
 	e.kindSpeedLimit(kind, limiter)
 	return e
 }
 
-func (e *Engine[KEY]) kindSpeedLimit(kind Kind, limiter rate2.SpeedLimiter) *Engine[KEY] {
+func (e *Engine[KEY]) kindSpeedLimit(kind Kind, limiter timer.Timer) *Engine[KEY] {
 	if e.kindHandlers == nil {
 		e.kindHandlers = make([]*KindHandler[KEY], int(kind)+1)
 	}
@@ -204,7 +204,7 @@ func (e *Engine[KEY]) kindSpeedLimit(kind Kind, limiter rate2.SpeedLimiter) *Eng
 
 // 多个kind共用一个timer
 func (e *Engine[KEY]) KindGroupSpeedLimit(interval time.Duration, kinds ...Kind) *Engine[KEY] {
-	limiter := rate2.NewRandSpeedLimiter(interval, interval)
+	limiter := timer.NewRandTimer(interval, interval)
 	for _, kind := range kinds {
 		e.kindSpeedLimit(kind, limiter)
 	}
@@ -212,7 +212,7 @@ func (e *Engine[KEY]) KindGroupSpeedLimit(interval time.Duration, kinds ...Kind)
 }
 
 func (e *Engine[KEY]) KindGroupRandSpeedLimit(minInterval, maxInterval time.Duration, kinds ...Kind) *Engine[KEY] {
-	limiter := rate2.NewRandSpeedLimiter(minInterval, maxInterval)
+	limiter := timer.NewRandTimer(minInterval, maxInterval)
 	for _, kind := range kinds {
 		e.kindSpeedLimit(kind, limiter)
 	}

@@ -1,17 +1,19 @@
 package types
 
-import "golang.org/x/exp/constraints"
+import (
+	"golang.org/x/exp/constraints"
+)
 
-type FloatGTValue float64
+func Less[T constraints.Ordered](a T, b T) bool {
+	return a < b
+}
 
-func (a FloatGTValue) Compare(b FloatGTValue) bool {
+func Greater[T constraints.Ordered](a T, b T) bool {
 	return a > b
 }
 
-type FloatLTValue float64
-
-func (a FloatLTValue) Compare(b FloatLTValue) bool {
-	return a < b
+func Equal[T constraints.Ordered](a T, b T) bool {
+	return a == b
 }
 
 type GTValue[T constraints.Ordered] struct {

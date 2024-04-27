@@ -108,3 +108,49 @@ func CopyStruct(src any, dest any) error {
 
 	return nil
 }
+
+func CanCast(t1, t2 reflect.Type, strict bool) bool {
+	t1kind, t2kind := t1.Kind(), t2.Kind()
+	if strict {
+		if t1kind != t2kind {
+			return false
+		}
+		if t1kind <= reflect.Complex128 {
+			return true
+		}
+	} else {
+		if t1kind == t2kind {
+			return true
+		}
+		if (t1kind == reflect.Complex64 || t1kind == reflect.Complex128) && (t2kind == reflect.Complex64 || t2kind == reflect.Complex128) {
+			return true
+		}
+	}
+
+	switch t1kind {
+	case reflect.String:
+		return t1kind == t2kind
+	case reflect.Ptr, reflect.Array, reflect.Chan, reflect.Slice, reflect.Map:
+		if t1kind == reflect.Map {
+			if !CanCast(t1.Key(), t2.Key(), true) {
+				return false
+			}
+		}
+		if t1kind == reflect.Array && t1.Len() != t2.Len() {
+			return false
+		}
+		return CanCast(t1.Elem(), t2.Elem(), true)
+	case reflect.Struct:
+		if t1.NumField() != t2.NumField() {
+			return false
+		}
+		for i := 0; i < t1.NumField(); i++ {
+			if !CanCast(t1.Field(i).Type, t2.Field(i).Type, true) {
+				return false
+			}
+		}
+	case reflect.Interface, reflect.UnsafePointer:
+		return t1 == t2
+	}
+	return true
+}
