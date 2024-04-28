@@ -3,25 +3,25 @@ package slices
 import "sync"
 
 // Index 索引
-type Index[T any, O comparable] struct {
-	idx   []O
+type Index[T any, I comparable] struct {
+	idx   []I
 	value []T
 	sync.RWMutex
 }
 
-func NewIndex[T any, O comparable]() *Index[T, O] {
-	return &Index[T, O]{
-		idx:   make([]O, 0),
+func NewIndex[T any, I comparable]() *Index[T, I] {
+	return &Index[T, I]{
+		idx:   make([]I, 0),
 		value: make([]T, 0),
 	}
 }
 
-func (i *Index[T, O]) Add(idx O, res T) {
+func (i *Index[T, I]) Add(idx I, res T) {
 	i.idx = append(i.idx, idx)
 	i.value = append(i.value, res)
 }
 
-func (i *Index[T, O]) Get(idx O) T {
+func (i *Index[T, I]) Get(idx I) T {
 	i.RLock()
 	defer i.RUnlock()
 	for j, v := range i.idx {
@@ -32,7 +32,7 @@ func (i *Index[T, O]) Get(idx O) T {
 	return *new(T)
 }
 
-func (i *Index[T, O]) Set(idx O, v T) {
+func (i *Index[T, I]) Set(idx I, v T) {
 	i.RLock()
 	defer i.RUnlock()
 	for j, x := range i.idx {
@@ -43,7 +43,7 @@ func (i *Index[T, O]) Set(idx O, v T) {
 	}
 }
 
-func (i *Index[T, O]) Remove(idx O) {
+func (i *Index[T, I]) Remove(idx I) {
 	i.Lock()
 	defer i.Unlock()
 	for j, v := range i.idx {

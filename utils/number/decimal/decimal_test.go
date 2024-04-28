@@ -51,14 +51,14 @@ func Test_Float(t *testing.T) {
 func Test_DB(t *testing.T) {
 	type DecTest struct {
 		Id   uint64
-		Dec  Decimal3 `gorm:"type:decimal(10,2)"`
+		Dec  DecimalV4 `gorm:"type:decimal(10,2)"`
 		Time time.Time
 	}
 	db := &gorm.DB{}
 	tx := db.Begin()
 	/*	tx.DropTable(&DecTest{})
 		tx.CreateTable(&DecTest{})*/
-	var dec = DecTest{Dec: Decimal3{123, -2, false}}
+	var dec = DecTest{Dec: DecimalV4{123, -2, false}}
 	tx.Save(&dec)
 	log.Println(dec.Id)
 	var dec1 DecTest

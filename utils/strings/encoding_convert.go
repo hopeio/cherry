@@ -6,16 +6,7 @@ import (
 	"golang.org/x/text/transform"
 	"io"
 	"strings"
-	"unsafe"
 )
-
-func ToBytes(s string) []byte {
-	return *(*[]byte)(unsafe.Pointer(&s))
-}
-
-func ToString(b []byte) string {
-	return *(*string)(unsafe.Pointer(&b))
-}
 
 // GBK 转 UTF-8
 func GBKToUTF8(s string) (string, error) {

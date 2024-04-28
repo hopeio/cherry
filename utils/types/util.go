@@ -25,7 +25,7 @@ func CastNumber[T, V constraintsi.Number](v V) T {
 	return T(v)
 }
 
-func TernaryOp[T any](yes bool, a, b T) T {
+func Match[T any](yes bool, a, b T) T {
 	if yes {
 		return a
 	}

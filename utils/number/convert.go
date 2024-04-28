@@ -24,7 +24,7 @@ func FormatInt(num, base int64) string {
 
 func ParseInt(str string, base float64) (int64, error) {
 	if base < 37 {
-		return strconv.ParseInt(str, int(base), 0)
+		return strconv.ParseInt(str, int(base), strconv.IntSize)
 	}
 	var num int64
 	n := len(str)

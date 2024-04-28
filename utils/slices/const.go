@@ -1,3 +1,3 @@
 package slices
 
-const SmallArrayLen = 64
+const SmallArrayLen = 32

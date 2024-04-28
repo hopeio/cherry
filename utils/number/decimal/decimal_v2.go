@@ -9,7 +9,7 @@ import (
 )
 
 // 放弃，省空间，但计算时间浪费，来回不停转字符串
-type Decimal1 struct {
+type DecimalV2 struct {
 	neg bool
 	Int uint64
 	//小数部分翻转 0.001 =》 100
@@ -18,7 +18,7 @@ type Decimal1 struct {
 
 //居然没有运算符重载
 
-func New1(Dec string) (dec Decimal1, err error) {
+func New1(Dec string) (dec DecimalV2, err error) {
 	nums := strings.Split(Dec, ".")
 	dec.Int, err = strconv.ParseUint(nums[0], 10, 64)
 	if len(nums) == 1 {
@@ -60,24 +60,24 @@ func reverse(s string) string {
 	return string(bytes)
 }
 
-func (d *Decimal1) Dec() string {
+func (d *DecimalV2) Dec() string {
 	dec := strconv.FormatUint(d.dec, 10)
 	return reverse(dec)
 }
 
-func (d *Decimal1) DecInt() uint64 {
+func (d *DecimalV2) DecInt() uint64 {
 	dec, _ := strconv.ParseUint(d.Dec(), 10, 64)
 	return dec
 }
 
-func (d *Decimal1) SetDec(dec string) error {
+func (d *DecimalV2) SetDec(dec string) error {
 	var err error
 	dec = reverse(dec)
 	d.dec, err = strconv.ParseUint(dec, 10, 64)
 	return err
 }
 
-func (d *Decimal1) SetDecInt(dec uint64) error {
+func (d *DecimalV2) SetDecInt(dec uint64) error {
 	var err error
 	decStr := strconv.FormatUint(dec, 10)
 	decStr = reverse(decStr)
@@ -85,8 +85,8 @@ func (d *Decimal1) SetDecInt(dec uint64) error {
 	return err
 }
 
-func (d *Decimal1) Add(v Decimal1) Decimal1 {
-	var dec Decimal1
+func (d *DecimalV2) Add(v DecimalV2) DecimalV2 {
+	var dec DecimalV2
 	dec.Int = d.Int + v.Int
 	d1 := d.Dec()
 	d2 := v.Dec()
@@ -107,7 +107,7 @@ func (d *Decimal1) Add(v Decimal1) Decimal1 {
 	return dec
 }
 
-func (d *Decimal1) Multi(v Decimal1) {
+func (d *DecimalV2) Multi(v DecimalV2) {
 	/*	i := d.Int * v.Int
 		Decimal := d.Decimal * v.Int
 		Decimal = Decimal + d.Int*v.Decimal + (d.Decimal*d.Decimal)/(int(exponent(10, uint64(d.accuracy*2))))
@@ -116,7 +116,7 @@ func (d *Decimal1) Multi(v Decimal1) {
 		d.Decimal = Decimal % (int(exponent(10, uint64(d.accuracy))))*/
 }
 
-func (d Decimal1) String() string {
+func (d DecimalV2) String() string {
 	return fmt.Sprintf("%d.%s", d.Int, d.Dec())
 }
 

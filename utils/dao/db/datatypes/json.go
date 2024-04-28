@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-type JsonB json.RawMessage
+type JsonB []byte
 
 // 实现 sql.Scanner 接口，Scan 将 value 扫描至 JsonB
 func (j *JsonB) Scan(value interface{}) error {
@@ -26,18 +26,16 @@ func (j *JsonB) Scan(value interface{}) error {
 
 // 实现 driver.Valuer 接口，Value 返回 json value
 func (j JsonB) Value() (driver.Value, error) {
-	return json.RawMessage(j).MarshalJSON()
+	if j == nil {
+		return []byte("null"), nil
+	}
+	return j, nil
 }
 
 func (*JsonB) GormDataType() string {
 	return "jsonb"
 }
 
-/*
-func (JsonB) ConvertValue(v any) (driver.Value, error) {
-
-}
-*/
 type Json map[string]any
 
 // 实现 sql.Scanner 接口，Scan 将 value 扫描至 Json

@@ -9,15 +9,15 @@ import (
 	"unsafe"
 )
 
-type Decimal3 struct {
+type DecimalV4 struct {
 	mant uint64
 	exp  int
 	neg  bool
 }
 
-func New3(mant uint64, exp int, neg bool) *Decimal3 {
+func New3(mant uint64, exp int, neg bool) *DecimalV4 {
 	if mant == 0 {
-		return &Decimal3{}
+		return &DecimalV4{}
 	}
 	mantStr := strconv.FormatUint(mant, 10)
 	for i := len(mantStr) - 1; i >= 0; i-- {
@@ -28,15 +28,15 @@ func New3(mant uint64, exp int, neg bool) *Decimal3 {
 			break
 		}
 	}
-	return &Decimal3{
+	return &DecimalV4{
 		mant: mant,
 		exp:  exp,
 		neg:  neg,
 	}
 }
 
-func New3FromStr(str string) (Decimal3, error) {
-	var dec Decimal3
+func New3FromStr(str string) (DecimalV4, error) {
+	var dec DecimalV4
 	if str != "" && str[0] == '-' {
 		dec.neg = true
 		str = str[1:]
@@ -62,7 +62,7 @@ func New3FromStr(str string) (Decimal3, error) {
 	return dec, nil
 }
 
-func (x *Decimal3) Add(v Decimal3) *Decimal3 {
+func (x *DecimalV4) Add(v DecimalV4) *DecimalV4 {
 	var dec = *x
 
 	if x.exp > v.exp {
@@ -87,14 +87,14 @@ func (x *Decimal3) Add(v Decimal3) *Decimal3 {
 	return &dec
 }
 
-func (x *Decimal3) Sub(v Decimal3) *Decimal3 {
+func (x *DecimalV4) Sub(v DecimalV4) *DecimalV4 {
 	v.neg = !v.neg
 	return x.Add(v)
 }
 
-func (x *Decimal3) Mul(v Decimal3) *Decimal3 {
+func (x *DecimalV4) Mul(v DecimalV4) *DecimalV4 {
 	if x.mant == 0 || v.mant == 0 {
-		return &Decimal3{}
+		return &DecimalV4{}
 	}
 	v.mant *= x.mant
 	v.exp += x.exp
@@ -112,9 +112,9 @@ const (
 	HALFUP
 )
 
-func (x *Decimal3) Div(v Decimal3, mode RoundingMode) *Decimal3 {
+func (x *DecimalV4) Div(v DecimalV4, mode RoundingMode) *DecimalV4 {
 	if x.mant == 0 {
-		return &Decimal3{}
+		return &DecimalV4{}
 	}
 	if v.mant == 0 {
 		panic("除数不能为0")
@@ -138,13 +138,13 @@ func (x *Decimal3) Div(v Decimal3, mode RoundingMode) *Decimal3 {
 	return &v
 }
 
-func (x *Decimal3) DivInt(v int, mode RoundingMode) *Decimal3 {
+func (x *DecimalV4) DivInt(v int, mode RoundingMode) *DecimalV4 {
 	dec := *x
 	dec.mant = dec.mant / uint64(v)
 	return &dec
 }
 
-func (x *Decimal3) Float() float64 {
+func (x *DecimalV4) Float() float64 {
 	if x.neg {
 		return -float64(x.mant) / math.Pow10(abs(x.exp))
 	}
@@ -159,13 +159,13 @@ func abs(x int) int {
 }
 
 /*
-	func (x *Decimal3) Div2(v Decimal3) *Decimal3 {
+	func (x *DecimalV4) Div2(v DecimalV4) *DecimalV4 {
 		f1:=big.NewFloat(x.Float())
 		f2:=big.NewFloat(v.Float())
 		f3,_:=f1.Quo(f1,f2).Float64()
 	}
 */
-func (x Decimal3) String() string {
+func (x DecimalV4) String() string {
 	if x.mant == 0 {
 		return "0"
 	}
@@ -195,11 +195,11 @@ func (x Decimal3) String() string {
 	return fmt.Sprintf("%s%s", in, de)
 }
 
-func (x *Decimal3) Decompose(buf []byte) (form byte, negative bool, mant []byte, exponent int32) {
+func (x *DecimalV4) Decompose(buf []byte) (form byte, negative bool, mant []byte, exponent int32) {
 	return 0, x.neg, (*(*[8]byte)(unsafe.Pointer(&x.mant)))[:], int32(x.exp)
 }
 
-func (x *Decimal3) Compose(form byte, negative bool, mant []byte, exponent int32) error {
+func (x *DecimalV4) Compose(form byte, negative bool, mant []byte, exponent int32) error {
 	x.neg = negative
 	x.exp = int(exponent)
 	var array [8]byte
@@ -208,7 +208,7 @@ func (x *Decimal3) Compose(form byte, negative bool, mant []byte, exponent int32
 	return nil
 }
 
-func (x *Decimal3) Scan(raw interface{}) error {
+func (x *DecimalV4) Scan(raw interface{}) error {
 	var err error
 	switch v := raw.(type) {
 	case []byte:
@@ -224,6 +224,6 @@ func (x *Decimal3) Scan(raw interface{}) error {
 	return nil
 }
 
-func (x Decimal3) Value() (driver.Value, error) {
+func (x DecimalV4) Value() (driver.Value, error) {
 	return driver.Value(x.String()), nil
 }

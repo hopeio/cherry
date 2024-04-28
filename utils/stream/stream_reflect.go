@@ -1,4 +1,4 @@
-package reflect
+package stream
 
 import "reflect"
 
@@ -8,7 +8,7 @@ type stream struct {
 	expr    any
 }
 
-func Stream(array any) stream {
+func StreamOf(array any) stream {
 	value := reflect.ValueOf(array)
 	kind := value.Kind()
 	if kind == reflect.Pointer {

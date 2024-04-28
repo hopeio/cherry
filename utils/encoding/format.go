@@ -9,4 +9,5 @@ const (
 	Yml      Format = "yml"
 	Protobuf Format = "protobuf"
 	Xml      Format = "xml"
+	Text     Format = "text"
 )

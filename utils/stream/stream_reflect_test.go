@@ -1,4 +1,4 @@
-package reflect
+package stream
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 
 func TestStream(t *testing.T) {
 	s := []int{1, 2, 3}
-	stream := Stream(s)
+	stream := StreamOf(s)
 	stream.ForEach(func(s int) {
 		t.Log(s)
 	})
