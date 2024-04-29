@@ -34,9 +34,9 @@ func (u *UserService) Signup(ctx context.Context, req *user.SignupReq) (*wrapper
 		Phone:  req.Phone,
 		Gender: req.Gender,
 
-		Role:      user.Role_Normal,
+		Role:      user.RoleNormal,
 		CreatedAt: formatNow,
-		Status:    user.UserStatus_InActive,
+		Status:    user.UserStatusInActive,
 	}
 
 	db := gormi.NewTraceDB(confdao.Dao.GORMDB.DB, ctx, ctxi.TraceID)

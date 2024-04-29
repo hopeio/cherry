@@ -1,17 +1,16 @@
 package middleware
 
 import (
+	"github.com/gin-gonic/gin"
+	"github.com/hopeio/cherry/utils/net/http/api/apidoc"
 	"net/http"
 	"reflect"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"github.com/go-openapi/spec"
-	"github.com/hopeio/cherry/utils/net/http/api/apidoc"
 	reflecti "github.com/hopeio/cherry/utils/reflect"
 )
 
-// Deprecated
 func ApiMiddle(ctx *gin.Context) {
 	currentRouteName := ctx.Request.RequestURI[len(ctx.Request.Method):]
 
