@@ -77,7 +77,7 @@ func CustomHTTPError(ctx context.Context, mux *runtime.ServeMux, marshaler runti
 
 func HTTPStatusFromCode(code errorcode.ErrCode) int {
 	switch code {
-	case errorcode.SUCCESS:
+	case errorcode.Success:
 		return http.StatusOK
 	case errorcode.Canceled:
 		return http.StatusRequestTimeout

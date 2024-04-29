@@ -42,7 +42,7 @@ func RespErr(w http.ResponseWriter, err error) {
 }
 
 func RespErrMsg(w http.ResponseWriter, msg string) {
-	NewResData[any](errorcode.SUCCESS, msg, nil).Response(w, http.StatusOK)
+	NewResData[any](errorcode.Success, msg, nil).Response(w, http.StatusOK)
 }
 
 func RespErrRep(w http.ResponseWriter, rep *errorcode.ErrRep) {

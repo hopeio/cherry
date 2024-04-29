@@ -3,7 +3,7 @@ package user;
 import "cherry/protobuf/utils/enum/enum.proto";
 import "cherry/protobuf/utils/patch/go.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
-import "github.com/mwitkow/go-proto-validators/validator.proto";
+import "cherry/protobuf/utils/validator/validator.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/wrappers.proto";
 import "danielvladco/protobuf/graphql.proto";
@@ -11,8 +11,8 @@ import "danielvladco/protobuf/graphql.proto";
 option java_package = "cherry.hopeio.protobuf.user";
 option go_package = "github.com/hopeio/cherry/_example/protobuf/user";
 
-option (enum.enum_gqlgen_all) = true;
 option (go.file) = {no_enum_prefix:true};
+option (enum.enum_gqlgen_all) = true;
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   info: {
@@ -43,9 +43,9 @@ message User {
 message SignupReq {
   // 密码
   string password = 4 [(go.field) = {tags:'validate:"required,gte=6,lte=15" comment:"密码"'}, (validator.field) = {
-    length_gt: 5
+    length_gt: 5,
     human_error: "密码最短6位"
-  }, (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "密码"
+  }, (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "密码",
     min_length: 6}];
   string name = 1 [(go.field) = {tags:'validate:"required,gte=3,lte=10" comment:"昵称"'}];
   Gender gender = 3 [(go.field) = {tags:'validate:"required" comment:"性别"'}];

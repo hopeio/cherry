@@ -57,20 +57,23 @@ func generate(dir string) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-
+	var gen bool
 	for i := range fileInfos {
 		if fileInfos[i].IsDir() {
 			generate(dir + "/" + fileInfos[i].Name())
-		}
-		if strings.HasSuffix(fileInfos[i].Name(), "enum.proto") {
-			arg := "protoc " + include + " " + dir + "/" + fileInfos[i].Name() + " --" + enumOut + ":" + libcherryDir + "/.."
-			execi.Run(arg)
+		} else if !gen && strings.HasSuffix(fileInfos[i].Name(), ".proto") {
+			protoc(dir)
 		}
 	}
 
+}
+
+func protoc(dir string) {
+	cmd := "protoc " + include + " " + dir + "/*.proto"
+	var args string
 	for _, plugin := range model {
-		arg := "protoc " + include + " " + dir + "/*.proto --" + plugin + ":" + libcherryDir + "/.."
-		execi.Run(arg)
-	}
+		args += " --" + plugin + ":" + libcherryDir + "/.."
 
+	}
+	execi.Run(cmd + args)
 }

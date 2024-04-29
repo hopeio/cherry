@@ -25,7 +25,7 @@ const (
 	enumOut         = "enum_out=paths=source_relative"
 	gatewayOut      = "grpc-gin_out=paths=source_relative"
 	openapiv2Out    = "openapiv2_out=logtostderr=true"
-	govalidatorsOut = "govalidators_out=paths=source_relative"
+	govalidatorsOut = "validator_out=paths=source_relative"
 	gqlOut          = "gql_out=svc=true,merge=true,paths=source_relative"
 	gogqlOut        = "gogql_out=svc=true,merge=true,paths=source_relative"
 	dartOut         = "dart_out=grpc"
@@ -46,7 +46,7 @@ var plugin = []string{goOut, grpcOut}
 
 var enumPlugin = enumOut
 var gatewayPlugin = []string{gatewayOut, openapiv2Out}
-var validatorsOutPlugin = govalidatorsOut
+var validatorOutPlugin = govalidatorsOut
 var gqlPlugin = []string{gqlOut, gogqlOut}
 
 func init() {
@@ -58,7 +58,7 @@ func init() {
 	pflag.StringVarP(&config.dproto, "cherry", "d", "/proto", "cherry proto dir")
 	pflag.BoolVarP(&config.useEnumPlugin, "enum", "e", false, "是否使用enum扩展插件")
 	pflag.BoolVarP(&config.useGateWayPlugin, "gw", "w", false, "是否使用grpc-gateway插件")
-	pflag.BoolVarP(&config.useValidatorsOutPlugin, "validator", "v", false, "是否使用validators插件")
+	pflag.BoolVarP(&config.useValidatorOutPlugin, "validator", "v", false, "是否使用validators插件")
 	pflag.BoolVarP(&config.useGqlPlugin, "graphql", "q", false, "是否使用graphql插件")
 	pflag.BoolVar(&config.stdPatch, "patch", false, "是否使用原生protopatch")
 	rootCmd.AddCommand(&cobra.Command{
@@ -102,8 +102,8 @@ var rootCmd = &cobra.Command{
 		if config.useGateWayPlugin {
 			plugin = append(plugin, gatewayPlugin...)
 		}
-		if config.useValidatorsOutPlugin {
-			plugin = append(plugin, validatorsOutPlugin)
+		if config.useValidatorOutPlugin {
+			plugin = append(plugin, validatorOutPlugin)
 		}
 		if config.useGqlPlugin {
 			plugin = append(plugin, gqlPlugin...)
@@ -120,12 +120,16 @@ func main() {
 }
 
 func run(dir string) {
-	protoc(plugin, dir+"/*.proto")
 	fileInfos, err := os.ReadDir(dir)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	var exec bool
 	for i := range fileInfos {
+		if !exec && strings.HasSuffix(fileInfos[i].Name(), ".proto") {
+			exec = true
+			protoc(plugin, dir+"/*.proto")
+		}
 		if fileInfos[i].IsDir() {
 			run(dir + "/" + fileInfos[i].Name())
 		}

@@ -1,0 +1,10 @@
+syntax = "proto3";
+package validator.example;
+import "cherry/protobuf/utils/validator/validator.proto";
+
+option go_package = "github.com/hopeio/cherry/tools/protoc/protoc-gen-validator/example";
+
+message UUIDMsg {
+  // user_id must be a valid version 4 UUID.
+  string user_id = 1 [(validator.field) = {uuid_ver: 4, string_not_empty: true}];
+}

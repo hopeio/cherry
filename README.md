@@ -209,8 +209,8 @@ func main() {
 - protoc-go-patch 支持通过ast重新生成自定义结构体tag,生成结构体方法等功能
 - protoc-gen-grpc-gin github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway的gin版本，支持生成http路由代理转发到grpc sercvice中
 - protoc-gin-enum 分为错误enum及普通enum，生成性能更高支持中文的`String()`,错误enum会额外生成`Error()string`，支持生成枚举的辅助方法,错误enum会额外生成`Error()string`
+- protoc-gen-validator 用于生成请求的校验的代码
 - 集成github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 用于生成swagger文档
-- 集成github.com/mwitkow/go-proto-validators/protoc-gen-govalidators 用于生成请求的校验的代码
 - 集成github.com/danielvladco/go-proto-gql 用于生成graphql schema 及 grahpql服务
 
 
@@ -222,13 +222,12 @@ package user;
 import "cherry/protobuf/utils/enum/enum.proto";
 import "cherry/protobuf/utils/patch/go.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
-import "github.com/mwitkow/go-proto-validators/validator.proto";
+import "cherry/protobuf/utils/validator/validator.proto";
 import "google/api/annotations.proto";
 import "cherry/protobuf/utils/response/response.proto";
 import "cherry/protobuf/utils/request/param.proto";
 import "danielvladco/protobuf/graphql.proto";
 import "cherry/protobuf/utils/oauth/oauth.proto";
-import "cherry/protobuf/utils/patch/go.proto";
 import "google/protobuf/wrappers.proto";
 
 option java_package = "protobuf.user";

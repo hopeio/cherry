@@ -120,14 +120,14 @@ func FromError(err error) (s *ErrRep, ok bool) {
 	if se, ok := err.(ErrRepInterface); ok {
 		return se.ErrRep(), true
 	}
-	return NewErrReP(codes.Unknown, err.Error()), false
+	return NewErrRep(codes.Unknown, err.Error()), false
 }
 
-func Success() *ErrRep {
-	return &ErrRep{Code: SUCCESS, Message: SUCCESS.Error()}
+func SuccessRep() *ErrRep {
+	return &ErrRep{Code: Success, Message: Success.Error()}
 }
 
-func NewErrReP[E ErrCodeGeneric](code E, msg string) *ErrRep {
+func NewErrRep[E ErrCodeGeneric](code E, msg string) *ErrRep {
 	return &ErrRep{Code: ErrCode(code), Message: msg}
 }
 

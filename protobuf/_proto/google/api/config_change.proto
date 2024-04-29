@@ -60,7 +60,7 @@ message ConfigChange {
 // information about how a change will affect the existing service.
 message Advice {
   // Useful description for why this advice was applied and what actions should
-  // be taken to micherryte any implied risks.
+  // be taken to mitigate any implied risks.
   string description = 2;
 }
 

@@ -1,7 +1,7 @@
 package plugin
 
 import (
-	stringsi "github.com/hopeio/cherry/utils/strings"
+	"github.com/hopeio/cherry/tools/protoc/protoc-gen-enum/options"
 	"google.golang.org/protobuf/compiler/protogen"
 	"strconv"
 	"strings"
@@ -15,12 +15,26 @@ const (
 )
 
 type Builder struct {
-	plugin *protogen.Plugin
+	plugin          *protogen.Plugin
+	importStatus    protogen.GoImportPath
+	importCodes     protogen.GoImportPath
+	importLog       protogen.GoImportPath
+	importStrings   protogen.GoImportPath
+	importErrorcode protogen.GoImportPath
+	importErrors    protogen.GoImportPath
+	importIo        protogen.GoImportPath
 }
 
 func NewBuilder(gen *protogen.Plugin) *Builder {
 	return &Builder{
-		plugin: gen,
+		plugin:          gen,
+		importStatus:    "google.golang.org/grpc/status",
+		importCodes:     "google.golang.org/grpc/codes",
+		importLog:       "github.com/hopeio/cherry/utils/log",
+		importStrings:   "github.com/hopeio/cherry/utils/strings",
+		importErrorcode: "github.com/hopeio/cherry/protobuf/errorcode",
+		importErrors:    "errors",
+		importIo:        "io",
 	}
 }
 
@@ -52,7 +66,7 @@ func (b *Builder) Generate() error {
 		}
 
 		fileName := protoFile.GeneratedFilenamePrefix
-		g := b.plugin.NewGeneratedFile(fileName+".enumext.pb.go", ".")
+		g := b.plugin.NewGeneratedFile(fileName+".enumext.pb.go", protoFile.GoImportPath)
 		genFileMap[fileName] = g
 		// third traverse: build associations
 		for _, enum := range protoFile.Enums {
@@ -88,18 +102,19 @@ func (b *Builder) generate(f *protogen.File, e *protogen.Enum, g *protogen.Gener
 		b.generateString(f, e, g)
 	}
 	if EnabledEnumJsonMarshal(f, e) {
-		b.generateJsonMarshal(f, e, g)
+		b.generateJsonMarshal(e, g)
 	}
 	if EnabledEnumErrorCode(e) {
-		b.generateErrorCode(f, e, g)
+		b.generateErrorCode(e, g)
 	}
 	if EnabledEnumGqlGen(f, e) {
-		b.generateGQLMarshal(f, e, g)
+		b.generateGQLMarshal(e, g)
 	}
 }
 
 func (b *Builder) generateString(f *protogen.File, e *protogen.Enum, g *protogen.GeneratedFile) {
-	ccTypeName := stringsi.CamelCase(e.Desc.Name())
+	noEnumPrefix := options.FileOptions(f).GetNoEnumPrefix()
+	ccTypeName := e.GoIdent
 
 	g.P("func (x ", ccTypeName, ") String() string {")
 	g.P()
@@ -108,14 +123,24 @@ func (b *Builder) generateString(f *protogen.File, e *protogen.Enum, g *protogen
 	} else {
 		g.P("switch x {")
 		for _, ev := range e.Values {
-			name := stringsi.CamelCase(ev.Desc.Name())
+			opts := options.ValueOptions(ev)
+			name := opts.GetName()
+			if name == "" {
+				name = ev.GoIdent.GoName
+				if noEnumPrefix {
+					name = replacePrefix(ev.GoIdent.GoName, e.GoIdent.GoName+"_", "")
+				}
+			}
+
 			//PrintComments(e.Comments, g)
-			value := name
+
 			g.P("case ", name, " :")
 			if cn := GetEnumValueCN(ev); cn != "" {
-				value = cn
+				g.P("return ", strconv.Quote(cn))
+			} else {
+				g.P("return ", strconv.Quote(name))
 			}
-			g.P("return ", strconv.Quote(value))
+
 		}
 	}
 	g.P("}")
@@ -124,15 +149,15 @@ func (b *Builder) generateString(f *protogen.File, e *protogen.Enum, g *protogen
 	g.P()
 }
 
-func (b *Builder) generateGQLMarshal(f *protogen.File, e *protogen.Enum, g *protogen.GeneratedFile) {
-	ccTypeName := stringsi.CamelCase(e.Desc.Name())
+func (b *Builder) generateGQLMarshal(e *protogen.Enum, g *protogen.GeneratedFile) {
+	ccTypeName := e.GoIdent
 
 	typ := "uint32"
 	if typ1 := GetEnumType(e); typ1 != "" {
 		typ = typ1
 	}
-	g.P("func (x ", ccTypeName, ") MarshalGQL(w ", generateImport("Writer", "io", g), ") {")
-	g.P(`w.Write(`, generateImport("QuoteToBytes", "github.com/hopeio/cherry/utils/strings", g), `(x.String()))`)
+	g.P("func (x ", ccTypeName, ") MarshalGQL(w ", b.importIo.Ident("Writer"), ") {")
+	g.P(`w.Write(`, b.importStrings.Ident("QuoteToBytes"), `(x.String()))`)
 	g.P("}")
 	g.P()
 	g.P("func (x *", ccTypeName, ") UnmarshalGQL(v interface{}) error {")
@@ -140,16 +165,16 @@ func (b *Builder) generateGQLMarshal(f *protogen.File, e *protogen.Enum, g *prot
 	g.P(`*x = `, ccTypeName, `(i)`)
 	g.P("return nil")
 	g.P("}")
-	g.P(`return `, generateImport("New", "errors", g), `("enum need integer type")`)
+	g.P(`return `, b.importErrors.Ident("New"), `("enum need integer type")`)
 	g.P("}")
 	g.P()
 }
 
-func (b *Builder) generateJsonMarshal(f *protogen.File, e *protogen.Enum, g *protogen.GeneratedFile) {
-	ccTypeName := stringsi.CamelCase(e.Desc.Name())
+func (b *Builder) generateJsonMarshal(e *protogen.Enum, g *protogen.GeneratedFile) {
+	ccTypeName := e.GoIdent
 
 	g.P("func (x ", ccTypeName, ") MarshalJSON() ([]byte, error) {")
-	g.P("return ", generateImport("QuoteToBytes", "github.com/hopeio/cherry/utils/strings", g), "(x.String())", ", nil")
+	g.P("return ", b.importStrings.Ident("QuoteToBytes"), "(x.String())", ", nil")
 	g.P("}")
 	g.P()
 	g.P("func (x *", ccTypeName, ") UnmarshalJSON(data []byte) error {")
@@ -161,14 +186,14 @@ func (b *Builder) generateJsonMarshal(f *protogen.File, e *protogen.Enum, g *pro
 	g.P("return nil")
 
 	g.P("}")
-	g.P(`return `, generateImport("New", "errors", g), `("invalid`, ccTypeName, `")`)
+	g.P(`return `, b.importErrors.Ident("New"), `("invalid`, ccTypeName, `")`)
 
 	g.P("}")
 	g.P()
 }
 
-func (b *Builder) generateErrorCode(f *protogen.File, e *protogen.Enum, g *protogen.GeneratedFile) {
-	ccTypeName := stringsi.CamelCase(e.Desc.Name())
+func (b *Builder) generateErrorCode(e *protogen.Enum, g *protogen.GeneratedFile) {
+	ccTypeName := e.GoIdent
 
 	g.P("func (x ", ccTypeName, ") Error() string {")
 
@@ -176,7 +201,7 @@ func (b *Builder) generateErrorCode(f *protogen.File, e *protogen.Enum, g *proto
 
 	g.P("}")
 	g.P()
-	g.P("func (x ", ccTypeName, ") ErrRep() *", generateImport("ErrRep", "github.com/hopeio/cherry/protobuf/errorcode", g), " {")
+	g.P("func (x ", ccTypeName, ") ErrRep() *", b.importErrorcode.Ident("ErrRep"), " {")
 
 	g.P(`return &errorcode.ErrRep{Code: errorcode.ErrCode(x), Message: x.String()}`)
 
@@ -190,22 +215,19 @@ func (b *Builder) generateErrorCode(f *protogen.File, e *protogen.Enum, g *proto
 	g.P()
 	g.P("func (x ", ccTypeName, ") ErrorLog(err error) error {")
 
-	g.P(generateImport("Error", "github.com/hopeio/cherry/utils/log", g), `(err)`)
+	g.P(b.importLog.Ident("Error"), `(err)`)
 	g.P(`return &errorcode.ErrRep{Code: errorcode.ErrCode(x), Message: x.String()}`)
 
 	g.P("}")
 	g.P()
-	g.P("func (x ", ccTypeName, ") GrpcStatus() *", generateImport("Status", "google.golang.org/grpc/status", g), " {")
+	g.P("func (x ", ccTypeName, ") GrpcStatus() *", b.importStatus.Ident("Status"), " {")
 
-	g.P(`return `, `status.New(`, generateImport("Code", "google.golang.org/grpc/codes", g), `(x), x.String())`)
+	g.P(`return `, `status.New(`, b.importCodes.Ident("Code"), `(x), x.String())`)
 
 	g.P("}")
 	g.P()
 }
 
-func generateImport(name string, importPath string, g *protogen.GeneratedFile) string {
-	return g.QualifiedGoIdent(protogen.GoIdent{
-		GoName:       name,
-		GoImportPath: protogen.GoImportPath(importPath),
-	})
+func replacePrefix(s, prefix, with string) string {
+	return with + strings.TrimPrefix(s, prefix)
 }

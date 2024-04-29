@@ -31,11 +31,12 @@ protoc -I$protoDir --go_out=paths=source_relative:$cherry/.. $protoDir/cherry/pr
 go install ./protoc-gen-enum
 go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway
 go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
-go install github.com/alta/protopatch/cmd/protoc-gen-go-patch
+#go install github.com/alta/protopatch/cmd/protoc-gen-go-patch
 go install ./protoc-gen-grpc-gin
-go install github.com/envoyproxy/protoc-gen-validate
+#go install github.com/envoyproxy/protoc-gen-validate
+go install ./protoc-gen-validator
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
-# go install ./protoc-gen-go-patch
+go install ./protoc-gen-go-patch
 # go install github.com/danielvladco/go-proto-gql/protoc-gen-gql
 # go install github.com/danielvladco/go-proto-gql/protoc-gen-gogql
 go install ./protoc-gen-gql
