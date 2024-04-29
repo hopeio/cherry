@@ -26,8 +26,8 @@ func (s *Server) grpcHandler() *grpc.Server {
 	//conf := s.Config
 	grpclog.SetLoggerV2(zapgrpc.NewLogger(log.GetCallerSkipLogger(3).Logger))
 	if s.GrpcHandler != nil {
-		var stream = []grpc.StreamServerInterceptor{StreamAccess}
-		var unary = []grpc.UnaryServerInterceptor{UnaryAccess(s.Config), Validator}
+		var stream = []grpc.StreamServerInterceptor{StreamAccess, StreamValidator}
+		var unary = []grpc.UnaryServerInterceptor{UnaryAccess(s.Config), UnaryValidator}
 		// 想做的大而全几乎不可能,为了更高的自由度,这里不做实现,均由使用者自行实现,后续可提供默认实现,但同样要由用户自己调用
 		/*		var srvMetrics *grpcprom.ServerMetrics
 				if conf.Metrics {
@@ -140,19 +140,30 @@ func (s *recvWrapper) SendMsg(m interface{}) error {
 }
 
 func (s *recvWrapper) RecvMsg(m interface{}) error {
+	if err := validator.Validator.Struct(m); err != nil {
+		return errorcode.InvalidArgument.Message(validator.Trans(err))
+	}
 	if err := s.ServerStream.RecvMsg(m); err != nil {
 		return err
 	}
 	return nil
 }
 
-func Validator(
+func UnaryValidator(
 	ctx context.Context, req interface{},
 	info *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler,
 ) (resp interface{}, err error) {
+
 	if err = validator.Validator.Struct(req); err != nil {
 		return nil, errorcode.InvalidArgument.Message(validator.Trans(err))
 	}
 	return handler(ctx, req)
+}
+
+func StreamValidator(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
+	wrapper := &recvWrapper{
+		ServerStream: stream,
+	}
+	return handler(srv, wrapper)
 }

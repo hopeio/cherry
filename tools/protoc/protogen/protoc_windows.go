@@ -6,11 +6,14 @@ import (
 )
 
 func protoc(plugins []string, file string) {
+	cmd := "protoc " + config.include + " " + file
+	var args string
 	for _, plugin := range plugins {
-		arg := "protoc " + config.include + " " + file + " --" + plugin + ":" + config.genpath
+		args += " --" + plugin + ":" + config.genpath
 		if strings.HasPrefix(plugin, "openapiv2_out") || strings.HasPrefix(plugin, "gql_out") {
-			arg = arg + "/api"
+			args += "/api"
 		}
-		execi.Run(arg)
+
 	}
+	execi.Run(cmd + args)
 }
