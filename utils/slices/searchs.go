@@ -1,7 +1,7 @@
 package slices
 
 import (
-	constraints2 "github.com/hopeio/cherry/utils/constraints"
+	constraints2 "github.com/hopeio/cherry/utils/cmp"
 	"golang.org/x/exp/constraints"
 )
 

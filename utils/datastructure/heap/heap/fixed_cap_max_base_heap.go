@@ -1,7 +1,7 @@
 package heap
 
 import (
-	"github.com/hopeio/cherry/utils/types"
+	"github.com/hopeio/cherry/utils/cmp"
 	"golang.org/x/exp/constraints"
 )
 
@@ -16,9 +16,9 @@ func NewFixedCapMaxBaseHeap[T constraints.Ordered](cap int) FixedCapMaxBaseHeap[
 }
 
 func NewFixedCapMaxBaseHeapFromArray[T constraints.Ordered](arr []T) FixedCapMaxBaseHeap[T] {
-	return FixedCapMaxBaseHeap[T](NewBaseHeapFromArray[T](arr, types.Greater[T]))
+	return FixedCapMaxBaseHeap[T](NewBaseHeapFromArray[T](arr, cmp.Greater[T]))
 }
 
 func (heap FixedCapMaxBaseHeap[T]) Put(val T) {
-	FixedCapBaseHeap[T](heap).put(val, types.Greater[T])
+	FixedCapBaseHeap[T](heap).put(val, cmp.Greater[T])
 }

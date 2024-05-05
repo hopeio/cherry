@@ -24,11 +24,11 @@ func TestHeap(t *testing.T) {
 	heap.Push(&Foo{9, "9"})
 	heap.Push(&Foo{5, "52"})
 	heap.Push(&Foo{1, "1"})
-	for _, foo := range heap {
+	for _, foo := range heap.entry {
 		t.Log(foo)
 	}
 	t.Log("------------------")
-	n := len(heap)
+	n := len(heap.entry)
 	for i := 0; i < n; i++ {
 		t.Log(heap.Pop())
 	}

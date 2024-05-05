@@ -1,4 +1,4 @@
-package types
+package cmp
 
 import (
 	"golang.org/x/exp/constraints"
@@ -12,7 +12,7 @@ func Greater[T constraints.Ordered](a T, b T) bool {
 	return a > b
 }
 
-func Equal[T constraints.Ordered](a T, b T) bool {
+func Equal[T comparable](a T, b T) bool {
 	return a == b
 }
 

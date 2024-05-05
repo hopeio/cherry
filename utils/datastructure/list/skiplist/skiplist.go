@@ -1,7 +1,7 @@
 package skiplist
 
 import (
-	"github.com/hopeio/cherry/utils/types"
+	"github.com/hopeio/cherry/utils/cmp"
 	"golang.org/x/exp/constraints"
 	"math/rand"
 )
@@ -14,11 +14,11 @@ type SkipList[K constraints.Ordered, V any] struct {
 	header   *skiplistitem[K, V]
 	len      int
 	MaxLevel int
-	compare  types.FCompare[K]
+	compare  cmp.SortFunc[K]
 }
 
 // New returns a skiplist.
-func New[K constraints.Ordered, V any](compare types.FCompare[K]) *SkipList[K, V] {
+func New[K constraints.Ordered, V any](compare cmp.SortFunc[K]) *SkipList[K, V] {
 	return &SkipList[K, V]{
 		header:   &skiplistitem[K, V]{forward: []*skiplistitem[K, V]{nil}},
 		MaxLevel: 32,

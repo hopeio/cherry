@@ -22,3 +22,7 @@ type Basic struct {
 type ID[T constraintsi.ID] struct {
 	Id T `json:"id"`
 }
+
+func (s ID[KEY]) Key() KEY {
+	return s.Id
+}

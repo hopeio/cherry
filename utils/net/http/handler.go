@@ -34,7 +34,7 @@ func (hs *HandlerFuncs) Add(handler http.HandlerFunc) {
 }
 
 // TODO
-func commonHandler[REQ, RES any](method types.FGrpcServiceMethod[*REQ, *RES]) http.Handler {
+func commonHandler[REQ, RES any](method types.GrpcServiceMethod[*REQ, *RES]) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		req := new(REQ)
 		err := Bind(r, req)

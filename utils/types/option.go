@@ -9,15 +9,15 @@ type Option[T any] struct {
 	ok    bool
 }
 
-func Some[T any](v T) *Option[T] {
-	return &Option[T]{value: v, ok: true}
+func Some[T any](v T) Option[T] {
+	return Option[T]{value: v, ok: true}
 }
 
-func None[T any]() *Option[T] {
-	return &Option[T]{ok: false}
+func None[T any]() Option[T] {
+	return Option[T]{ok: false}
 }
-func Nil[T any]() *Option[T] {
-	return &Option[T]{ok: false}
+func Nil[T any]() Option[T] {
+	return Option[T]{ok: false}
 }
 
 func (opt *Option[T]) Val() (T, bool) {
@@ -57,41 +57,41 @@ func (opt *Option[T]) UnwrapOrElse(fn func() T) T {
 	return fn()
 }
 
-func MapOption[T any, R any](opt *Option[T], fn func(T) R) *Option[R] {
+func MapOption[T any, R any](opt Option[T], fn func(T) R) Option[R] {
 	if !opt.IsSome() {
 		return None[R]()
 	}
 	return Some(fn(opt.Unwrap()))
 }
 
-func (a *Option[T]) IfSome(action func(value T)) {
-	if a.ok {
-		action(a.value)
+func (opt *Option[T]) IfSome(action func(value T)) {
+	if opt.ok {
+		action(opt.value)
 	}
 }
 
-func (a *Option[T]) IfNone(action func()) {
-	if !a.ok {
+func (opt *Option[T]) IfNone(action func()) {
+	if !opt.ok {
 		action()
 	}
 }
 
-func (a *Option[T]) Next() *Option[T] {
-	return a
+func (opt *Option[T]) Next() *Option[T] {
+	return opt
 }
 
-func (a *Option[T]) MarshalJSON() ([]byte, error) {
-	if a.ok {
-		return json.Marshal(a.value)
+func (opt *Option[T]) MarshalJSON() ([]byte, error) {
+	if opt.ok {
+		return json.Marshal(opt.value)
 	}
 	return []byte("null"), nil
 }
 
-func (a *Option[T]) UnmarshalJSON(data []byte) error {
+func (opt *Option[T]) UnmarshalJSON(data []byte) error {
 	if len(data) < 5 && string(data) == "null" {
-		a.ok = false
+		opt.ok = false
 		return nil
 	}
-	a.ok = true
-	return json.Unmarshal(data, &a.value)
+	opt.ok = true
+	return json.Unmarshal(data, &opt.value)
 }

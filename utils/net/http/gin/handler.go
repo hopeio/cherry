@@ -6,7 +6,7 @@ import (
 )
 
 // TODO:
-func commonHandler[REQ, RES any](method types.FGrpcServiceMethod[*REQ, *RES]) gin.HandlerFunc {
+func commonHandler[REQ, RES any](method types.GrpcServiceMethod[*REQ, *RES]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		req := new(REQ)
 		err := ctx.Bind(req)

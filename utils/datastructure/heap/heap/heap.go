@@ -1,21 +1,21 @@
 package heap
 
 import (
-	_interface "github.com/hopeio/cherry/utils/constraints"
+	"github.com/hopeio/cherry/utils/cmp"
 	"golang.org/x/exp/constraints"
 )
 
-type Heap[T _interface.OrderKey[V], V constraints.Ordered] struct {
+type Heap[T cmp.OrderKey[V], V constraints.Ordered] struct {
 	entry []T
-	less  _interface.CompareFunc[V]
+	less  cmp.SortFunc[V]
 }
 
-func NewHeap[T _interface.OrderKey[V], V constraints.Ordered](l int, less _interface.CompareFunc[V]) *Heap[T, V] {
+func NewHeap[T cmp.OrderKey[V], V constraints.Ordered](l int, less cmp.SortFunc[V]) *Heap[T, V] {
 	heap := make([]T, 0, l)
 	return &Heap[T, V]{heap, less}
 }
 
-func NewHeapFromArray[T _interface.OrderKey[V], V constraints.Ordered](arr []T, less _interface.CompareFunc[V]) Heap[T, V] {
+func NewHeapFromArray[T cmp.OrderKey[V], V constraints.Ordered](arr []T, less cmp.SortFunc[V]) Heap[T, V] {
 	heap := Heap[T, V]{arr, less}
 	for i := 1; i < len(arr); i++ {
 		Up(heap.entry, i, less)

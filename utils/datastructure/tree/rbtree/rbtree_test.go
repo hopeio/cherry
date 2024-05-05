@@ -2,6 +2,7 @@ package rbtree
 
 import (
 	"fmt"
+	"github.com/hopeio/cherry/utils/cmp"
 	"math/rand"
 	"testing"
 )
@@ -34,12 +35,7 @@ func check(arr []int) {
 }
 
 func TestRBTreeWithEqual(t *testing.T) {
-	tree := NewRBTree(func(a, b interface{}) bool {
-		if a.(int) < b.(int) {
-			return true
-		}
-		return false
-	})
+	tree := NewRBTree[int, int](cmp.Less[int])
 	if tree.Len() != 0 {
 		t.Fatalf("want 0, got %d", tree.Len())
 	}
@@ -75,8 +71,8 @@ func TestRBTreeWithEqual(t *testing.T) {
 	if tree.Len() != 4 {
 		t.Fatalf("want 4, got %d", tree.Len())
 	}
-	if tree.Get(10) != nil {
-		t.Fatalf("want nil, got %d", tree.Get(10))
+	if v, ok := tree.Get(10); ok {
+		t.Fatalf("want nil, got %d", v)
 	}
 
 }
@@ -85,12 +81,7 @@ func TestRBTreeNoEqual(t *testing.T) {
 	N := 1000
 	for i := 0; i < N; i++ {
 		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
-			tree := NewRBTree(func(a, b interface{}) bool {
-				if a.(int) < b.(int) {
-					return true
-				}
-				return false
-			})
+			tree := NewRBTree[int, int](cmp.Less[int])
 
 			// generate unique numbers
 			nums := make([]int, i)
@@ -107,8 +98,8 @@ func TestRBTreeNoEqual(t *testing.T) {
 
 			// range all numbers and check get is success
 			for _, ii := range nums {
-				if tree.Get(ii) != ii {
-					t.Fatalf("want %v, got %v", ii, tree.Get(ii))
+				if v, _ := tree.Get(ii); v != ii {
+					t.Fatalf("want %v, got %v", ii, v)
 				}
 			}
 
@@ -145,12 +136,7 @@ func BenchmarkRBTree_Put(b *testing.B) {
 		}
 		b.Run(fmt.Sprintf("size-%d", size), func(b *testing.B) {
 			// prepare problem size
-			tree := NewRBTree(func(a, b interface{}) bool {
-				if a.(int) < b.(int) {
-					return true
-				}
-				return false
-			})
+			tree := NewRBTree[int, int](cmp.Less[int])
 			for n := 0; n < size-1; n++ {
 				tree.Put(n, n)
 			}

@@ -1,7 +1,7 @@
 package heap
 
 import (
-	_interface "github.com/hopeio/cherry/utils/constraints"
+	"github.com/hopeio/cherry/utils/cmp"
 	"golang.org/x/exp/constraints"
 )
 
@@ -12,7 +12,7 @@ func NewBaseHeap[T constraints.Ordered](l int) BaseHeap[T] {
 	return heap
 }
 
-func NewBaseHeapFromArray[T constraints.Ordered](arr []T, less _interface.CompareFunc[T]) BaseHeap[T] {
+func NewBaseHeapFromArray[T constraints.Ordered](arr []T, less cmp.SortFunc[T]) BaseHeap[T] {
 	heap := BaseHeap[T](arr)
 	for i := 1; i < len(arr); i++ {
 		heap.up(i, less)
@@ -20,7 +20,7 @@ func NewBaseHeapFromArray[T constraints.Ordered](arr []T, less _interface.Compar
 	return arr
 }
 
-func (h BaseHeap[T]) init(less _interface.CompareFunc[T]) {
+func (h BaseHeap[T]) init(less cmp.SortFunc[T]) {
 	// heapify
 	n := len(h)
 	for i := n/2 - 1; i >= 0; i-- {
@@ -28,13 +28,13 @@ func (h BaseHeap[T]) init(less _interface.CompareFunc[T]) {
 	}
 }
 
-func (h *BaseHeap[T]) push(x T, less _interface.CompareFunc[T]) {
+func (h *BaseHeap[T]) push(x T, less cmp.SortFunc[T]) {
 	hh := *h
 	*h = append(hh, x)
 	h.up(len(hh), less)
 }
 
-func (h *BaseHeap[T]) pop(less _interface.CompareFunc[T]) T {
+func (h *BaseHeap[T]) pop(less cmp.SortFunc[T]) T {
 	hh := *h
 	n := len(hh) - 1
 	item := hh[0]
@@ -44,7 +44,7 @@ func (h *BaseHeap[T]) pop(less _interface.CompareFunc[T]) T {
 	return item
 }
 
-func (h *BaseHeap[T]) remove(i int, less _interface.CompareFunc[T]) T {
+func (h *BaseHeap[T]) remove(i int, less cmp.SortFunc[T]) T {
 	hh := *h
 	n := len(hh) - 1
 	item := hh[i]
@@ -58,14 +58,14 @@ func (h *BaseHeap[T]) remove(i int, less _interface.CompareFunc[T]) T {
 	return item
 }
 
-func (h BaseHeap[T]) down(i0, n int, less _interface.CompareFunc[T]) bool {
+func (h BaseHeap[T]) down(i0, n int, less cmp.SortFunc[T]) bool {
 	return DownForBase(h, i0, n, less)
 }
 
-func (h BaseHeap[T]) up(j int, less _interface.CompareFunc[T]) {
+func (h BaseHeap[T]) up(j int, less cmp.SortFunc[T]) {
 	UpForBase(h, j, less)
 }
 
-func (h BaseHeap[T]) fix(i int, less _interface.CompareFunc[T]) {
+func (h BaseHeap[T]) fix(i int, less cmp.SortFunc[T]) {
 	FixForBase(h, i, less)
 }

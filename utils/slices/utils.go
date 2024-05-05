@@ -2,6 +2,7 @@ package slices
 
 import (
 	"fmt"
+	"github.com/hopeio/cherry/utils/cmp"
 	"github.com/hopeio/cherry/utils/constraints"
 	reflecti "github.com/hopeio/cherry/utils/reflect"
 	"reflect"
@@ -18,7 +19,7 @@ func Contains[S ~[]T, T comparable](s S, v T) bool {
 	return false
 }
 
-func ContainsByKey[S ~[]constraints.CompareKey[K], K comparable](s S, v K) bool {
+func ContainsByKey[S ~[]cmp.CompareKey[K], K comparable](s S, v K) bool {
 	for i := 0; i < len(s); i++ {
 		if s[i].CompareKey() == v {
 			return true
@@ -36,7 +37,7 @@ func In[S ~[]T, T comparable](v T, s S) bool {
 	return false
 }
 
-func InByKey[S ~[]constraints.CompareKey[K], K comparable](key K, s S) bool {
+func InByKey[S ~[]cmp.CompareKey[K], K comparable](key K, s S) bool {
 	for _, x := range s {
 		if x.CompareKey() == key {
 			return true

@@ -5,34 +5,34 @@ import (
 	"time"
 )
 
-type IGet[K constraints.Key, V any] interface {
+type Get[K constraints.Key, V any] interface {
 	Get(key K) V
 }
 
-type ISet[K constraints.Key, V any] interface {
+type Set[K constraints.Key, V any] interface {
 	Set(key K, v V)
 }
 
-type ISetWithExpire[K constraints.Key, V any] interface {
+type SetWithExpire[K constraints.Key, V any] interface {
 	SetWithExpire(key K, v V, expire time.Duration)
 }
 
-type IDelete[K constraints.Key, V any] interface {
+type Delete[K constraints.Key, V any] interface {
 	Delete(key K)
 }
 
-type IInit interface {
+type Init interface {
 	Init()
 }
 
-type IStoreWithExpire[K constraints.Key, V any] interface {
-	ISetWithExpire[K, V]
-	IGet[K, V]
-	IDelete[K, V]
+type StoreWithExpire[K constraints.Key, V any] interface {
+	SetWithExpire[K, V]
+	Get[K, V]
+	Delete[K, V]
 }
 
-type IStore[K constraints.Key, V any] interface {
-	ISet[K, V]
-	IGet[K, V]
-	IDelete[K, V]
+type Store[K constraints.Key, V any] interface {
+	Set[K, V]
+	Get[K, V]
+	Delete[K, V]
 }

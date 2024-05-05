@@ -4,7 +4,6 @@ package iter
 
 import (
 	"github.com/hopeio/cherry/utils/constraints"
-	"github.com/hopeio/cherry/utils/types"
 	"iter"
 	"sort"
 )
@@ -33,12 +32,6 @@ func Map[T, R any](seq iter.Seq[T], f Function[T, R]) iter.Seq[R] {
 	}
 }
 
-// Maps is alias of Map.
-// 同 Map, 不过参数是 Seq 而不是 iter.Seq.
-func Maps[T, R any](it Seq[T], f Function[T, R]) Seq[R] {
-	return Seq[R](Map(iter.Seq[T](it), f))
-}
-
 // FlatMap transform each element in Seq[T] to a new Seq[R].
 // 将原本序列中的每个元素都转换为一个新的序列，
 // 并将所有转换后的序列依次连接起来生成一个新的序列
@@ -52,14 +45,6 @@ func FlatMap[T, R any](seq iter.Seq[T], flatten Function[T, iter.Seq[R]]) iter.S
 			}
 		}
 	}
-}
-
-// FlatMaps is alias of FlatMap.
-// 同 FlatMap, 不过参数是 Seq 而不是 iter.Seq.
-func FlatMaps[T, R any](it Seq[T], flatten Function[T, iter.Seq[R]]) Seq[R] {
-	return Seq[R](FlatMap(iter.Seq[T](it), func(input T) iter.Seq[R] {
-		return flatten(input)
-	}))
 }
 
 // Peek visit every element in the Seq and leave them on the Seq.
@@ -191,7 +176,7 @@ func AnyMatch[T any](seq iter.Seq[T], test Predicate[T]) bool {
 // Reduce accumulate each element using the binary operation.
 // 使用给定的累加函数, 累加序列中的每个元素.
 // 序列中可能没有元素因此返回的是 Optional
-func Reduce[T any](seq iter.Seq[T], acc BinaryOperator[T]) *types.Option[T] {
+func Reduce[T any](seq iter.Seq[T], acc BinaryOperator[T]) (T, bool) {
 	var result T
 	var has bool
 	for v := range seq {
@@ -203,9 +188,9 @@ func Reduce[T any](seq iter.Seq[T], acc BinaryOperator[T]) *types.Option[T] {
 		}
 	}
 	if has {
-		return types.Some(result)
+		return result, has
 	}
-	return types.None[T]()
+	return result, has
 }
 
 // ReduceFrom accumulate each element using the binary operation
@@ -230,13 +215,13 @@ func ReduceWith[T, R any](seq iter.Seq[T], initVal R, acc BiFunction[R, T, R]) (
 	return result
 }
 
-// FindFirst find the first element in the Seq.
+// First find the first element in the Seq.
 // 返回序列中的第一个元素(如有).
-func FindFirst[T any](seq iter.Seq[T]) *types.Option[T] {
+func First[T any](seq iter.Seq[T]) (T, bool) {
 	for v := range seq {
-		return types.Some(v)
+		return v, true
 	}
-	return types.None[T]()
+	return *new(T), false
 }
 
 // Count return the count of elements in the Seq.

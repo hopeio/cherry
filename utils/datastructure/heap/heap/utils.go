@@ -1,11 +1,11 @@
 package heap
 
 import (
-	_interface "github.com/hopeio/cherry/utils/constraints"
+	"github.com/hopeio/cherry/utils/cmp"
 	"golang.org/x/exp/constraints"
 )
 
-func HeapInit[T _interface.OrderKey[V], V constraints.Ordered](heap []T, less _interface.CompareFunc[V]) {
+func HeapInit[T cmp.OrderKey[V], V constraints.Ordered](heap []T, less cmp.SortFunc[V]) {
 	// heapify
 	n := len(heap)
 	for i := n/2 - 1; i >= 0; i-- {
@@ -13,7 +13,7 @@ func HeapInit[T _interface.OrderKey[V], V constraints.Ordered](heap []T, less _i
 	}
 }
 
-func Down[T _interface.OrderKey[V], V constraints.Ordered](heap []T, i0, n int, less _interface.CompareFunc[V]) bool {
+func Down[T cmp.OrderKey[V], V constraints.Ordered](heap []T, i0, n int, less cmp.SortFunc[V]) bool {
 	i := i0
 	for {
 		j1 := 2*i + 1
@@ -33,7 +33,7 @@ func Down[T _interface.OrderKey[V], V constraints.Ordered](heap []T, i0, n int, 
 	return i > i0
 }
 
-func Up[T _interface.OrderKey[V], V constraints.Ordered](heap []T, j int, less _interface.CompareFunc[V]) {
+func Up[T cmp.OrderKey[V], V constraints.Ordered](heap []T, j int, less cmp.SortFunc[V]) {
 
 	for {
 		i := (j - 1) / 2 // parent
@@ -45,13 +45,13 @@ func Up[T _interface.OrderKey[V], V constraints.Ordered](heap []T, j int, less _
 	}
 }
 
-func Fix[T _interface.OrderKey[V], V constraints.Ordered](heap []T, i int, less _interface.CompareFunc[V]) {
+func Fix[T cmp.OrderKey[V], V constraints.Ordered](heap []T, i int, less cmp.SortFunc[V]) {
 	if !Down(heap, i, len(heap), less) {
 		Up(heap, i, less)
 	}
 }
 
-func HeapInitForBase[T any](heap []T, less _interface.CompareFunc[T]) {
+func HeapInitForBase[T any](heap []T, less cmp.SortFunc[T]) {
 	// heapify
 	n := len(heap)
 	for i := n/2 - 1; i >= 0; i-- {
@@ -60,7 +60,7 @@ func HeapInitForBase[T any](heap []T, less _interface.CompareFunc[T]) {
 }
 
 // 标准库写法
-func DownForBase[T any](heap []T, i0, n int, less _interface.CompareFunc[T]) bool {
+func DownForBase[T any](heap []T, i0, n int, less cmp.SortFunc[T]) bool {
 	i := i0
 	for {
 		j1 := 2*i + 1
@@ -81,7 +81,7 @@ func DownForBase[T any](heap []T, i0, n int, less _interface.CompareFunc[T]) boo
 }
 
 // 与Down一致，不同的写法
-func AdjustDownForBase[T any](heap []T, i int, less _interface.CompareFunc[T]) {
+func AdjustDownForBase[T any](heap []T, i int, less cmp.SortFunc[T]) {
 	child := leftChild(i)
 	for child < len(heap) {
 		if child+1 < len(heap) && less(heap[child+1], heap[child]) {
@@ -96,7 +96,7 @@ func AdjustDownForBase[T any](heap []T, i int, less _interface.CompareFunc[T]) {
 	}
 }
 
-func UpForBase[T any](heap []T, j int, less _interface.CompareFunc[T]) {
+func UpForBase[T any](heap []T, j int, less cmp.SortFunc[T]) {
 
 	for {
 		i := (j - 1) / 2 // parent
@@ -109,7 +109,7 @@ func UpForBase[T any](heap []T, j int, less _interface.CompareFunc[T]) {
 }
 
 // 与Up一致，不同的写法
-func AdjustUpForBase[T any](heap []T, i int, less _interface.CompareFunc[T]) {
+func AdjustUpForBase[T any](heap []T, i int, less cmp.SortFunc[T]) {
 	p := parent(i)
 	for p >= 0 && less(heap[i], heap[p]) {
 		heap[i], heap[p] = heap[p], heap[i]
@@ -118,7 +118,7 @@ func AdjustUpForBase[T any](heap []T, i int, less _interface.CompareFunc[T]) {
 	}
 }
 
-func FixForBase[T any](heap []T, i int, less _interface.CompareFunc[T]) {
+func FixForBase[T any](heap []T, i int, less cmp.SortFunc[T]) {
 	if !DownForBase(heap, i, len(heap), less) {
 		UpForBase(heap, i, less)
 	}

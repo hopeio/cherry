@@ -5,10 +5,10 @@ import (
 	"time"
 )
 
-type IIdGenerator[T constraints.ID] interface {
+type IdGenerator[T constraints.ID] interface {
 	Id() T
 }
 
-type IDurationGenerator interface {
+type DurationGenerator interface {
 	Duration() time.Duration
 }

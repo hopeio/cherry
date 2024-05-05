@@ -1,7 +1,7 @@
 package slices
 
 import (
-	constraintsi "github.com/hopeio/cherry/utils/constraints"
+	"github.com/hopeio/cherry/utils/cmp"
 	"github.com/hopeio/cherry/utils/types"
 	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/maps"
@@ -42,7 +42,7 @@ func HasCoincide[S ~[]T, T comparable](s1, s2 S) bool {
 	return false
 }
 
-func HasCoincideByKey[S ~[]constraintsi.CompareKey[T], T comparable](s1, s2 S) bool {
+func HasCoincideByKey[S ~[]cmp.CompareKey[T], T comparable](s1, s2 S) bool {
 	if len(s1) == 0 || len(s2) == 0 {
 		return false
 	}
@@ -86,11 +86,11 @@ func RemoveDuplicates[S ~[]T, T comparable](s S) S {
 }
 
 // 默认保留先遍历到的
-func RemoveDuplicatesByKey[S ~[]constraintsi.CompareKey[T], T comparable](s S) S {
+func RemoveDuplicatesByKey[S ~[]cmp.CompareKey[T], T comparable](s S) S {
 	if len(s) == 0 {
 		return s
 	}
-	var m = make(map[T]constraintsi.CompareKey[T])
+	var m = make(map[T]cmp.CompareKey[T])
 	for _, v := range s {
 		key := v.CompareKey()
 		if _, ok := m[key]; ok {
@@ -105,11 +105,11 @@ func RemoveDuplicatesByKey[S ~[]constraintsi.CompareKey[T], T comparable](s S) S
 	return maps.Values(m)
 }
 
-func RemoveDuplicatesByKeyRetainBehind[S ~[]constraintsi.CompareKey[T], T comparable](s S) S {
+func RemoveDuplicatesByKeyRetainBehind[S ~[]cmp.CompareKey[T], T comparable](s S) S {
 	if len(s) == 0 {
 		return s
 	}
-	var m = make(map[T]constraintsi.CompareKey[T])
+	var m = make(map[T]cmp.CompareKey[T])
 	for _, i := range s {
 		m[i.CompareKey()] = i
 	}
@@ -170,14 +170,14 @@ func IntersectionMap[S ~[]T, T comparable](a S, b S) map[T]struct{} {
 }
 
 // 默认保留前一个的,靠前的元素
-func IntersectionByKey[S ~[]constraintsi.CompareKey[T], T comparable](a S, b S) S {
+func IntersectionByKey[S ~[]cmp.CompareKey[T], T comparable](a S, b S) S {
 	if len(a) == 0 || len(b) == 0 {
 		return S{}
 	}
 	if len(a) < SmallArrayLen && len(b) < SmallArrayLen {
 		return smallArrayIntersectionByKey(a, b)
 	}
-	tmpMap, intersectionMap := make(map[T]struct{}), make(map[T]constraintsi.CompareKey[T])
+	tmpMap, intersectionMap := make(map[T]struct{}), make(map[T]cmp.CompareKey[T])
 
 	for _, v := range b {
 		key := v.CompareKey()
@@ -199,7 +199,7 @@ func IntersectionByKey[S ~[]constraintsi.CompareKey[T], T comparable](a S, b S) 
 	return maps.Values(intersectionMap)
 }
 
-func smallArrayIntersectionByKey[S ~[]constraintsi.CompareKey[T], T comparable](a S, b S) S {
+func smallArrayIntersectionByKey[S ~[]cmp.CompareKey[T], T comparable](a S, b S) S {
 	var ret S
 	for _, x := range a {
 		if InByKey(x.CompareKey(), b) {
@@ -255,14 +255,14 @@ func Union[S ~[]T, T comparable](a S, b S) S {
 }
 
 // 默认保留第一个的,靠前的
-func UnionByKey[S ~[]constraintsi.CompareKey[T], T comparable](a S, b S) S {
+func UnionByKey[S ~[]cmp.CompareKey[T], T comparable](a S, b S) S {
 	if len(a) == 0 {
 		return b
 	}
 	if len(b) == 0 {
 		return a
 	}
-	var m = make(map[T]constraintsi.CompareKey[T], len(a)+len(b))
+	var m = make(map[T]cmp.CompareKey[T], len(a)+len(b))
 	for _, x := range a {
 		key := x.CompareKey()
 		if _, ok := m[key]; ok {
@@ -336,7 +336,7 @@ func differenceSet[S ~[]T, T comparable](a S, b S) S {
 }
 
 // 指定key取差集,返回为A-B
-func DifferenceSetByKey[S ~[]constraintsi.CompareKey[T], T comparable](a S, b S) S {
+func DifferenceSetByKey[S ~[]cmp.CompareKey[T], T comparable](a S, b S) S {
 	if len(a) == 0 {
 		return S{}
 	}
@@ -349,7 +349,7 @@ func DifferenceSetByKey[S ~[]constraintsi.CompareKey[T], T comparable](a S, b S)
 	return differenceSetByKey(a, b)
 }
 
-func smallArrayDifferenceSetByKey[S ~[]constraintsi.CompareKey[T], T comparable](a S, b S) S {
+func smallArrayDifferenceSetByKey[S ~[]cmp.CompareKey[T], T comparable](a S, b S) S {
 	var diff S
 	for _, x := range a {
 		if !InByKey(x.CompareKey(), b) {
@@ -359,7 +359,7 @@ func smallArrayDifferenceSetByKey[S ~[]constraintsi.CompareKey[T], T comparable]
 	return diff
 }
 
-func differenceSetByKey[S ~[]constraintsi.CompareKey[T], T comparable](a S, b S) S {
+func differenceSetByKey[S ~[]cmp.CompareKey[T], T comparable](a S, b S) S {
 	var diff S
 	if len(b)/len(a) >= 2 {
 		aMap := make(map[T]bool)
@@ -438,7 +438,7 @@ func Difference[S ~[]T, T comparable](a, b S) (S, S) {
 }
 
 // 取差集，通过循环比较key
-func DifferenceByKey[S ~[]constraintsi.CompareKey[T], T comparable](a, b S) (S, S) {
+func DifferenceByKey[S ~[]cmp.CompareKey[T], T comparable](a, b S) (S, S) {
 	if len(a) == 0 {
 		return S{}, b
 	}

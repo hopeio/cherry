@@ -1,7 +1,7 @@
 package heap
 
 import (
-	_interface "github.com/hopeio/cherry/utils/constraints"
+	"github.com/hopeio/cherry/utils/cmp"
 	"golang.org/x/exp/constraints"
 )
 
@@ -12,11 +12,11 @@ func NewFixedCapBaseHeap[T constraints.Ordered](l int) FixedCapBaseHeap[T] {
 	return heap
 }
 
-func NewFixedCapBaseHeapFromArray[T constraints.Ordered](arr []T, less _interface.CompareFunc[T]) FixedCapBaseHeap[T] {
+func NewFixedCapBaseHeapFromArray[T constraints.Ordered](arr []T, less cmp.SortFunc[T]) FixedCapBaseHeap[T] {
 	return FixedCapBaseHeap[T](NewBaseHeapFromArray(arr, less))
 }
 
-func (h FixedCapBaseHeap[T]) init(less _interface.CompareFunc[T]) {
+func (h FixedCapBaseHeap[T]) init(less cmp.SortFunc[T]) {
 	// heapify
 	n := len(h)
 	for i := n/2 - 1; i >= 0; i-- {
@@ -24,7 +24,7 @@ func (h FixedCapBaseHeap[T]) init(less _interface.CompareFunc[T]) {
 	}
 }
 
-func (h FixedCapBaseHeap[T]) put(val T, less _interface.CompareFunc[T]) {
+func (h FixedCapBaseHeap[T]) put(val T, less cmp.SortFunc[T]) {
 	if len(h) < cap(h) {
 		h = append(h, val)
 		for i := 1; i < len(h); i++ {

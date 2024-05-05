@@ -1,7 +1,7 @@
 package heap
 
 import (
-	constraintsi "github.com/hopeio/cherry/utils/types"
+	constraintsi "github.com/hopeio/cherry/utils/cmp"
 	"golang.org/x/exp/constraints"
 )
 

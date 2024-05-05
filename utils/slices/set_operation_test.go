@@ -1,7 +1,7 @@
 package slices
 
 import (
-	"github.com/hopeio/cherry/utils/constraints"
+	"github.com/hopeio/cherry/utils/cmp"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -23,15 +23,15 @@ func (f *Foo) CompareKey() uint64 {
 	return f.ID
 }
 
-var _ constraints.CompareKey[uint64] = &Foo{}
+var _ cmp.CompareKey[uint64] = &Foo{}
 
 func TestHasCoincide(t *testing.T) {
-	s1 := []constraints.CompareKey[uint64]{
+	s1 := []cmp.CompareKey[uint64]{
 		&Foo{1, "1"},
 		&Foo{2, "2"},
 		&Foo{5, "3"},
 	}
-	s2 := []constraints.CompareKey[uint64]{
+	s2 := []cmp.CompareKey[uint64]{
 		&Foo{4, "1"},
 		&Foo{5, "1"},
 		&Foo{6, "1"},
