@@ -1,6 +1,6 @@
 //go:build goexperiment.rangefunc
 
-package stream
+package iter
 
 import (
 	"github.com/hopeio/cherry/utils/constraints"
@@ -11,15 +11,9 @@ import (
 
 // Filter keep elements which satisfy the Predicate.
 // 保留满足断言的元素
-func Filter[T any](it iter.Seq[T], test Predicate[T]) iter.Seq[T] {
+func Filter[T any](seq iter.Seq[T], test Predicate[T]) iter.Seq[T] {
 	return func(yield func(T) bool) {
-		next, stop := iter.Pull(it)
-		defer stop()
-		for {
-			v, ok := next()
-			if !ok {
-				return
-			}
+		for v := range seq {
 			if test(v) && !yield(v) {
 				return
 			}
@@ -29,13 +23,10 @@ func Filter[T any](it iter.Seq[T], test Predicate[T]) iter.Seq[T] {
 
 // Map transform the element use Fuction.
 // 使用输入函数对每个元素进行转换
-func Map[T, R any](it iter.Seq[T], f Function[T, R]) iter.Seq[R] {
+func Map[T, R any](seq iter.Seq[T], f Function[T, R]) iter.Seq[R] {
 	return func(yield func(R) bool) {
-		next, stop := iter.Pull(it)
-		defer stop()
-		for {
-			v, ok := next()
-			if !ok || !yield(f(v)) {
+		for v := range seq {
+			if !yield(f(v)) {
 				return
 			}
 		}
@@ -51,24 +42,11 @@ func Maps[T, R any](it Seq[T], f Function[T, R]) Seq[R] {
 // FlatMap transform each element in Seq[T] to a new Seq[R].
 // 将原本序列中的每个元素都转换为一个新的序列，
 // 并将所有转换后的序列依次连接起来生成一个新的序列
-func FlatMap[T, R any](it iter.Seq[T], flatten Function[T, iter.Seq[R]]) iter.Seq[R] {
+func FlatMap[T, R any](seq iter.Seq[T], flatten Function[T, iter.Seq[R]]) iter.Seq[R] {
 	return func(yield func(R) bool) {
-		next, stop := iter.Pull(it)
-		defer stop()
-	Loop:
-		for {
-			v, ok := next()
-			if !ok {
-				return
-			}
-			next2, stop2 := iter.Pull(flatten(v))
-			defer stop2()
-			for {
-				v, ok := next2()
-				if !ok {
-					continue Loop
-				}
-				if !yield(v) {
+		for v := range seq {
+			for v2 := range flatten(v) {
+				if !yield(v2) {
 					return
 				}
 			}
@@ -86,15 +64,9 @@ func FlatMaps[T, R any](it Seq[T], flatten Function[T, iter.Seq[R]]) Seq[R] {
 
 // Peek visit every element in the Seq and leave them on the Seq.
 // 访问序列中的每个元素而不消费它
-func Peek[T any](it iter.Seq[T], accept Consumer[T]) iter.Seq[T] {
+func Peek[T any](seq iter.Seq[T], accept Consumer[T]) iter.Seq[T] {
 	return func(yield func(T) bool) {
-		next, stop := iter.Pull(it)
-		defer stop()
-		for {
-			v, ok := next()
-			if !ok {
-				return
-			}
+		for v := range seq {
 			accept(v)
 			if !yield(v) {
 				return
@@ -105,18 +77,12 @@ func Peek[T any](it iter.Seq[T], accept Consumer[T]) iter.Seq[T] {
 
 // Distinct remove duplicate elements.
 // 对序列中的元素去重
-func Distinct[T any, Cmp comparable](it iter.Seq[T], f Function[T, Cmp]) iter.Seq[T] {
+func Distinct[T any, Cmp comparable](seq iter.Seq[T], f Function[T, Cmp]) iter.Seq[T] {
 	return func(yield func(T) bool) {
-		next, stop := iter.Pull(it)
-		defer stop()
 		var set = make(map[Cmp]struct{})
-		for {
-			v, ok := next()
-			if !ok {
-				return
-			}
+		for v := range seq {
 			k := f(v)
-			_, ok = set[k]
+			_, ok := set[k]
 			set[k] = struct{}{}
 			if !ok && !yield(v) {
 				return
@@ -143,17 +109,14 @@ func Sorted[T any](it iter.Seq[T], cmp Comparator[T]) iter.Seq[T] {
 
 // Limit limits the number of elements in Seq.
 // 限制元素个数
-func Limit[T any, Number constraints.Number](it iter.Seq[T], limit Number) iter.Seq[T] {
+func Limit[T any, Number constraints.Number](seq iter.Seq[T], limit Number) iter.Seq[T] {
 	return func(yield func(T) bool) {
-		next, stop := iter.Pull(it)
-		defer stop()
-		for {
+		for v := range seq {
 			limit--
 			if limit < 0 {
 				return
 			}
-			v, ok := next()
-			if !ok || !yield(v) {
+			if !yield(v) {
 				return
 			}
 		}
@@ -162,15 +125,12 @@ func Limit[T any, Number constraints.Number](it iter.Seq[T], limit Number) iter.
 
 // Skip drop some elements of the Seq.
 // 跳过指定个数的元素
-func Skip[T any, Number constraints.Number](it iter.Seq[T], skip Number) iter.Seq[T] {
+func Skip[T any, Number constraints.Number](seq iter.Seq[T], skip Number) iter.Seq[T] {
 	return func(yield func(T) bool) {
-		next, stop := iter.Pull(it)
-		defer stop()
-		for {
-			v, ok := next()
+		for v := range seq {
 			skip--
 			if skip < 0 {
-				if !ok || !yield(v) {
+				if !yield(v) {
 					return
 				}
 			}
@@ -180,28 +140,16 @@ func Skip[T any, Number constraints.Number](it iter.Seq[T], skip Number) iter.Se
 
 // ForEach consume every elements in the Seq.
 // 消费序列中的每个元素
-func ForEach[T any](it iter.Seq[T], accept Consumer[T]) {
-	next, stop := iter.Pull(it)
-	defer stop()
-	for {
-		v, ok := next()
-		if !ok {
-			return
-		}
+func ForEach[T any](seq iter.Seq[T], accept Consumer[T]) {
+	for v := range seq {
 		accept(v)
 	}
 }
 
 // Collect return all elements as a slice.
 // 将序列中所有元素收集为切片返回
-func Collect[T any](it iter.Seq[T]) (result []T) {
-	next, stop := iter.Pull(it)
-	defer stop()
-	for {
-		v, ok := next()
-		if !ok {
-			return
-		}
+func Collect[T any](seq iter.Seq[T]) (result []T) {
+	for v := range seq {
 		result = append(result, v)
 	}
 	return
@@ -209,14 +157,8 @@ func Collect[T any](it iter.Seq[T]) (result []T) {
 
 // AllMatch test if every elements are all match the Predicate.
 // 是否每个元素都满足条件
-func AllMatch[T any](it iter.Seq[T], test Predicate[T]) bool {
-	next, stop := iter.Pull(it)
-	defer stop()
-	for {
-		v, ok := next()
-		if !ok {
-			break
-		}
+func AllMatch[T any](seq iter.Seq[T], test Predicate[T]) bool {
+	for v := range seq {
 		if !test(v) {
 			return false
 		}
@@ -226,14 +168,8 @@ func AllMatch[T any](it iter.Seq[T], test Predicate[T]) bool {
 
 // NoneMatch test if none element matches the Predicate.
 // 是否没有元素满足条件
-func NoneMatch[T any](it iter.Seq[T], test Predicate[T]) bool {
-	next, stop := iter.Pull(it)
-	defer stop()
-	for {
-		v, ok := next()
-		if !ok {
-			break
-		}
+func NoneMatch[T any](seq iter.Seq[T], test Predicate[T]) bool {
+	for v := range seq {
 		if test(v) {
 			return false
 		}
@@ -243,14 +179,8 @@ func NoneMatch[T any](it iter.Seq[T], test Predicate[T]) bool {
 
 // AnyMatch test if any element matches the Predicate.
 // 是否有任意元素满足条件
-func AnyMatch[T any](it iter.Seq[T], test Predicate[T]) bool {
-	next, stop := iter.Pull(it)
-	defer stop()
-	for {
-		v, ok := next()
-		if !ok {
-			break
-		}
+func AnyMatch[T any](seq iter.Seq[T], test Predicate[T]) bool {
+	for v := range seq {
 		if test(v) {
 			return true
 		}
@@ -261,16 +191,10 @@ func AnyMatch[T any](it iter.Seq[T], test Predicate[T]) bool {
 // Reduce accumulate each element using the binary operation.
 // 使用给定的累加函数, 累加序列中的每个元素.
 // 序列中可能没有元素因此返回的是 Optional
-func Reduce[T any](it iter.Seq[T], acc BinaryOperator[T]) *types.Option[T] {
+func Reduce[T any](seq iter.Seq[T], acc BinaryOperator[T]) *types.Option[T] {
 	var result T
 	var has bool
-	next, stop := iter.Pull(it)
-	defer stop()
-	for {
-		v, ok := next()
-		if !ok {
-			break
-		}
+	for v := range seq {
 		if !has {
 			result = v
 			has = true
@@ -287,59 +211,39 @@ func Reduce[T any](it iter.Seq[T], acc BinaryOperator[T]) *types.Option[T] {
 // ReduceFrom accumulate each element using the binary operation
 // starting from the initial value.
 // 从初始值开始, 通过 acc 二元运算累加每个元素
-func ReduceFrom[T any](it iter.Seq[T], initVal T, acc BinaryOperator[T]) (result T) {
+func ReduceFrom[T any](seq iter.Seq[T], initVal T, acc BinaryOperator[T]) (result T) {
 	result = initVal
-	next, stop := iter.Pull(it)
-	defer stop()
-	for {
-		v, ok := next()
-		if !ok {
-			return
-		}
+	for v := range seq {
 		result = acc(result, v)
 	}
+	return result
 }
 
 // ReduceWith accumulate each element using the BiFunction
 // starting from the initial value.
 // 从初始值开始, 通过 acc 函数累加每个元素
-func ReduceWith[T, R any](it iter.Seq[T], initVal R, acc BiFunction[R, T, R]) (result R) {
+func ReduceWith[T, R any](seq iter.Seq[T], initVal R, acc BiFunction[R, T, R]) (result R) {
 	result = initVal
-	next, stop := iter.Pull(it)
-	defer stop()
-	for {
-		v, ok := next()
-		if !ok {
-			return
-		}
+	for v := range seq {
 		result = acc(result, v)
 	}
+	return result
 }
 
 // FindFirst find the first element in the Seq.
 // 返回序列中的第一个元素(如有).
-func FindFirst[T any](it iter.Seq[T]) *types.Option[T] {
-	next, stop := iter.Pull(it)
-	defer stop()
-	for {
-		v, ok := next()
-		if !ok {
-			return types.None[T]()
-		}
+func FindFirst[T any](seq iter.Seq[T]) *types.Option[T] {
+	for v := range seq {
 		return types.Some(v)
 	}
+	return types.None[T]()
 }
 
 // Count return the count of elements in the Seq.
 // 返回序列中的元素个数
-func Count[T any](it iter.Seq[T]) (count int64) {
-	next, stop := iter.Pull(it)
-	defer stop()
-	for {
-		_, ok := next()
-		if !ok {
-			return
-		}
+func Count[T any](seq iter.Seq[T]) (count int64) {
+	for _ = range seq {
 		count++
 	}
+	return
 }

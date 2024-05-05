@@ -1,6 +1,6 @@
 //go:build goexperiment.rangefunc
 
-package stream
+package iter
 
 import (
 	"github.com/hopeio/cherry/utils/types"
