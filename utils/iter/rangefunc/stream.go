@@ -48,9 +48,9 @@ type Stream[T any] interface {
 
 	ForEach(Consumer[T])
 	Collect() []T
-	AllMatch(Predicate[T]) bool
-	NoneMatch(Predicate[T]) bool
-	AnyMatch(Predicate[T]) bool
+	All(Predicate[T]) bool
+	None(Predicate[T]) bool
+	Any(Predicate[T]) bool
 	Reduce(acc BinaryOperator[T]) (T, bool)
 	ReduceFrom(initVal T, acc BinaryOperator[T]) T
 	First() (T, bool)
@@ -103,15 +103,15 @@ func (it Seq[T]) Collect() []T {
 	return Collect(iter.Seq[T](it))
 }
 
-func (it Seq[T]) AllMatch(test Predicate[T]) bool {
+func (it Seq[T]) All(test Predicate[T]) bool {
 	return AllMatch(iter.Seq[T](it), test)
 }
 
-func (it Seq[T]) NoneMatch(test Predicate[T]) bool {
+func (it Seq[T]) None(test Predicate[T]) bool {
 	return NoneMatch(iter.Seq[T](it), test)
 }
 
-func (it Seq[T]) AnyMatch(test Predicate[T]) bool {
+func (it Seq[T]) Any(test Predicate[T]) bool {
 	return AnyMatch(iter.Seq[T](it), test)
 }
 

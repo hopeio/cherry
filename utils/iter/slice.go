@@ -22,15 +22,3 @@ func (a *sliceIterator[T]) Next() (T, bool) {
 	}
 	return *new(T), false
 }
-
-func CollectToSlice[T any](it Iterator[T]) []T {
-	var r = make([]T, 0)
-	for {
-		if v, ok := it.Next(); ok {
-			r = append(r, v)
-		} else {
-			break
-		}
-	}
-	return r
-}

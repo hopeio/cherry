@@ -11,10 +11,10 @@ func (c *Config[K, V]) InitBeforeInject() {
 }
 func (c *Config[K, V]) Init() {
 	if c.NumCounters == 0 {
-		c.NumCounters = 10000000
+		c.NumCounters = 1e7
 	}
 	if c.MaxCost == 0 {
-		c.MaxCost = 1000000
+		c.MaxCost = 1e6
 	}
 	if c.BufferItems == 0 {
 		c.BufferItems = 64

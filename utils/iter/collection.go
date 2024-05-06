@@ -5,28 +5,24 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-type Collection[T any] interface {
-	Iterable[T]
-
-	Count() int
+// Ruturns true if the count of Iterator is 0.
+func IsEmpty[T any](it Iterator[T]) bool {
+	_, ok := it.Next()
+	return ok == false
 }
 
-// Ruturns true if the count of collection is 0.
-func IsEmpty[T any](c Collection[T]) bool {
-	return c.Count() == 0
+// Ruturns true if the count of Iterator is 0.
+func IsNotEmpty[T any](it Iterator[T]) bool {
+	_, ok := it.Next()
+	return ok == true
 }
 
-// Ruturns true if the count of collection is 0.
-func IsNotEmpty[T any](c Collection[T]) bool {
-	return c.Count() != 0
-}
-
-// Converts a collection to a Slice.
-func ToSlice[T any](c Collection[T]) Slice[T] {
-	var arr = make([]T, 0, c.Count())
+// Converts a Iterator to a Slice.
+func ToSlice[T any](it Iterator[T]) Slice[T] {
+	var arr = make([]T, 0)
 	ForEach(func(t T) {
 		arr = append(arr, t)
-	}, c.Iter())
+	}, it)
 	return arr
 }
 
@@ -176,9 +172,16 @@ func First[T any](it Iterator[T]) (T, bool) {
 
 // Return the last element.
 func Last[T any](it Iterator[T]) (T, bool) {
-	return Fold(types.None[T](), func(_ *types.Option[T], next T) *types.Option[T] {
-		return types.Some(next)
-	}, it).Val()
+	var result T
+	var ok bool
+	for {
+		if v, ok := it.Next(); ok {
+			result = v
+		} else {
+			break
+		}
+	}
+	return result, ok
 }
 
 // Return the element at index.

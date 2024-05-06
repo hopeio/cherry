@@ -2,6 +2,57 @@ package iter
 
 import "github.com/hopeio/cherry/utils/types"
 
+// Supplier 产生一个元素
+type Supplier[T any] func() T
+
+// Function 将一个类型转为另一个类型
+type Function[T, R any] func(T) R
+
+// Predicate 断言是否满足指定条件
+type Predicate[T any] func(T) bool
+
+// UnaryOperator 对输入进行一元运算返回相同类型的结果
+type UnaryOperator[T any] func(T) T
+
+// BiFunction 将两个类型转为第三个类型
+type BiFunction[T, R, U any] func(T, R) U
+
+// BinaryOperator 输入两个相同类型的参数，对其做二元运算，返回相同类型的结果
+type BinaryOperator[T any] func(T, T) T
+
+// Comparator 比较两个元素.
+// 第一个元素大于第二个元素时，返回正数;
+// 第一个元素小于第二个元素时，返回负数;
+// 否则返回 0.
+type Comparator[T any] func(T, T) int
+
+// Consumer 消费一个元素
+type Consumer[T any] func(T)
+
+type Stream[T any] interface {
+	Filter(Predicate[T]) Stream[T]
+	Map(Function[T, T]) Stream[T]               //同类型转换,没啥意义
+	FlatMap(Function[T, Iterator[T]]) Stream[T] //同Map
+	Peek(Consumer[T]) Stream[T]
+	Fold(initVal T, acc BinaryOperator[T])
+	Zip(Iterator[T], Iterator[T]) Stream[T]
+
+	Distinct(Function[T, int]) Stream[T]
+	Sorted(Comparator[T]) Stream[T]
+	Limit(int64) Stream[T]
+	Skip(int64) Stream[T]
+
+	ForEach(Consumer[T])
+	Collect() []T
+	All(Predicate[T]) bool
+	None(Predicate[T]) bool
+	Any(Predicate[T]) bool
+	Reduce(acc BinaryOperator[T]) (T, bool)
+	ReduceFrom(initVal T, acc BinaryOperator[T]) T
+	First() (T, bool)
+	Count() int64
+}
+
 // Add subscripts to the incoming iterators.
 func Enumerate[T any](it Iterator[T]) Iterator[*types.Pair[int, T]] {
 	return &enumerateStream[T]{-1, it}
