@@ -17,7 +17,7 @@ type Predicate2[K, V any] func(K, V) bool
 // 第一个元素大于第二个元素时，返回正数;
 // 第一个元素小于第二个元素时，返回负数;
 // 否则返回 0.
-type Comparator2[K, V any] func(K, V, K, V) int
+type Comparator2[K, V any] func(K, V, K, V) bool
 
 // Consumer 消费一个元素
 type Consumer2[K, V any] func(K, V)

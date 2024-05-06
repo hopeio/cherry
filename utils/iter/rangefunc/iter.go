@@ -4,6 +4,7 @@ package iter
 
 import (
 	"github.com/hopeio/cherry/utils/constraints"
+	"github.com/hopeio/cherry/utils/types"
 	"iter"
 	"sort"
 )
@@ -82,7 +83,7 @@ func Sorted[T any](it iter.Seq[T], cmp Comparator[T]) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		vals := Collect(it)
 		sort.SliceStable(vals, func(i, j int) bool {
-			return cmp(vals[i], vals[j]) < 0
+			return cmp(vals[i], vals[j])
 		})
 		for _, v := range vals {
 			if !yield(v) {
@@ -90,6 +91,32 @@ func Sorted[T any](it iter.Seq[T], cmp Comparator[T]) iter.Seq[T] {
 			}
 		}
 	}
+}
+
+// IsSorted
+// 对序列中的元素是否排序
+func IsSorted[T any](seq iter.Seq[T], cmp Comparator[T]) bool {
+	var last T
+	check := func(curr T) bool {
+		if !cmp(last, curr) {
+			return false
+		}
+		last = curr
+		return true
+	}
+
+	var has bool
+	for v := range seq {
+		if !has {
+			last = v
+			has = true
+		} else {
+			if !check(v) {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 // Limit limits the number of elements in Seq.
@@ -193,21 +220,10 @@ func Reduce[T any](seq iter.Seq[T], acc BinaryOperator[T]) (T, bool) {
 	return result, has
 }
 
-// ReduceFrom accumulate each element using the binary operation
-// starting from the initial value.
-// 从初始值开始, 通过 acc 二元运算累加每个元素
-func ReduceFrom[T any](seq iter.Seq[T], initVal T, acc BinaryOperator[T]) (result T) {
-	result = initVal
-	for v := range seq {
-		result = acc(result, v)
-	}
-	return result
-}
-
-// ReduceWith accumulate each element using the BiFunction
+// Fold accumulate each element using the BiFunction
 // starting from the initial value.
 // 从初始值开始, 通过 acc 函数累加每个元素
-func ReduceWith[T, R any](seq iter.Seq[T], initVal R, acc BiFunction[R, T, R]) (result R) {
+func Fold[T, R any](seq iter.Seq[T], initVal R, acc BiFunction[R, T, R]) (result R) {
 	result = initVal
 	for v := range seq {
 		result = acc(result, v)
@@ -231,4 +247,35 @@ func Count[T any](seq iter.Seq[T]) (count int64) {
 		count++
 	}
 	return
+}
+
+func CountWithTerminator() {
+
+}
+
+func Enumerate[T any](seq iter.Seq[T]) iter.Seq[types.Pair[int, T]] {
+	var count int
+	return func(yield func(types.Pair[int, T]) bool) {
+		for v := range seq {
+			if !yield(types.Pair[int, T]{
+				First:  count,
+				Second: v,
+			}) {
+				return
+			}
+			count++
+		}
+	}
+}
+
+func Enumerates[T any](seq iter.Seq[T]) iter.Seq2[int, T] {
+	var count int
+	return func(yield func(int, T) bool) {
+		for v := range seq {
+			if !yield(count, v) {
+				return
+			}
+			count++
+		}
+	}
 }

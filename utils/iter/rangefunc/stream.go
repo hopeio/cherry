@@ -28,7 +28,7 @@ type BinaryOperator[T any] func(T, T) T
 // 第一个元素大于第二个元素时，返回正数;
 // 第一个元素小于第二个元素时，返回负数;
 // 否则返回 0.
-type Comparator[T any] func(T, T) int
+type Comparator[T any] func(T, T) bool
 
 // Consumer 消费一个元素
 type Consumer[T any] func(T)
@@ -40,19 +40,19 @@ type Stream[T any] interface {
 	Map(Function[T, T]) Stream[T]               //同类型转换,没啥意义
 	FlatMap(Function[T, iter.Seq[T]]) Stream[T] //同Map
 	Peek(Consumer[T]) Stream[T]
-
-	Distinct(Function[T, int]) Stream[T]
 	Sorted(Comparator[T]) Stream[T]
+	Distinct(Function[T, int]) Stream[T]
 	Limit(int64) Stream[T]
 	Skip(int64) Stream[T]
 
 	ForEach(Consumer[T])
 	Collect() []T
-	All(Predicate[T]) bool
+	IsSorted(Comparator[T]) bool
+	All(Predicate[T]) bool // every
 	None(Predicate[T]) bool
 	Any(Predicate[T]) bool
 	Reduce(acc BinaryOperator[T]) (T, bool)
-	ReduceFrom(initVal T, acc BinaryOperator[T]) T
+	Fold(initVal T, acc BinaryOperator[T]) T
 	First() (T, bool)
 	Count() int64
 }
@@ -87,6 +87,10 @@ func (it Seq[T]) Sorted(cmp Comparator[T]) Stream[T] {
 	return Seq[T](Sorted(iter.Seq[T](it), cmp))
 }
 
+func (it Seq[T]) IsSorted(cmp Comparator[T]) bool {
+	return IsSorted(iter.Seq[T](it), cmp)
+}
+
 func (it Seq[T]) Limit(limit int64) Stream[T] {
 	return Seq[T](Limit(iter.Seq[T](it), limit))
 }
@@ -119,8 +123,8 @@ func (it Seq[T]) Reduce(acc BinaryOperator[T]) (T, bool) {
 	return Reduce(iter.Seq[T](it), acc)
 }
 
-func (it Seq[T]) ReduceFrom(initVal T, acc BinaryOperator[T]) T {
-	return ReduceFrom(iter.Seq[T](it), initVal, acc)
+func (it Seq[T]) Fold(initVal T, acc BinaryOperator[T]) T {
+	return Fold(iter.Seq[T](it), initVal, BiFunction[T, T, T](acc))
 }
 
 func (it Seq[T]) First() (T, bool) {
