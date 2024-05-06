@@ -32,7 +32,7 @@ func (req *ListReq[T]) WithSort(field string, typ SortType) *ListReq[T] {
 func (req *ListReq[T]) WithRange(field string, start, end T, include bool) *ListReq[T] {
 	req.RangeReq = &RangeReq[T]{
 		RangeField: field,
-		RangeStart: start,
+		RangeBegin: start,
 		RangeEnd:   end,
 		Include:    include,
 	}

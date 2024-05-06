@@ -18,7 +18,7 @@ func IsNotEmpty[T any](it Iterator[T]) bool {
 }
 
 // Converts a Iterator to a Slice.
-func ToSlice[T any](it Iterator[T]) Slice[T] {
+func ToSlice[T any](it Iterator[T]) []T {
 	var arr = make([]T, 0)
 	ForEach(func(t T) {
 		arr = append(arr, t)
@@ -42,74 +42,74 @@ func Contains[T comparable](target T, it Iterator[T]) bool {
 
 // Returns the sum of all the elements in the iterator.
 func Sum[T constraints.Integer | constraints.Float](it Iterator[T]) T {
-	return Fold(0, func(a, b T) T {
+	return Fold(it, 0, func(a, b T) T {
 		return a + b
-	}, it)
+	})
 }
 
 // Returns the product of all the elements in the iterator.
 func Product[T constraints.Integer | constraints.Float](it Iterator[T]) T {
-	return Fold(1, func(a, b T) T {
+	return Fold(it, 1, func(a, b T) T {
 		return a * b
-	}, it)
+	})
 }
 
 // Returns the average of all the elements in the iterator.
 func Average[T constraints.Integer | constraints.Float](it Iterator[T]) float64 {
-	return Fold(0.0, func(result float64, item *types.Pair[int, T]) float64 {
+	return Fold(Enumerate(it), 0.0, func(result float64, item *types.Pair[int, T]) float64 {
 		return result + (float64(item.Second)-result)/float64(item.First+1)
-	}, Enumerate(it))
+	})
 }
 
 // Return the total number of iterators.
 func Count[T any](it Iterator[T]) int {
-	return Fold(0, func(v int, _ T) int {
+	return Fold(it, 0, func(v int, _ T) int {
 		return v + 1
-	}, it)
+	})
 }
 
 // Return the maximum value of all elements of the iterator.
 func Max[T constraints.Ordered](it Iterator[T]) (T, bool) {
-	return Reduce(func(a T, b T) T {
+	return Reduce(it, func(a T, b T) T {
 		if a > b {
 			return a
 		} else {
 			return b
 		}
-	}, it)
+	})
 }
 
 // Return the maximum value of all elements of the iterator.
 func MaxBy[T any](greater func(T, T) bool, it Iterator[T]) (T, bool) {
-	return Reduce(func(a T, b T) T {
+	return Reduce(it, func(a T, b T) T {
 		if greater(a, b) {
 			return a
 		} else {
 			return b
 		}
-	}, it)
+	})
 }
 
 // Return the minimum value of all elements of the iterator.
 func Min[T constraints.Ordered](it Iterator[T]) (T, bool) {
-	return Reduce(func(a T, b T) T {
+	return Reduce(it, func(a T, b T) T {
 		if a < b {
 			return a
 		} else {
 			return b
 		}
-	}, it)
+	})
 }
 
 // Return the minimum value of all elements of the iterator.
 func MinBy[T any](less func(T, T) bool, it Iterator[T]) (T, bool) {
-	return Reduce(func(a T, b T) T {
+	return Reduce(it, func(a T, b T) T {
 		if less(a, b) {
 			return a
 		} else {
 			return b
 		}
-	}, it)
+	})
 }
 
 // The action is executed for each element of the iterator, and the argument to the action is the element.
@@ -124,7 +124,7 @@ func ForEach[T any](action func(T), it Iterator[T]) {
 }
 
 // Returns true if all elements in the iterator match the condition.
-func AllMatch[T any](predicate func(T) bool, it Iterator[T]) bool {
+func AllMatch[T any](it Iterator[T], predicate func(T) bool) bool {
 	for {
 		if v, ok := it.Next(); ok {
 			if !predicate(v) {
@@ -138,7 +138,7 @@ func AllMatch[T any](predicate func(T) bool, it Iterator[T]) bool {
 }
 
 // Returns true if none elements in the iterator match the condition.
-func NoneMatch[T any](predicate func(T) bool, it Iterator[T]) bool {
+func NoneMatch[T any](it Iterator[T], predicate func(T) bool) bool {
 	for {
 		if v, ok := it.Next(); ok {
 			if predicate(v) {
@@ -152,7 +152,7 @@ func NoneMatch[T any](predicate func(T) bool, it Iterator[T]) bool {
 }
 
 // Returns true if any elements in the iterator match the condition.
-func AnyMatch[T any](predicate func(T) bool, it Iterator[T]) bool {
+func AnyMatch[T any](it Iterator[T], predicate func(T) bool) bool {
 	for {
 		if v, ok := it.Next(); ok {
 			if predicate(v) {
@@ -185,7 +185,7 @@ func Last[T any](it Iterator[T]) (T, bool) {
 }
 
 // Return the element at index.
-func At[T any](index int, it Iterator[T]) (T, bool) {
+func At[T any](it Iterator[T], index int) (T, bool) {
 	var result, ok = it.Next()
 	var i = 0
 	for i < index && ok {
@@ -196,15 +196,15 @@ func At[T any](index int, it Iterator[T]) (T, bool) {
 }
 
 // Return the value of the final composite, operates on the iterator from front to back.
-func Reduce[T any](operation func(T, T) T, it Iterator[T]) (T, bool) {
+func Reduce[T any](it Iterator[T], operation func(T, T) T) (T, bool) {
 	if v, ok := it.Next(); ok {
-		return Fold(v, operation, it), true
+		return Fold(it, v, operation), true
 	}
 	return *new(T), false
 }
 
 // Return the value of the final composite, operates on the iterator from back to front.
-func Fold[T any, R any](initial R, operation func(R, T) R, it Iterator[T]) R {
+func Fold[T any, R any](it Iterator[T], initial R, operation func(R, T) R) R {
 	var result = initial
 	for {
 		if v, ok := it.Next(); ok {
@@ -231,6 +231,19 @@ func Unzip[A any, B any](it Iterator[types.Pair[A, B]]) ([]A, []B) {
 	return arrA, arrB
 }
 
+// to built-in map.
+func ToMap[K comparable, V any](it Iterator[types.Pair[K, V]]) map[K]V {
+	var r = make(map[K]V)
+	for {
+		if v, ok := it.Next(); ok {
+			r[v.First] = v.Second
+		} else {
+			break
+		}
+	}
+	return r
+}
+
 type Collector[S any, T any, R any] interface {
 	Builder() S
 	Append(builder S, element T)
@@ -238,7 +251,7 @@ type Collector[S any, T any, R any] interface {
 }
 
 // Collecting via Collector.
-func Collect[T any, S any, R any](collector Collector[S, T, R], it Iterator[T]) R {
+func Collect[T any, S any, R any](it Iterator[T], collector Collector[S, T, R]) R {
 	var s = collector.Builder()
 	for {
 		if v, ok := it.Next(); ok {
@@ -248,17 +261,4 @@ func Collect[T any, S any, R any](collector Collector[S, T, R], it Iterator[T]) 
 		}
 	}
 	return collector.Finish(s)
-}
-
-// Collect to built-in map.
-func CollectToMap[K comparable, V any](it Iterator[types.Pair[K, V]]) map[K]V {
-	var r = make(map[K]V, 0)
-	for {
-		if v, ok := it.Next(); ok {
-			r[v.First] = v.Second
-		} else {
-			break
-		}
-	}
-	return r
 }

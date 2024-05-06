@@ -72,7 +72,7 @@ func (a *enumerateStream[T]) Next() (*types.Pair[int, T], bool) {
 }
 
 // Use transform to map an iterator to another iterator.
-func Map[T any, R any](transform func(T) R, it Iterator[T]) Iterator[R] {
+func Map[T any, R any](it Iterator[T], transform func(T) R) Iterator[R] {
 	return &mapStream[T, R]{transform, it}
 }
 
@@ -89,7 +89,7 @@ func (a *mapStream[T, R]) Next() (R, bool) {
 }
 
 // Use predicate to filter an iterator to another iterator。
-func Filter[T any](predicate func(T) bool, it Iterator[T]) Iterator[T] {
+func Filter[T any](it Iterator[T], predicate func(T) bool) Iterator[T] {
 	return &filterStream[T]{predicate, it}
 }
 
@@ -112,7 +112,7 @@ func (a *filterStream[T]) Next() (T, bool) {
 }
 
 // Convert an iterator to another iterator that limits the maximum number of iterations.
-func Limit[T any](count int, it Iterator[T]) Iterator[T] {
+func Limit[T any](it Iterator[T], count int) Iterator[T] {
 	return &limitStream[T]{count, it}
 }
 
@@ -130,7 +130,7 @@ func (a *limitStream[T]) Next() (T, bool) {
 }
 
 // Converts an iterator to another iterator that skips a specified number of times.
-func Skip[T any](count int, it Iterator[T]) Iterator[T] {
+func Skip[T any](it Iterator[T], count int) Iterator[T] {
 	return &skipStream[T]{count, it}
 }
 
@@ -150,7 +150,7 @@ func (a *skipStream[T]) Next() (T, bool) {
 }
 
 // Converts an iterator to another iterator that skips a specified number of times each time.
-func Step[T any](count int, it Iterator[T]) Iterator[T] {
+func Step[T any](it Iterator[T], count int) Iterator[T] {
 	return &stepStream[T]{count - 1, true, it}
 }
 
@@ -165,7 +165,7 @@ func (a *stepStream[T]) Next() (T, bool) {
 		a.firstTake = false
 		return a.iterator.Next()
 	} else {
-		return At(a.step, a.iterator)
+		return At(a.iterator, a.step)
 	}
 }
 
@@ -236,4 +236,8 @@ func (a *zipStream[T, U]) Next() (*types.Pair[T, U], bool) {
 		}
 	}
 	return &types.Pair[T, U]{}, false
+}
+
+func SliceStreamOf[S ~[]T, T any](source S) *IterStream[T] {
+	return &IterStream[T]{iter: SliceIterOf(source)}
 }

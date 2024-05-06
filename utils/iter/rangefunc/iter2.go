@@ -1,6 +1,9 @@
 package iter
 
-import "iter"
+import (
+	"github.com/hopeio/cherry/utils/types"
+	"iter"
+)
 
 func Filter2[K, V any](seq iter.Seq2[K, V], test Predicate2[K, V]) iter.Seq2[K, V] {
 	return func(yield func(K, V) bool) {
@@ -53,6 +56,21 @@ func Distinct2[K, V any, Cmp comparable](seq iter.Seq2[K, V], f Function2[K, V, 
 			if !ok && !yield(k, v) {
 				return
 			}
+		}
+	}
+}
+
+func Enumerate2[K, V any](seq iter.Seq2[K, V]) iter.Seq2[int, types.Pair[K, V]] {
+	var count int
+	return func(yield func(int, types.Pair[K, V]) bool) {
+		for k, v := range seq {
+			if !yield(count, types.Pair[K, V]{
+				First:  k,
+				Second: v,
+			}) {
+				return
+			}
+			count++
 		}
 	}
 }
