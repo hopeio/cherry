@@ -1,6 +1,7 @@
 package iter
 
 import (
+	"github.com/hopeio/cherry/utils/cmp"
 	"github.com/hopeio/cherry/utils/types"
 	"golang.org/x/exp/constraints"
 )
@@ -20,14 +21,14 @@ func IsNotEmpty[T any](it Iterator[T]) bool {
 // Converts a Iterator to a Slice.
 func ToSlice[T any](it Iterator[T]) []T {
 	var arr = make([]T, 0)
-	ForEach(func(t T) {
+	ForEach(it, func(t T) {
 		arr = append(arr, t)
-	}, it)
+	})
 	return arr
 }
 
 // Returns true if the target is included in the iterator.
-func Contains[T comparable](target T, it Iterator[T]) bool {
+func Contains[T comparable](it Iterator[T], target T) bool {
 	for {
 		if v, ok := it.Next(); ok {
 			if v == target {
@@ -62,8 +63,8 @@ func Average[T constraints.Integer | constraints.Float](it Iterator[T]) float64 
 }
 
 // Return the total number of iterators.
-func Count[T any](it Iterator[T]) int {
-	return Fold(it, 0, func(v int, _ T) int {
+func Count[T any](it Iterator[T]) uint64 {
+	return Fold(it, 0, func(v uint64, _ T) uint64 {
 		return v + 1
 	})
 }
@@ -80,7 +81,7 @@ func Max[T constraints.Ordered](it Iterator[T]) (T, bool) {
 }
 
 // Return the maximum value of all elements of the iterator.
-func MaxBy[T any](greater func(T, T) bool, it Iterator[T]) (T, bool) {
+func MaxBy[T any](it Iterator[T], greater cmp.SortFunc[T]) (T, bool) {
 	return Reduce(it, func(a T, b T) T {
 		if greater(a, b) {
 			return a
@@ -102,7 +103,7 @@ func Min[T constraints.Ordered](it Iterator[T]) (T, bool) {
 }
 
 // Return the minimum value of all elements of the iterator.
-func MinBy[T any](less func(T, T) bool, it Iterator[T]) (T, bool) {
+func MinBy[T any](it Iterator[T], less cmp.SortFunc[T]) (T, bool) {
 	return Reduce(it, func(a T, b T) T {
 		if less(a, b) {
 			return a
@@ -113,7 +114,7 @@ func MinBy[T any](less func(T, T) bool, it Iterator[T]) (T, bool) {
 }
 
 // The action is executed for each element of the iterator, and the argument to the action is the element.
-func ForEach[T any](action func(T), it Iterator[T]) {
+func ForEach[T any](it Iterator[T], action func(T)) {
 	for {
 		if v, ok := it.Next(); ok {
 			action(v)

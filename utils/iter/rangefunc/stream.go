@@ -50,7 +50,7 @@ type Stream[T any] interface {
 	IsSorted(Comparator[T]) bool
 	All(Predicate[T]) bool // every
 	None(Predicate[T]) bool
-	Any(Predicate[T]) bool
+	Any(Predicate[T]) bool // some
 	Reduce(acc BinaryOperator[T]) (T, bool)
 	Fold(initVal T, acc BinaryOperator[T]) T
 	First() (T, bool)

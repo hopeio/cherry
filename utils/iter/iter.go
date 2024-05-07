@@ -94,23 +94,39 @@ func (it *IterStream[T]) Filter(f func(T) bool) *IterStream[T] {
 }
 
 func (it *IterStream[T]) Count() uint64 {
-	var count uint64
-	for {
-		_, ok := it.iter.Next()
-		if !ok {
-			return count
-		}
-
-	}
-
+	return Count(it.iter)
 }
 
 func (it *IterStream[T]) ForEach(f func(T)) {
-	for {
-		v, ok := it.iter.Next()
-		if !ok {
-			break
-		}
-		f(v)
-	}
+	ForEach(it.iter, f)
+}
+
+func (it *IterStream[T]) All(f func(T) bool) bool {
+	return AllMatch(it.iter, f)
+}
+
+func (it *IterStream[T]) Any(f func(T) bool) bool {
+	return AnyMatch(it.iter, f)
+}
+
+func (it *IterStream[T]) None(f func(T) bool) bool {
+	return NoneMatch(it.iter, f)
+}
+
+func (it *IterStream[T]) Skip(n int) *IterStream[T] {
+	it.iter = Skip(it.iter, n)
+	return it
+}
+
+func (it *IterStream[T]) Limit(n int) *IterStream[T] {
+	it.iter = Limit(it.iter, n)
+	return it
+}
+
+func (it *IterStream[T]) Reduce(operation func(T, T) T) (T, bool) {
+	return Reduce(it.iter, operation)
+}
+
+func (it *IterStream[T]) Fold(initVal T, operation func(T, T) T) T {
+	return Fold(it.iter, initVal, operation)
 }
