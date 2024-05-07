@@ -3,6 +3,7 @@
 package iter
 
 import (
+	iteri "github.com/hopeio/cherry/utils/iter"
 	"iter"
 )
 
@@ -44,6 +45,7 @@ type Stream[T any] interface {
 	Distinct(Function[T, int]) Stream[T]
 	Limit(int64) Stream[T]
 	Skip(int64) Stream[T]
+	Zip(iter.Seq[T]) Stream[T]
 
 	ForEach(Consumer[T])
 	Collect() []T
@@ -99,6 +101,10 @@ func (it Seq[T]) Skip(skip int64) Stream[T] {
 	return Seq[T](Skip(iter.Seq[T](it), skip))
 }
 
+func (it Seq[T]) Zip(seq iter.Seq[T]) Stream[T] {
+	return Seq[T](Zip(iter.Seq[T](it), seq))
+}
+
 func (it Seq[T]) ForEach(accept Consumer[T]) {
 	ForEach(iter.Seq[T](it), accept)
 }
@@ -133,4 +139,30 @@ func (it Seq[T]) First() (T, bool) {
 
 func (it Seq[T]) Count() int64 {
 	return Count(iter.Seq[T](it))
+}
+
+func (it Seq[T]) Iter() iteri.Iterator[T] {
+	next, stop := iter.Pull(iter.Seq[T](it))
+	return &seqIter[T]{next, stop}
+}
+
+type seqIter[T any] struct {
+	next func() (T, bool)
+	stop func()
+}
+
+func (it *seqIter[T]) Next() (T, bool) {
+	return it.next()
+}
+
+func SeqSeq2[T any](seq iter.Seq[T]) iter.Seq2[int, T] {
+	return func(yield func(int, T) bool) {
+		var count int
+		for v := range seq {
+			if !yield(count, v) {
+				return
+			}
+			count++
+		}
+	}
 }

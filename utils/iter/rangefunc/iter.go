@@ -63,15 +63,17 @@ func Peek[T any](seq iter.Seq[T], accept Consumer[T]) iter.Seq[T] {
 
 // Distinct remove duplicate elements.
 // 对序列中的元素去重
-func Distinct[T any, Cmp comparable](seq iter.Seq[T], f Function[T, Cmp]) iter.Seq[T] {
+func Distinct[T any, C comparable](seq iter.Seq[T], f Function[T, C]) iter.Seq[T] {
 	return func(yield func(T) bool) {
-		var set = make(map[Cmp]struct{})
+		var set = make(map[C]struct{})
 		for v := range seq {
 			k := f(v)
 			_, ok := set[k]
-			set[k] = struct{}{}
-			if !ok && !yield(v) {
-				return
+			if !ok {
+				if !yield(v) {
+					return
+				}
+				set[k] = struct{}{}
 			}
 		}
 	}
@@ -249,13 +251,17 @@ func Count[T any](seq iter.Seq[T]) (count int64) {
 	return
 }
 
-func CountWithTerminator() {
-
+func CountForEach[T any](seq iter.Seq[T], accept Consumer[T]) (count int64) {
+	for v := range seq {
+		accept(v)
+		count++
+	}
+	return
 }
 
 func Enumerate[T any](seq iter.Seq[T]) iter.Seq[types.Pair[int, T]] {
-	var count int
 	return func(yield func(types.Pair[int, T]) bool) {
+		var count int
 		for v := range seq {
 			if !yield(types.Pair[int, T]{
 				First:  count,
@@ -268,14 +274,21 @@ func Enumerate[T any](seq iter.Seq[T]) iter.Seq[types.Pair[int, T]] {
 	}
 }
 
-func Enumerates[T any](seq iter.Seq[T]) iter.Seq2[int, T] {
-	var count int
-	return func(yield func(int, T) bool) {
-		for v := range seq {
-			if !yield(count, v) {
+func Zip[T any](seq1 iter.Seq[T], seq2 iter.Seq[T]) iter.Seq[T] {
+	return func(yield func(T) bool) {
+		var firstFinished bool
+		if !firstFinished {
+			for v1 := range seq1 {
+				if !yield(v1) {
+					return
+				}
+			}
+			firstFinished = true
+		}
+		for v2 := range seq2 {
+			if !yield(v2) {
 				return
 			}
-			count++
 		}
 	}
 }
