@@ -218,7 +218,7 @@ func Fold[T any, R any](it Iterator[T], initial R, operation func(R, T) R) R {
 }
 
 // Splitting an iterator whose elements are pair into two lists.
-func Unzip[A any, B any](it Iterator[types.Pair[A, B]]) ([]A, []B) {
+func Unzip[A any, B any](it Iterator[*types.Pair[A, B]]) ([]A, []B) {
 	var arrA = make([]A, 0)
 	var arrB = make([]B, 0)
 	for {
@@ -233,7 +233,7 @@ func Unzip[A any, B any](it Iterator[types.Pair[A, B]]) ([]A, []B) {
 }
 
 // to built-in map.
-func ToMap[K comparable, V any](it Iterator[types.Pair[K, V]]) map[K]V {
+func ToMap[K comparable, V any](it Iterator[*types.Pair[K, V]]) map[K]V {
 	var r = make(map[K]V)
 	for {
 		if v, ok := it.Next(); ok {

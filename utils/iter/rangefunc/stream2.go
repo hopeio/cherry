@@ -55,20 +55,20 @@ type Stream2[K, V any] interface {
 
 type Seq2[K, V any] iter.Seq2[K, V]
 
-func (s Seq2[K, V]) Seq() iter.Seq[types.Pair[K, V]] {
-	return func(yield func(types.Pair[K, V]) bool) {
+func (s Seq2[K, V]) Seq() iter.Seq[*types.Pair[K, V]] {
+	return func(yield func(*types.Pair[K, V]) bool) {
 		for k, v := range s {
-			if !yield(types.Pair[K, V]{First: k, Second: v}) {
+			if !yield(types.PairOf(k, v)) {
 				return
 			}
 		}
 	}
 }
 
-func Seq2Seq[K, V any](seq2 iter.Seq2[K, V]) iter.Seq[types.Pair[K, V]] {
-	return func(yield func(types.Pair[K, V]) bool) {
+func Seq2Seq[K, V any](seq2 iter.Seq2[K, V]) iter.Seq[*types.Pair[K, V]] {
+	return func(yield func(*types.Pair[K, V]) bool) {
 		for k, v := range seq2 {
-			if !yield(types.Pair[K, V]{First: k, Second: v}) {
+			if !yield(types.PairOf(k, v)) {
 				return
 			}
 		}

@@ -25,10 +25,11 @@ func SliceSeq2Of[T any](input []T) Seq2[int, T] {
 	}
 }
 
-func HashMapSeqOf[K comparable, V any](m map[K]V) Seq[types.Pair[K, V]] {
-	return func(yield func(types.Pair[K, V]) bool) {
+// TODO: IEDA错误: 这里Seq中类型是types.Pair[K, V]会报错,*types.Pair[K, V]则不会, 2024-05-09 ,IDEA2024.1 Build #IU-241.15989.150, built on April 29, 2024,go插件241.15989.21
+func HashMapSeqOf[K comparable, V any](m map[K]V) Seq[*types.Pair[K, V]] {
+	return func(yield func(*types.Pair[K, V]) bool) {
 		for k, v := range m {
-			if !yield(types.Pair[K, V]{First: k, Second: v}) {
+			if !yield(types.PairOf(k, v)) {
 				return
 			}
 		}
