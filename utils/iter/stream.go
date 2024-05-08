@@ -66,7 +66,7 @@ type enumerateStream[T any] struct {
 func (a *enumerateStream[T]) Next() (*types.Pair[int, T], bool) {
 	if v, ok := a.iterator.Next(); ok {
 		a.index++
-		return types.PairOf(a.index, v), ok
+		return &types.Pair[int, T]{First: a.index, Second: v}, ok
 	}
 	return nil, false
 }
@@ -238,6 +238,62 @@ func (a *zipStream[T, U]) Next() (*types.Pair[T, U], bool) {
 	return &types.Pair[T, U]{}, false
 }
 
+type IterStream[T any] struct {
+	iter Iterator[T]
+}
+
+func (it *IterStream[T]) Map(transform func(T) T) *IterStream[T] {
+	it.iter = Map(it.iter, transform)
+	return it
+}
+
+func (it *IterStream[T]) Filter(f func(T) bool) *IterStream[T] {
+	it.iter = Filter(it.iter, f)
+	return it
+}
+
+func (it *IterStream[T]) Count() uint64 {
+	return Count(it.iter)
+}
+
+func (it *IterStream[T]) ForEach(f func(T)) {
+	ForEach(it.iter, f)
+}
+
+func (it *IterStream[T]) All(f func(T) bool) bool {
+	return AllMatch(it.iter, f)
+}
+
+func (it *IterStream[T]) Any(f func(T) bool) bool {
+	return AnyMatch(it.iter, f)
+}
+
+func (it *IterStream[T]) None(f func(T) bool) bool {
+	return NoneMatch(it.iter, f)
+}
+
+func (it *IterStream[T]) Skip(n int) *IterStream[T] {
+	it.iter = Skip(it.iter, n)
+	return it
+}
+
+func (it *IterStream[T]) Limit(n int) *IterStream[T] {
+	it.iter = Limit(it.iter, n)
+	return it
+}
+
+func (it *IterStream[T]) Reduce(operation func(T, T) T) (T, bool) {
+	return Reduce(it.iter, operation)
+}
+
+func (it *IterStream[T]) Fold(initVal T, operation func(T, T) T) T {
+	return Fold(it.iter, initVal, operation)
+}
+
 func SliceStreamOf[S ~[]T, T any](source S) *IterStream[T] {
-	return &IterStream[T]{iter: SliceIterOf(source)}
+	return &IterStream[T]{iter: Slice(source)}
+}
+
+func StreamOf[T any](iter Iterator[T]) *IterStream[T] {
+	return &IterStream[T]{iter: iter}
 }

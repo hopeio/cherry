@@ -27,10 +27,8 @@ func (it *stringIter) Next() (rune, bool) {
 }
 
 // String returns an Iterator yielding runes from the supplied string.
-func StringIterOf(input string) Iterator[rune] {
-	return &stringIter{
-		str: input,
-	}
+func String(input string) Iterator[rune] {
+	return &stringIter{str: input}
 }
 
 type rangeIter[T constraints.Integer] struct {
@@ -53,7 +51,7 @@ func (it *rangeIter[T]) Next() (T, bool) {
 }
 
 // RangeIterOf returns an Iterator over a range of integers.
-func RangeIterOf[T constraints.Integer](begin, end, step T) Iterator[T] {
+func Range[T constraints.Integer](begin, end, step T) Iterator[T] {
 	return &rangeIter[T]{
 		begin: begin,
 		end:   end,
@@ -75,58 +73,6 @@ func (a *sliceIter[T]) Next() (T, bool) {
 	return *new(T), false
 }
 
-func SliceIterOf[S ~[]T, T any](source S) Iterator[T] {
+func Slice[S ~[]T, T any](source S) Iterator[T] {
 	return &sliceIter[T]{0, source}
-}
-
-type IterStream[T any] struct {
-	iter Iterator[T]
-}
-
-func (it *IterStream[T]) Map(transform func(T) T) *IterStream[T] {
-	it.iter = Map(it.iter, transform)
-	return it
-}
-
-func (it *IterStream[T]) Filter(f func(T) bool) *IterStream[T] {
-	it.iter = Filter(it.iter, f)
-	return it
-}
-
-func (it *IterStream[T]) Count() uint64 {
-	return Count(it.iter)
-}
-
-func (it *IterStream[T]) ForEach(f func(T)) {
-	ForEach(it.iter, f)
-}
-
-func (it *IterStream[T]) All(f func(T) bool) bool {
-	return AllMatch(it.iter, f)
-}
-
-func (it *IterStream[T]) Any(f func(T) bool) bool {
-	return AnyMatch(it.iter, f)
-}
-
-func (it *IterStream[T]) None(f func(T) bool) bool {
-	return NoneMatch(it.iter, f)
-}
-
-func (it *IterStream[T]) Skip(n int) *IterStream[T] {
-	it.iter = Skip(it.iter, n)
-	return it
-}
-
-func (it *IterStream[T]) Limit(n int) *IterStream[T] {
-	it.iter = Limit(it.iter, n)
-	return it
-}
-
-func (it *IterStream[T]) Reduce(operation func(T, T) T) (T, bool) {
-	return Reduce(it.iter, operation)
-}
-
-func (it *IterStream[T]) Fold(initVal T, operation func(T, T) T) T {
-	return Fold(it.iter, initVal, operation)
 }

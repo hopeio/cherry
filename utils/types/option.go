@@ -9,15 +9,15 @@ type Option[T any] struct {
 	ok    bool
 }
 
-func Some[T any](v T) Option[T] {
-	return Option[T]{value: v, ok: true}
+func Some[T any](v T) *Option[T] {
+	return &Option[T]{value: v, ok: true}
 }
 
-func None[T any]() Option[T] {
-	return Option[T]{ok: false}
+func None[T any]() *Option[T] {
+	return &Option[T]{ok: false}
 }
-func Nil[T any]() Option[T] {
-	return Option[T]{ok: false}
+func Nil[T any]() *Option[T] {
+	return &Option[T]{ok: false}
 }
 
 func (opt *Option[T]) Val() (T, bool) {
@@ -57,7 +57,7 @@ func (opt *Option[T]) UnwrapOrElse(fn func() T) T {
 	return fn()
 }
 
-func MapOption[T any, R any](opt Option[T], fn func(T) R) Option[R] {
+func MapOption[T any, R any](opt Option[T], fn func(T) R) *Option[R] {
 	if !opt.IsSome() {
 		return None[R]()
 	}
