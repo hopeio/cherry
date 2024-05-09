@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/hopeio/cherry/protobuf/errorcode"
-	"github.com/hopeio/cherry/utils/verification/validator"
+	"github.com/hopeio/cherry/utils/validation/validator"
 	"google.golang.org/grpc"
 )
 

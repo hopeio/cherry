@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/cherry/protobuf/errorcode"
 	"github.com/hopeio/cherry/utils/net/http/gin/binding"
-	"github.com/hopeio/cherry/utils/verification/validator"
+	"github.com/hopeio/cherry/utils/validation/validator"
 	"io/ioutil"
 )
 

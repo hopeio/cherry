@@ -33,7 +33,7 @@ func New(p *protogen.Plugin) *plugin {
 		regexPkg:     "regexp",
 		fmtPkg:       "fmt",
 		errorsPkg:    "errors",
-		validatorPkg: "github.com/hopeio/cherry/utils/verification/validator",
+		validatorPkg: "github.com/hopeio/cherry/utils/validation/validator",
 	}
 }
 

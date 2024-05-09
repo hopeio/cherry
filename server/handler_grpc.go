@@ -10,7 +10,7 @@ import (
 	"github.com/hopeio/cherry/utils/log"
 	runtimei "github.com/hopeio/cherry/utils/runtime"
 	stringsi "github.com/hopeio/cherry/utils/strings"
-	"github.com/hopeio/cherry/utils/verification/validator"
+	"github.com/hopeio/cherry/utils/validation/validator"
 	"github.com/modern-go/reflect2"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapgrpc"

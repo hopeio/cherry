@@ -3,7 +3,7 @@ package binding
 import (
 	"net/http"
 
-	"github.com/hopeio/cherry/utils/verification/validator"
+	"github.com/hopeio/cherry/utils/validation/validator"
 )
 
 const (

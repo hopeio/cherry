@@ -12,6 +12,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"unsafe"
 )
 
 type StringConverter func(string) any
@@ -111,7 +112,11 @@ func stringConvertBool(value string) (any, error) {
 }
 
 func stringConvertFloat32(value string) (any, error) {
-	return strconv.ParseFloat(value, 32)
+	f, err := strconv.ParseFloat(value, 32)
+	if err != nil {
+		return 0, err
+	}
+	return float32(f), nil
 }
 
 func stringConvertFloat64(value string) (any, error) {
@@ -119,19 +124,35 @@ func stringConvertFloat64(value string) (any, error) {
 }
 
 func stringConvertInt(value string) (any, error) {
-	return strconv.ParseInt(value, 10, 0)
+	i, err := strconv.ParseInt(value, 10, 0)
+	if err != nil {
+		return 0, err
+	}
+	return int(i), nil
 }
 
 func stringConvertInt8(value string) (any, error) {
-	return strconv.ParseInt(value, 10, 8)
+	i, err := strconv.ParseInt(value, 10, 8)
+	if err != nil {
+		return 0, err
+	}
+	return int8(i), nil
 }
 
 func stringConvertInt16(value string) (any, error) {
-	return strconv.ParseInt(value, 10, 16)
+	i, err := strconv.ParseInt(value, 10, 16)
+	if err != nil {
+		return 0, err
+	}
+	return int16(i), nil
 }
 
 func stringConvertInt32(value string) (any, error) {
-	return strconv.ParseInt(value, 10, 32)
+	i, err := strconv.ParseInt(value, 10, 32)
+	if err != nil {
+		return 0, err
+	}
+	return int32(i), nil
 }
 
 func stringConvertInt64(value string) (any, error) {
@@ -142,31 +163,48 @@ func stringConvertString(value string) (any, error) {
 	return value, nil
 }
 
+// TODO
 func stringConvertArray(value string) (any, error) {
 	return value, nil
 }
 
 func stringConvertUint(value string) (any, error) {
-	return strconv.ParseUint(value, 10, 0)
+	u, err := strconv.ParseUint(value, 10, 0)
+	if err != nil {
+		return 0, err
+	}
+	return uint(u), nil
 }
 
 func stringConvertUint8(value string) (any, error) {
-	return strconv.ParseUint(value, 10, 8)
+	u, err := strconv.ParseUint(value, 10, 8)
+	if err != nil {
+		return 0, err
+	}
+	return uint8(u), nil
 }
 
 func stringConvertUint16(value string) (any, error) {
-	return strconv.ParseUint(value, 10, 16)
+	u, err := strconv.ParseUint(value, 10, 16)
+	if err != nil {
+		return 0, err
+	}
+	return uint16(u), nil
 }
 
 func stringConvertUint32(value string) (any, error) {
-	return strconv.ParseUint(value, 10, 32)
+	u, err := strconv.ParseUint(value, 10, 32)
+	if err != nil {
+		return 0, err
+	}
+	return uint32(u), nil
 }
 
 func stringConvertUint64(value string) (any, error) {
 	return strconv.ParseUint(value, 10, 64)
 }
 
-func ConvertInt64(v interface{}) int64 {
+func CastInt64(v any) int64 {
 	return cast.ToInt64(v)
 }
 
@@ -264,8 +302,96 @@ func StringConvertFor[T any](value string) (T, error) {
 		} else {
 			return v.(T), nil
 		}
+	} else {
+		var v T
+		a, ap := any(v), any(&v)
+		vv, ok := a.(encoding.TextUnmarshaler)
+		if !ok {
+			vv, ok = ap.(encoding.TextUnmarshaler)
+		}
+		if ok {
+			err := vv.UnmarshalText([]byte(value))
+			if err != nil {
+				return v, err
+			}
+		}
 	}
 	return *new(T), errors.New("unsupported kind")
+}
+
+func StringConvertBasicFor[T any](value string) (T, error) {
+	var v T
+	a, ap := any(v), any(&v)
+	switch vv := a.(type) {
+	case encoding.TextUnmarshaler:
+		err := vv.UnmarshalText([]byte(value))
+		if err != nil {
+			return v, err
+		}
+		return v, nil
+	case string:
+		return any(value).(T), nil
+	case int, int8, int16, int32, int64:
+		i, err := strconv.ParseInt(value, 10, int(unsafe.Sizeof(v))*8)
+		if err != nil {
+			return v, err
+		}
+		switch vv.(type) {
+		case int:
+			return any(int(i)).(T), nil
+		case int8:
+			return any(int8(i)).(T), nil
+		case uint16:
+			return any(int16(i)).(T), nil
+		case int32:
+			return any(int32(i)).(T), nil
+		case int64:
+			return any(i).(T), nil
+		}
+	case uint, uint8, uint16, uint32, uint64:
+		i, err := strconv.ParseUint(value, 10, int(unsafe.Sizeof(v))*8)
+		if err != nil {
+			return v, err
+		}
+		switch vv.(type) {
+		case uint:
+			return any(uint(i)).(T), nil
+		case uint8:
+			return any(uint8(i)).(T), nil
+		case uint16:
+			return any(uint16(i)).(T), nil
+		case uint32:
+			return any(uint32(i)).(T), nil
+		case uint64:
+			return any(i).(T), nil
+		}
+	case float64, float32:
+		f, err := strconv.ParseFloat(value, int(unsafe.Sizeof(v))*8)
+		if err != nil {
+			return v, err
+		}
+		switch vv.(type) {
+		case float64:
+			return any(f).(T), nil
+		case float32:
+			return any(float32(f)).(T), nil
+		}
+	case bool:
+		b, err := strconv.ParseBool(value)
+		if err != nil {
+			return v, err
+		}
+		return any(b).(T), nil
+	}
+	switch vv := ap.(type) {
+	case encoding.TextUnmarshaler:
+		err := vv.UnmarshalText([]byte(value))
+		if err != nil {
+			return v, err
+		}
+		return v, nil
+	}
+	return *new(T), errors.New("unsupported type")
 }
 
 func String(value reflect.Value) string {

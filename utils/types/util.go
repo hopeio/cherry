@@ -45,3 +45,5 @@ func Zero2[T any]() T {
 	var zero T
 	return zero
 }
+
+// 两种转换,any(i).(T), T(any(i))

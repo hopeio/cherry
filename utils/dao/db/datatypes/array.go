@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	reflecti "github.com/hopeio/cherry/utils/reflect/converter"
+	stringsi "github.com/hopeio/cherry/utils/strings"
 	"time"
 
 	"golang.org/x/exp/constraints"
@@ -137,7 +138,7 @@ func (d StringArray) Value() (driver.Value, error) {
 // 只支持一维数组,unsupported box
 type Array[T any] []T
 
-func (d *Array[T]) Scan(value interface{}) error {
+func (d *Array[T]) Scan(value any) error {
 	str, ok := value.(string)
 	if !ok {
 		data, ok := value.([]byte)
@@ -146,35 +147,70 @@ func (d *Array[T]) Scan(value interface{}) error {
 		}
 		str = string(data)
 	}
-	strs := strings.Split(str[1:len(str)-1], ",")
 	var arr []T
+	str = str[1 : len(str)-1]
+	if len(str) > 0 && str[0] == '{' {
+		i := 0
+		for i < len(str) {
+			subArray, ok := stringsi.BracketsIntervals(str[i:], '{', '}')
+			if ok {
+				i += len(subArray)
+				t, err := str2value[T](subArray)
+				if err != nil {
+					return err
+				}
+				arr = append(arr, t)
+			} else {
+				break
+			}
+		}
+		*d = arr
+		return nil
+	}
+	strs := strings.Split(str, ",")
+
 	for _, elem := range strs {
-		var t T
-		a := any(t)
-		if v, ok := a.(sql.Scanner); ok {
-			err := v.Scan(elem)
-			if err != nil {
-				return err
-			}
-			arr = append(arr, t)
-			continue
-		}
-		if v, ok := a.(encoding.TextUnmarshaler); ok {
-			err := v.UnmarshalText([]byte(elem))
-			if err != nil {
-				return err
-			}
-			arr = append(arr, t)
-			continue
-		}
-		v, err := reflecti.StringConvertFor[T](elem)
+		t, err := str2value[T](elem)
 		if err != nil {
 			return err
 		}
-		arr = append(arr, v)
+		arr = append(arr, t)
 	}
 	*d = arr
 	return nil
+}
+
+func str2value[T any](str string) (T, error) {
+	var t T
+	a, ap := any(t), any(&t)
+	isv, ok := a.(sql.Scanner)
+	if !ok {
+		isv, ok = ap.(sql.Scanner)
+	}
+	if ok {
+		err := isv.Scan(str)
+		if err != nil {
+			return t, err
+		}
+		return t, nil
+	}
+	itv, ok := a.(encoding.TextUnmarshaler)
+	if !ok {
+		itv, ok = ap.(encoding.TextUnmarshaler)
+	}
+	if ok {
+		err := itv.UnmarshalText([]byte(str))
+		if err != nil {
+			return t, err
+		}
+		return t, nil
+	}
+
+	v, err := reflecti.StringConvertFor[T](str)
+	if err != nil {
+		return t, err
+	}
+	return v, nil
 }
 
 func (d Array[T]) Value() (driver.Value, error) {
@@ -184,17 +220,25 @@ func (d Array[T]) Value() (driver.Value, error) {
 	var buf bytes.Buffer
 	buf.WriteByte('{')
 	for i, v := range d {
-		a := any(v)
-		if vv, ok := a.(driver.Valuer); ok {
-			v, err := vv.Value()
+		a, ap := any(v), any(&v)
+		ivv, ok := a.(driver.Valuer)
+		if !ok {
+			ivv, ok = ap.(driver.Valuer)
+		}
+		if ok {
+			v, err := ivv.Value()
 			if err != nil {
 				return nil, err
 			}
 			buf.WriteString(reflecti.StringFor(v))
 			continue
 		}
-		if vv, ok := a.(encoding.TextMarshaler); ok {
-			v, err := vv.MarshalText()
+		itv, ok := a.(encoding.TextMarshaler)
+		if !ok {
+			itv, ok = ap.(encoding.TextMarshaler)
+		}
+		if ok {
+			v, err := itv.MarshalText()
 			if err != nil {
 				return nil, err
 			}

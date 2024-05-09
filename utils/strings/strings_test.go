@@ -87,3 +87,31 @@ func FuzzUpperCaseFirst(f *testing.F) {
 		UpperCaseFirst(str)
 	})
 }
+
+func TestBracketsIntervals(t *testing.T) {
+	tests := []struct {
+		s          string
+		tokenBegin rune
+		tokenEnd   rune
+		expected   string
+		expected2  bool
+	}{
+		{"(test)", '(', ')', "(test)", true},
+		{"(test)", '[', ']', "", false},
+		{"[(test)]", '(', ')', "(test)", true},
+		{"[(test)]", '[', ']', "[(test)]", true},
+		{"((test))", '(', ')', "((test))", true},
+		{"((test))", '[', ']', "", false},
+		{"", '(', ')', "", false},
+	}
+
+	for _, test := range tests {
+		result, result2 := BracketsIntervals(test.s, test.tokenBegin, test.tokenEnd)
+		if result != test.expected {
+			t.Errorf("BracketsIntervals(%s, %v, %v) = %s; want %s", test.s, test.tokenBegin, test.tokenEnd, result, test.expected)
+		}
+		if result2 != test.expected2 {
+			t.Errorf("BracketsIntervals(%s, %v, %v) = %t; want %t", test.s, test.tokenBegin, test.tokenEnd, result2, test.expected2)
+		}
+	}
+}

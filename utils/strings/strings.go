@@ -429,3 +429,37 @@ func ReverseCut(s, sep string) (string, string, bool) {
 	}
 	return s, "", false
 }
+
+// 寻找括号区间
+// BracketsIntervals 在给定字符串中寻找由特定开始和结束符号包围的区间。
+// 它会返回第一个找到的由tokenBegin和tokenEnd界定的字符串区间，
+// 如果找到了则返回该区间和true，否则返回空字符串和false。
+//
+// 参数:
+// s - 待搜索的字符串。
+// tokenBegin - 搜索的开始符号。
+// tokenEnd - 搜索的结束符号。
+//
+// 返回值:
+// 第一个找到的由tokenBegin和tokenEnd界定的字符串区间，
+// 如果找到了则返回该区间和true，否则返回空字符串和false。
+func BracketsIntervals(s string, tokenBegin, tokenEnd rune) (string, bool) {
+	var level int // 当前嵌套层级
+	begin := -1   // 记录开始符号的索引
+	for i, r := range s {
+		if r == tokenBegin {
+			if begin == -1 {
+				begin = i // 首次遇到开始符号，记录其索引
+			}
+			level++ // 嵌套层级加一
+		} else if r == tokenEnd {
+			level-- // 遇到结束符号，嵌套层级减一
+			if level == 0 {
+				// 当层级归零时，表示找到了匹配的区间，返回该区间
+				return s[begin : i+1], true
+			}
+		}
+	}
+	// 若遍历结束仍未找到匹配的区间，返回空字符串和false
+	return "", false
+}

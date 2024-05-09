@@ -8,7 +8,7 @@ import (
 	"github.com/hopeio/cherry/utils/log"
 	gini "github.com/hopeio/cherry/utils/net/http/gin"
 	"github.com/hopeio/cherry/utils/net/http/grpc/web"
-	"github.com/hopeio/cherry/utils/verification/validator"
+	"github.com/hopeio/cherry/utils/validation/validator"
 	"github.com/quic-go/quic-go/http3"
 	"github.com/rs/cors"
 	"golang.org/x/net/http2"
