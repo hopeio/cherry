@@ -5,7 +5,7 @@ import (
 	dbi "github.com/hopeio/cherry/utils/dao/db"
 )
 
-func ExistsByFilterExpressions(db *sql.DB, tableName string, filters dbi.FilterExpressions) (bool, error) {
+func ExistsByFilterExpressions(db *sql.DB, tableName string, filters dbi.FilterExprs) (bool, error) {
 	result := db.QueryRow(`SELECT EXISTS(SELECT * FROM ` + tableName + `WHERE ` + filters.Build() + ` LIMIT 1)`)
 	if err := result.Err(); err != nil {
 		return false, err

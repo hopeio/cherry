@@ -6,9 +6,9 @@ import (
 	"strings"
 )
 
-type FilterExpressions []dbi.FilterExpression
+type FilterExprs dbi.FilterExprs
 
-func (f FilterExpressions) BuildORM(odb *gorm.DB) *gorm.DB {
+func (f FilterExprs) Build(odb *gorm.DB) *gorm.DB {
 	var scopes []func(db *gorm.DB) *gorm.DB
 	for _, filter := range f {
 		filter.Field = strings.TrimSpace(filter.Field)

@@ -4,25 +4,46 @@ import (
 	"context"
 	dbi "github.com/hopeio/cherry/utils/dao/db"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"strings"
 )
 
 type ChainDB func(db *gorm.DB) *gorm.DB
 
+func noOp(db *gorm.DB) *gorm.DB {
+	return db
+}
+
 func (c ChainDB) ById(id int) ChainDB {
+	if id > 0 {
+		return c.ByIdNoCheck(id)
+	}
+	return noOp
+}
+
+func (c ChainDB) ByIdNoCheck(id int) ChainDB {
 	return func(db *gorm.DB) *gorm.DB {
-		return c(db).Where("id = ?", id)
+		return db.Where("id = ?", id)
 	}
 }
 
 func (c ChainDB) ByName(name string) ChainDB {
+	if name != "" {
+		return c.ByNameNoCheck(name)
+	}
+	return noOp
+}
+
+func (c ChainDB) ByNameNoCheck(name string) ChainDB {
 	return func(db *gorm.DB) *gorm.DB {
-		return c(db).Where("name = ?", name)
+		return db.Where("name = ?", name)
 	}
 }
 
-func (c ChainDB) List(db *gorm.DB) {
-	c(db).Find(nil)
+func (c ChainDB) List(dest any) ChainDB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Find(dest)
+	}
 }
 
 func NewChainDB(ctx context.Context) ChainDB {
@@ -31,62 +52,61 @@ func NewChainDB(ctx context.Context) ChainDB {
 	}
 }
 
-type Clause []func(db *gorm.DB) *gorm.DB
-
-type Expression dbi.FilterExpression
+type Expression dbi.FilterExpr
 
 func (e *Expression) Clause() func(*gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Where(e.Field+(*dbi.FilterExpression)(e).Operation.SQL(), e.Value...)
+		return db.Where(e.Field+(*dbi.FilterExpr)(e).Operation.SQL(), e.Value...)
 	}
 }
 
-func NewScope(field string, op dbi.Operation, args ...interface{}) func(*gorm.DB) *gorm.DB {
+func NewClause(field string, op dbi.Operation, args ...interface{}) func(*gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where(field+op.SQL(), args...)
 	}
 }
 
+type ChainClause []func(db *gorm.DB) *gorm.DB
+
 // db.Scope(ById(1),ByName("a")).First(v)
-func (c Clause) ById(id int) Clause {
-	return append(c, NewScope("id", dbi.Equal, id))
+func (c ChainClause) ById(id int) ChainClause {
+	if id > 0 {
+		return c.ByIdNoCheck(id)
+	}
+	return c
 }
 
-func (c Clause) ByName(name string) Clause {
+func (c ChainClause) ByIdNoCheck(id int) ChainClause {
+	return append(c, NewClause("id", dbi.Equal, id))
+}
+
+func (c ChainClause) ByName(name string) ChainClause {
+	if name != "" {
+		return c.ByNameNoCheck(name)
+	}
+	return c
+}
+
+func (c ChainClause) ByNameNoCheck(name string) ChainClause {
 	return append(c, func(db *gorm.DB) *gorm.DB {
 		return db.Where(`name = ?`, name)
 	})
 }
 
-func (c Clause) Exec(db *gorm.DB) *gorm.DB {
+func (c ChainClause) Or(clauses ...ChainClause) ChainClause {
+	return append(c, func(db *gorm.DB) *gorm.DB {
+		db = db.Where(strings.Join(c.Exprs, " OR "), c.Vars...)
+		return db
+	})
+}
+
+func (c ChainClause) Exec(db *gorm.DB) *gorm.DB {
 	db = db.Scopes(c...)
 	return db
 }
 
-type Clause2 struct {
-	Expr []string
-	Var  []interface{}
-}
+type Clause3 []clause.Interface
 
-// db.Scope(ById(1),ByName("a").Build()).First(v)
-func (c *Clause2) ById(id int) *Clause2 {
-	c.Expr = append(c.Expr, `id = ?`)
-	c.Var = append(c.Var, id)
-	return c
-}
-
-func (c *Clause2) ByName(name string) *Clause2 {
-	c.Expr = append(c.Expr, `name = ?`)
-	c.Var = append(c.Var, name)
-	return c
-}
-
-func (c *Clause2) Build(db *gorm.DB) *gorm.DB {
-	db = db.Where(strings.Join(c.Expr, " AND "), c.Var...)
-	return db
-}
-
-func (c *Clause2) Exec(db *gorm.DB) *gorm.DB {
-	db = db.Scopes(c.Build)
-	return db
+func (c Clause3) ByIdNoCheck(id int) Clause3 {
+	return append(c, clause.Where{Exprs: []clause.Expression{clause.Eq{Column: "id", Value: id}}})
 }

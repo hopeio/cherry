@@ -6,13 +6,12 @@ import (
 )
 
 type ChainDao struct {
-	Ctx          context.Context
 	DB, OriginDB *gorm.DB
 }
 
 func NewChainDao(ctx context.Context, db *gorm.DB) *ChainDao {
 	return &ChainDao{
-		ctx, db, db,
+		db.WithContext(ctx), db.WithContext(ctx),
 	}
 }
 
@@ -21,11 +20,25 @@ func (c *ChainDao) ResetDB() {
 }
 
 func (c *ChainDao) ById(id int) *ChainDao {
-	c.DB.Where(`id = ?`, id)
+	if id != 0 {
+		return c.ByIdNoCheck(id)
+	}
 	return c
 }
 
 func (c *ChainDao) ByName(name string) *ChainDao {
-	c.DB.Where(`name = ?`, name)
+	if name != "" {
+		return c.ByNameNoCheck(name)
+	}
+	return c
+}
+
+func (c *ChainDao) ByIdNoCheck(id int) *ChainDao {
+	c.DB = c.DB.Where(`id = ?`, id)
+	return c
+}
+
+func (c *ChainDao) ByNameNoCheck(name string) *ChainDao {
+	c.DB = c.DB.Where(`name = ?`, name)
 	return c
 }

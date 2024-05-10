@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql/driver"
 	"fmt"
-	"gorm.io/gorm"
 	"gorm.io/gorm/utils"
 	"reflect"
 	"strconv"
@@ -56,8 +55,9 @@ func (m Operation) SQL() string {
 		return "NOT IN (?)"
 	case LIKE:
 		return "LIKE ?"
+	default:
+		return ""
 	}
-	return ""
 }
 
 func (m Operation) String() string {
@@ -85,19 +85,20 @@ func (m Operation) String() string {
 		return " IS NOT NULL"
 	case NotIn:
 		return " NOT IN "
+	default:
+		return "="
 	}
-	return "="
 }
 
-type FilterExpression struct {
+type FilterExpr struct {
 	Field     string        `json:"field"`
 	Operation Operation     `json:"method"`
 	Value     []interface{} `json:"value"`
 }
 
-type FilterExpressions []FilterExpression
+type FilterExprs []FilterExpr
 
-func (f FilterExpressions) Build() string {
+func (f FilterExprs) Build() string {
 	var conditions []string
 	for _, filter := range f {
 		filter.Field = strings.TrimSpace(filter.Field)
@@ -209,23 +210,7 @@ func isPrintable(s []byte) bool {
 	return true
 }
 
-func (f FilterExpressions) BuildORM(odb *gorm.DB) *gorm.DB {
-	var scopes []func(db *gorm.DB) *gorm.DB
-	for _, filter := range f {
-		filter.Field = strings.TrimSpace(filter.Field)
-
-		if filter.Field == "" || filter.Operation == 0 || len(filter.Value) == 0 {
-			continue
-		}
-
-		scopes = append(scopes, func(db *gorm.DB) *gorm.DB {
-			return db.Where(filter.Field+" "+filter.Operation.SQL(), filter.Value...)
-		})
-	}
-	return odb.Scopes(scopes...)
-}
-
-func (f FilterExpressions) BuildSQL() (string, []interface{}) {
+func (f FilterExprs) BuildSQL() (string, []interface{}) {
 	var builder strings.Builder
 	var vars []interface{}
 	for i, filter := range f {

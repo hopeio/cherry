@@ -15,25 +15,25 @@ func (req *RangeReq[T]) Clause() clause.Expression {
 	// 泛型还很不好用，这种方式代替原来的interface{}
 	zero := *new(T)
 	operation := dbi.Between
-	if req.RangeEnd == zero && req.RangeStart != zero {
+	if req.RangeEnd == zero && req.RangeBegin != zero {
 		operation = dbi.Greater
 		if req.Include {
 			operation = dbi.GreaterOrEqual
 		}
-		return NewWhereClause(req.RangeField, operation, req.RangeStart)
+		return NewWhereClause(req.RangeField, operation, req.RangeBegin)
 	}
-	if req.RangeStart == zero && req.RangeEnd != zero {
+	if req.RangeBegin == zero && req.RangeEnd != zero {
 		operation = dbi.Less
 		if req.Include {
 			operation = dbi.LessOrEqual
 		}
-		return NewWhereClause(req.RangeField, operation, req.RangeStart)
+		return NewWhereClause(req.RangeField, operation, req.RangeBegin)
 	}
-	if req.RangeStart != zero && req.RangeEnd != zero {
+	if req.RangeBegin != zero && req.RangeEnd != zero {
 		if req.Include {
-			return NewWhereClause(req.RangeField, operation, req.RangeStart, req.RangeEnd)
+			return NewWhereClause(req.RangeField, operation, req.RangeBegin, req.RangeEnd)
 		} else {
-			return clause.Where{Exprs: []clause.Expression{NewWhereClause(req.RangeField, dbi.Greater, req.RangeStart), NewWhereClause(req.RangeField, dbi.Less, req.RangeStart)}}
+			return clause.Where{Exprs: []clause.Expression{NewWhereClause(req.RangeField, dbi.Greater, req.RangeBegin), NewWhereClause(req.RangeField, dbi.Less, req.RangeBegin)}}
 		}
 	}
 	return new(EmptyClause)

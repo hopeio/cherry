@@ -1,27 +1,55 @@
 package gorm
 
-import "gorm.io/gorm"
+import (
+	dbi "github.com/hopeio/cherry/utils/dao/db"
+	"gorm.io/gorm"
+)
 
-func GetById[T any](db *gorm.DB, id int) (*T, error) {
-	t := new(T)
-	err := db.First(t, id).Error
-	return t, err
+func Delete(db *gorm.DB, tableName string, id uint64) error {
+	sql := dbi.DeleteSQL(tableName, "id")
+	return db.Exec(sql, id).Error
 }
 
-type DB[T any] gorm.DB
-
-func (db *DB[T]) GetById(id int) (*T, error) {
-	t := new(T)
-	err := (*gorm.DB)(db).First(t, id).Error
-	return t, err
+func ExistsByIdWithDeletedAt(db *gorm.DB, tableName string, id uint64) (bool, error) {
+	return ExistsBySQL(db, dbi.ExistsSQL(tableName, "id", true), id)
 }
 
-type DB2[T any] struct {
-	gorm.DB
+func ExistsById(db *gorm.DB, tableName string, id uint64) (bool, error) {
+	return ExistsBySQL(db, dbi.ExistsSQL(tableName, "id", false), id)
 }
 
-func (db *DB2[T]) GetById(id int) (*T, error) {
-	t := new(T)
-	err := db.First(t, id).Error
-	return t, err
+func ExistsByColumn(db *gorm.DB, tableName, column string, value interface{}) (bool, error) {
+	return ExistsBySQL(db, dbi.ExistsSQL(tableName, column, false), value)
+}
+
+func ExistsBySQL(db *gorm.DB, sql string, value ...any) (bool, error) {
+	var exists bool
+	err := db.Raw(sql, value...).Scan(&exists).Error
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}
+
+// 根据查询语句查询数据是否存在
+func ExistsByQuerySQL(db *gorm.DB, qsql string, value ...any) (bool, error) {
+	var exists bool
+	err := db.Raw(dbi.ExistsSQLByQuerySQL(qsql), value...).Scan(&exists).Error
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}
+
+func Exists(db *gorm.DB, tableName, column string, value interface{}, withDeletedAt bool) (bool, error) {
+	return ExistsBySQL(db, dbi.ExistsSQL(tableName, column, withDeletedAt), value)
+}
+
+func ExistsByFilterExprs(db *gorm.DB, tableName string, filters dbi.FilterExprs) (bool, error) {
+	var exists bool
+	err := db.Raw(dbi.ExistsSQLByFilterExprs(tableName, filters)).Scan(&exists).Error
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
 }
