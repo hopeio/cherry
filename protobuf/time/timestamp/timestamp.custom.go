@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"google.golang.org/protobuf/runtime/protoimpl"
+	"strconv"
 	"time"
 )
 
@@ -92,7 +93,44 @@ func (t *Timestamp) Time() time.Time {
 	return time.Unix(t.Seconds, int64(t.Nanos))
 }
 
+type jsonType int
+
+const (
+	JsonTypeLayout jsonType = iota
+	JsonTypeUnixSeconds
+	JsonTypeUnixMilliseconds
+	JsonTypeUnixMicroseconds
+	JsonTypeUnixNanoseconds
+)
+
+var jsonTyp jsonType
+
+func SetJsonType(typ jsonType) {
+	jsonTyp = typ
+}
+
+var layout = time.RFC3339Nano
+
+func SetLayout(l string) {
+	layout = l
+}
+
 func (t Timestamp) MarshalJSON() ([]byte, error) {
+	switch jsonTyp {
+	case JsonTypeLayout:
+		if layout == time.RFC3339Nano {
+			return t.Time().MarshalJSON()
+		}
+		return []byte(t.Time().Format(layout)), nil
+	case JsonTypeUnixSeconds:
+		return strconv.AppendInt(nil, t.Time().Unix(), 10), nil
+	case JsonTypeUnixMilliseconds:
+		return strconv.AppendInt(nil, t.Time().UnixMilli(), 10), nil
+	case JsonTypeUnixMicroseconds:
+		return strconv.AppendInt(nil, t.Time().UnixMicro(), 10), nil
+	case JsonTypeUnixNanoseconds:
+		return strconv.AppendInt(nil, t.Time().UnixNano(), 10), nil
+	}
 	return t.Time().MarshalJSON()
 }
 
