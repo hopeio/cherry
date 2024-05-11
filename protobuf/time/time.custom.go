@@ -48,16 +48,16 @@ func (ts *Time) UnmarshalBinary(data []byte) error {
 	return nil
 }
 
-func (date Time) GobEncode() ([]byte, error) {
-	return date.MarshalBinary()
+func (ts Time) GobEncode() ([]byte, error) {
+	return ts.MarshalBinary()
 }
 
-func (date *Time) GobDecode(data []byte) error {
-	return date.UnmarshalBinary(data)
+func (ts *Time) GobDecode(data []byte) error {
+	return ts.UnmarshalBinary(data)
 }
 
-func (date Time) MarshalJSON() ([]byte, error) {
-	t := time.Unix(0, date.T)
+func (ts Time) MarshalJSON() ([]byte, error) {
+	t := time.Unix(0, ts.T)
 	if y := t.Year(); y < 0 || y >= 10000 {
 		// RFC 3339 is clear that years are 4 digits exactly.
 		// See golang.org/issue/4556#c15 for more discussion.
@@ -71,7 +71,7 @@ func (date Time) MarshalJSON() ([]byte, error) {
 	return b, nil
 }
 
-func (date *Time) UnmarshalJSON(data []byte) error {
+func (ts *Time) UnmarshalJSON(data []byte) error {
 	// Ignore null, like in the main JSON package.
 	if string(data) == "null" {
 		return nil
@@ -79,6 +79,6 @@ func (date *Time) UnmarshalJSON(data []byte) error {
 	// Fractional seconds are handled implicitly by Parse.
 	var err error
 	t, err := time.ParseInLocation(`"2006-01-02"`, string(data), time.Local)
-	*date = Time{T: t.UnixNano()}
+	*ts = Time{T: t.UnixNano()}
 	return err
 }

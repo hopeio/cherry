@@ -62,11 +62,11 @@ func TestTimeScan(t *testing.T) {
 	case Date:
 		t.Log(s)
 	}
-	d = UnixTimeStamp(1)
+	d = SecondTimeStamp(1)
 	switch s := d.(type) {
 	case int64:
 		t.Log(s)
-	case UnixTimeStamp:
+	case SecondTimeStamp:
 		t.Log(s)
 	}
 }

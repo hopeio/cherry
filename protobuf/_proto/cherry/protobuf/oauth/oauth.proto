@@ -3,6 +3,7 @@ package oauth;
 
 option go_package = "github.com/hopeio/cherry/protobuf/oauth";
 option java_package = "xyz.hoper.cherry.protobuf.oauth";
+option java_multiple_files = true;
 
 message OauthReq{
     string responseType =1;

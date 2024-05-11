@@ -4,6 +4,7 @@ import "cherry/protobuf/utils/enum/enum.proto";
 import "cherry/protobuf/utils/patch/go.proto";
 
 option java_package = "xyz.hoper.cherry.protobuf.errorcode";
+option java_multiple_files = true;
 option go_package = "github.com/hopeio/cherry/protobuf/errorcode";
 option (go.file) = {no_enum_prefix:true};
 

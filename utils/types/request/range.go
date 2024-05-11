@@ -8,7 +8,7 @@ import (
 type SortType int
 
 const (
-	SortTypePlacement SortType = iota
+	_ SortType = iota
 	SortTypeASC
 	SortTypeDESC
 )

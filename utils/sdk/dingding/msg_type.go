@@ -54,7 +54,8 @@ type FeedCard struct {
 type MsgType int
 
 const (
-	MsgTypeText MsgType = iota
+	_ MsgType = iota
+	MsgTypeText
 	MsgTypeMarkdown
 	MsgTypeLink
 	MsgTypeActionCard

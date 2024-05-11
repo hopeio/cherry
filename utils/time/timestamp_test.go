@@ -1,4 +1,4 @@
-package stamp
+package time
 
 import (
 	"log"
@@ -7,7 +7,7 @@ import (
 )
 
 func TestTime2(t *testing.T) {
-	var tm Time = 1572838282583
+	var tm Timestamp = 1572838282583
 	log.Println(tm.Time())
 }
 

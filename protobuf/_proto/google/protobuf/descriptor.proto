@@ -430,7 +430,9 @@ message FileOptions {
   // domain names.
   optional string java_package = 1;
 
-  // Controls the name of the wrapper Java class generated for the .proto file.
+  // Controls the name of the wrapper Java class generated
+  //
+  // for the .proto file.
   // That class will always contain the .proto file's getDescriptor() method as
   // well as any top-level extensions defined in the .proto file.
   // If java_multiple_files is disabled, then all the other classes from the

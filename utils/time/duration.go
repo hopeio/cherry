@@ -34,18 +34,6 @@ func (d Duration) Shrink(c context.Context) (Duration, context.Context, context.
 	return d, ctx, cancel
 }
 
-const (
-	Day        = time.Hour * 24
-	MonthDay30 = Day * 30
-	MonthDay31 = Day * 31
-	MonthDay28 = Day * 28
-	MonthDay29 = Day * 29
-	Month      = MonthDay30
-	YearDay365 = Day * 365
-	YearDay366 = Day * 366
-	Year       = YearDay365
-)
-
 // 标准化TimeDuration
 func StdDuration(td time.Duration, stdTd time.Duration) time.Duration {
 	if td == 0 {

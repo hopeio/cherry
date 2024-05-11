@@ -21,12 +21,12 @@ const (
 	ROOT = "https://oapi.dingtalk.com/"
 )
 
-func SendRobotMessage(accessToken, secret, title, content string, MsgType MsgType) error {
+func SendRobotMessage(accessToken, secret, title, content string, msgType MsgType) error {
 	signUrl, err := RobotUrl(accessToken, secret)
 	if err != nil {
 		return err
 	}
-	body := strings.NewReader(MsgType.Body(title, content))
+	body := strings.NewReader(msgType.Body(title, content))
 
 	return client.SimplePost(ROOT+signUrl, body, nil)
 }
