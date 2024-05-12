@@ -6,7 +6,7 @@ import (
 )
 
 func Format(t time.Time) string {
-	return t.Format(TimeFormat)
+	return t.Format(LayoutTimeMacro)
 }
 
 func Parse(layout, value string) (time.Time, error) {

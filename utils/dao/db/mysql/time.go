@@ -6,5 +6,5 @@ import (
 )
 
 func Now() string {
-	return time.Now().Format(timei.TimeFormat)
+	return time.Now().Format(timei.LayoutTimeMacro)
 }

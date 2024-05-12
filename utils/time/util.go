@@ -26,7 +26,7 @@ func SyncHwTime() {
 }
 
 func TodayZeroTime() time.Time {
-	todayZeroTime, _ := time.ParseInLocation(DateFormat, time.Now().Format(DateFormat), time.Local)
+	todayZeroTime, _ := time.ParseInLocation(LayoutDate, time.Now().Format(LayoutDate), time.Local)
 	return todayZeroTime
 }
 

@@ -116,7 +116,7 @@ func NewRequestContext[REQ any](ctx context.Context, traceId string) *RequestCon
 		RequestAt: http.RequestAt{
 			Time:       now,
 			TimeStamp:  now.Unix(),
-			TimeString: now.Format(timei.TimeFormat),
+			TimeString: now.Format(timei.LayoutTimeMacro),
 		},
 		ServerTransportStream: grpc.ServerTransportStreamFromContext(ctx),
 		Values:                map[string]any{},
@@ -132,7 +132,7 @@ func (c *RequestContext[REQ]) reset(ctx context.Context) *RequestContext[REQ] {
 	}
 	c.ctx = ctx
 	c.RequestAt.Time = now
-	c.RequestAt.TimeString = now.Format(timei.TimeFormat)
+	c.RequestAt.TimeString = now.Format(timei.LayoutTimeMacro)
 	c.RequestAt.TimeStamp = now.Unix()
 	return c
 }

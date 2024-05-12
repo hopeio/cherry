@@ -20,7 +20,7 @@ func NewRequestAt() *RequestAt {
 	return &RequestAt{
 		Time:       now,
 		TimeStamp:  now.Unix(),
-		TimeString: now.Format(timei.TimeFormat),
+		TimeString: now.Format(timei.LayoutTimeMacro),
 	}
 }
 
@@ -28,6 +28,6 @@ func NewRequestAtByTime(t time.Time) *RequestAt {
 	return &RequestAt{
 		Time:       t,
 		TimeStamp:  t.Unix(),
-		TimeString: t.Format(timei.TimeFormat),
+		TimeString: t.Format(timei.LayoutTimeMacro),
 	}
 }

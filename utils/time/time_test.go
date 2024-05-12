@@ -58,20 +58,4 @@ func TestTimeScan(t *testing.T) {
 	case Date:
 		t.Log(s)
 	}
-	d = SecondTimestamp(1)
-	switch s := d.(type) {
-	case int64:
-		t.Log(s)
-	case SecondTimestamp:
-		t.Log(s)
-	}
-}
-
-func TestTimeStampScan(t *testing.T) {
-	tm := time.Now()
-	t.Log(tm)
-	ts := tm.Unix()
-	t.Log(ts)
-	t.Log(time.Unix(ts, 0))
-	t.Log(time.Unix(ts, 0).Local())
 }

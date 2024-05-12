@@ -7,25 +7,16 @@ import (
 	"time"
 )
 
-type Constraints interface {
-	SecondTime | MilliTime | MicroTime | NanoTime
-}
-
 type Date = Time[date]
-
 type date struct{}
 
 func (date) Layout() string {
-	return DateFormat
+	return LayoutDate
 }
 
-type SecondTime struct{}
 type UnixSecondTime = UnixTime[SecondTime]
-type MilliTime struct{}
 type UnixMilliTime = UnixTime[MilliTime]
-type MicroTime struct{}
 type UnixMicroTime = UnixTime[MicroTime]
-type NanoTime struct{}
 type UnixNanoTime = UnixTime[NanoTime]
 
 type DateTime = Time[dateTime]
@@ -124,9 +115,9 @@ func (dt *Time[T]) UnmarshalJSON(data []byte) error {
 	return (*time.Time)(dt).UnmarshalJSON(data)
 }
 
-type UnixTime[T Constraints] time.Time
+type UnixTime[T TimestampConstraints] time.Time
 
-func NewUnixTime[T Constraints](t time.Time) UnixTime[T] {
+func NewUnixTime[T TimestampConstraints](t time.Time) UnixTime[T] {
 	return UnixTime[T](t)
 }
 
