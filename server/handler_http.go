@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/cherry/context/http_context"
+	"github.com/hopeio/cherry/context/httpctx"
 	httpi "github.com/hopeio/cherry/utils/net/http"
 	gini "github.com/hopeio/cherry/utils/net/http/gin"
 	"github.com/hopeio/cherry/utils/net/http/grpc/gateway"
@@ -83,7 +83,7 @@ func (s *Server) httpHandler() http.HandlerFunc {
 			// 将 recorder 记录的 Response Body 写入到 ResponseWriter 中，客户端收到响应报文体
 			w.Write(recorder.Body.Bytes())
 		}
-		ctxi := http_context.ContextFromContext(r.Context())
+		ctxi := httpctx.ContextFromContext(r.Context())
 		defaultAccessLog(ctxi, r.RequestURI, r.Method,
 			stringsi.BytesToString(body), stringsi.BytesToString(recorder.Body.Bytes()),
 			recorder.Code)

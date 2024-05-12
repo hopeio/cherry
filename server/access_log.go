@@ -1,14 +1,14 @@
 package server
 
 import (
-	"github.com/hopeio/cherry/context/http_context"
+	"github.com/hopeio/cherry/context/httpctx"
 	"github.com/hopeio/cherry/utils/log"
 	"go.uber.org/zap"
 )
 
-type AccessLog = func(ctxi *http_context.Context, uri, method, body, result string, code int)
+type AccessLog = func(ctxi *httpctx.Context, uri, method, body, result string, code int)
 
-var defaultAccessLog = func(ctxi *http_context.Context, uri, method, body, result string, code int) {
+var defaultAccessLog = func(ctxi *httpctx.Context, uri, method, body, result string, code int) {
 	// log 里time now 浪费性能
 	if ce := log.Default().Logger.Check(zap.InfoLevel, "access"); ce != nil {
 		ce.Write(zap.String("uri", uri),

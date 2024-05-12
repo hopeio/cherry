@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/hopeio/cherry/context/http_context"
+	"github.com/hopeio/cherry/context/httpctx"
 	httpi "github.com/hopeio/cherry/utils/net/http"
 	"github.com/hopeio/cherry/utils/net/http/grpc/web"
 	stringsi "github.com/hopeio/cherry/utils/strings"
@@ -143,7 +143,7 @@ func (s *Server) Start() {
 			middleware(w, r)
 		}
 
-		ctx, span := http_context.ContextFromRequest(http_context.RequestCtx{Request: r, Response: w}, enableTracing)
+		ctx, span := httpctx.ContextFromRequest(httpctx.RequestCtx{Request: r, Response: w}, enableTracing)
 
 		r = r.WithContext(ctx.ContextWrapper())
 

@@ -1,33 +1,31 @@
-package gin_context
+package fasthttpctx
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
 	contexti "github.com/hopeio/cherry/context"
 	httpi "github.com/hopeio/cherry/utils/net/http"
+	fasthttpi "github.com/hopeio/cherry/utils/net/http/fasthttp"
+	stringsi "github.com/hopeio/cherry/utils/strings"
+	"github.com/valyala/fasthttp"
 	"go.opentelemetry.io/otel/trace"
 
 	"google.golang.org/grpc/metadata"
-	"net/http"
 )
 
-type Context = contexti.RequestContext[*gin.Context]
+type Context = contexti.RequestContext[*fasthttp.RequestCtx]
 
-func ContextFromContext(ctx context.Context) *Context {
-	return contexti.RequestContextFromContext[*gin.Context](ctx)
-}
-
-func ContextFromRequest(req *gin.Context, tracing bool) (*Context, trace.Span) {
-	r := req.Request
+func ContextFromRequest(req *fasthttp.RequestCtx, tracing bool) (*Context, trace.Span) {
+	r := &req.Request
 
 	ctx := context.Background()
 	if r != nil {
-		ctx = r.Context()
+		ctx = req
 	}
 	var traceId string
 	var span trace.Span
 	if tracing {
-		if r != nil {
+
+		if req != nil {
 			// go.opencensus.io/trace 完全包含了golang.org/x/net/trace 的功能
 			// grpc内置配合,看了源码并没有启用，根本没调用
 			// 系统trace只能追踪单个请求，且只记录时间及是否完成，只能/debug/requests看
@@ -36,12 +34,12 @@ func ContextFromRequest(req *gin.Context, tracing bool) (*Context, trace.Span) {
 			*/
 
 			// 直接从远程读取Trace信息，Trace是否为空交给propagation包判断
-			/*	traceString := r.Header.Get(httpi.HeaderGrpcTraceBin)
-				if traceString == "" {
-					traceString = r.Header.Get(httpi.HeaderTraceBin)
-				}
-			*/
-			ctx, span = contexti.Tracing(ctx, r.RequestURI)
+			/*		traceString := r.Header.Peek(httpi.HeaderGrpcTraceBin)
+					if traceString == nil {
+						traceString = r.Header.Peek(httpi.HeaderTraceBin)
+					}*/
+
+			ctx, span = contexti.Tracing(ctx, string(r.RequestURI()))
 		} else {
 			ctx, span = contexti.Tracing(ctx, "")
 		}
@@ -50,31 +48,31 @@ func ContextFromRequest(req *gin.Context, tracing bool) (*Context, trace.Span) {
 		}
 	}
 
-	ctxi := contexti.NewRequestContext[*gin.Context](ctx, traceId)
+	ctxi := contexti.NewRequestContext[*fasthttp.RequestCtx](ctx, traceId)
 	ctxi.RequestCtx = req
-	setWithHttpReq(ctxi, r)
+	setWithReq(ctxi, r)
 	return ctxi, span
 }
 
-func setWithHttpReq(c *contexti.RequestContext[*gin.Context], r *http.Request) {
-	if r == nil {
-		return
-	}
-	c.DeviceInfo = DeviceFromHeader(r.Header)
-	c.Internal = r.Header.Get(httpi.HeaderGrpcInternal)
-	c.Token = httpi.GetToken(r)
+func setWithReq(c *Context, r *fasthttp.Request) {
+	c.Token = fasthttpi.GetToken(r)
+	c.DeviceInfo = Device(&r.Header)
+	c.Internal = stringsi.BytesToString(r.Header.Peek(httpi.HeaderGrpcInternal))
 }
 
-func DeviceFromHeader(r http.Header) *contexti.DeviceInfo {
-	return contexti.Device(r.Get(httpi.HeaderDeviceInfo),
-		r.Get(httpi.HeaderArea), r.Get(httpi.HeaderLocation),
-		r.Get(httpi.HeaderUserAgent), r.Get(httpi.HeaderXForwardedFor))
+func Device(r *fasthttp.RequestHeader) *contexti.DeviceInfo {
+	return contexti.Device(stringsi.BytesToString(r.Peek(httpi.HeaderDeviceInfo)),
+		stringsi.BytesToString(r.Peek(httpi.HeaderArea)),
+		stringsi.BytesToString(r.Peek(httpi.HeaderLocation)),
+		stringsi.BytesToString(r.Peek(httpi.HeaderUserAgent)),
+		stringsi.BytesToString(r.Peek(httpi.HeaderXForwardedFor)),
+	)
 }
 
-type GinContext contexti.RequestContext[*gin.Context]
+type FastHttpContext contexti.RequestContext[*fasthttp.RequestCtx]
 
-func (c *GinContext) SetHeader(md metadata.MD) error {
-	header := c.RequestCtx.Writer.Header()
+func (c *FastHttpContext) SetHeader(md metadata.MD) error {
+	header := c.RequestCtx.Response.Header
 	for k, v := range md {
 		if len(v) > 0 {
 			header.Set(k, v[0])
@@ -89,8 +87,8 @@ func (c *GinContext) SetHeader(md metadata.MD) error {
 	return nil
 }
 
-func (c *GinContext) SendHeader(md metadata.MD) error {
-	header := c.RequestCtx.Writer.Header()
+func (c *FastHttpContext) SendHeader(md metadata.MD) error {
+	header := c.RequestCtx.Response.Header
 	for k, v := range md {
 		if len(v) > 0 {
 			header.Set(k, v[0])
@@ -105,8 +103,8 @@ func (c *GinContext) SendHeader(md metadata.MD) error {
 	return nil
 }
 
-func (c *GinContext) WriteHeader(k, v string) error {
-	c.RequestCtx.Writer.Header().Set(k, v)
+func (c *FastHttpContext) WriteHeader(k, v string) error {
+	c.RequestCtx.Response.Header.Set(k, v)
 	if c.ServerTransportStream != nil {
 		err := c.ServerTransportStream.SendHeader(metadata.MD{k: []string{v}})
 		if err != nil {
@@ -116,8 +114,8 @@ func (c *GinContext) WriteHeader(k, v string) error {
 	return nil
 }
 
-func (c *GinContext) SetCookie(v string) error {
-	c.RequestCtx.Writer.Header().Set(httpi.HeaderSetCookie, v)
+func (c *FastHttpContext) SetCookie(v string) error {
+	c.RequestCtx.Response.Header.Set(httpi.HeaderSetCookie, v)
 	if c.ServerTransportStream != nil {
 		err := c.ServerTransportStream.SendHeader(metadata.MD{httpi.HeaderSetCookie: []string{v}})
 		if err != nil {
@@ -127,9 +125,11 @@ func (c *GinContext) SetCookie(v string) error {
 	return nil
 }
 
-func (c *GinContext) SetTrailer(md metadata.MD) error {
+func (c *FastHttpContext) SetTrailer(md metadata.MD) error {
 	for k, v := range md {
-		c.RequestCtx.Request.Header[k] = v
+		if len(v) > 0 {
+			c.RequestCtx.Response.Header.Set(k, v[0])
+		}
 	}
 	if c.ServerTransportStream != nil {
 		err := c.ServerTransportStream.SetTrailer(md)

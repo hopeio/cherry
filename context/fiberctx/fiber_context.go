@@ -1,8 +1,10 @@
-package fasthttp_context
+package fiberctx
 
 import (
 	"context"
+	"github.com/gofiber/fiber/v3"
 	contexti "github.com/hopeio/cherry/context"
+	"github.com/hopeio/cherry/context/fasthttpctx"
 	httpi "github.com/hopeio/cherry/utils/net/http"
 	fasthttpi "github.com/hopeio/cherry/utils/net/http/fasthttp"
 	stringsi "github.com/hopeio/cherry/utils/strings"
@@ -10,22 +12,27 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"google.golang.org/grpc/metadata"
+	"net/http"
 )
 
-type Context = contexti.RequestContext[*fasthttp.RequestCtx]
+type Context = contexti.RequestContext[fiber.Ctx]
 
-func ContextFromRequest(req *fasthttp.RequestCtx, tracing bool) (*Context, trace.Span) {
-	r := &req.Request
+func ContextFromContext(ctx context.Context) *Context {
+	return contexti.RequestContextFromContext[fiber.Ctx](ctx)
+}
+
+func ContextFromRequest(req fiber.Ctx, tracing bool) (*Context, trace.Span) {
+	r := req.Request
 
 	ctx := context.Background()
 	if r != nil {
-		ctx = req
+		ctx = req.Context()
 	}
 	var traceId string
 	var span trace.Span
 	if tracing {
 
-		if req != nil {
+		if r != nil {
 			// go.opencensus.io/trace 完全包含了golang.org/x/net/trace 的功能
 			// grpc内置配合,看了源码并没有启用，根本没调用
 			// 系统trace只能追踪单个请求，且只记录时间及是否完成，只能/debug/requests看
@@ -34,12 +41,12 @@ func ContextFromRequest(req *fasthttp.RequestCtx, tracing bool) (*Context, trace
 			*/
 
 			// 直接从远程读取Trace信息，Trace是否为空交给propagation包判断
-			/*		traceString := r.Header.Peek(httpi.HeaderGrpcTraceBin)
-					if traceString == nil {
-						traceString = r.Header.Peek(httpi.HeaderTraceBin)
-					}*/
+			/*	traceString := req.Get(httpi.HeaderGrpcTraceBin)
+				if traceString == "" {
+					traceString = req.Get(httpi.HeaderTraceBin)
+				}*/
 
-			ctx, span = contexti.Tracing(ctx, string(r.RequestURI()))
+			ctx, span = contexti.Tracing(ctx, req.BaseURL())
 		} else {
 			ctx, span = contexti.Tracing(ctx, "")
 		}
@@ -48,34 +55,34 @@ func ContextFromRequest(req *fasthttp.RequestCtx, tracing bool) (*Context, trace
 		}
 	}
 
-	ctxi := contexti.NewRequestContext[*fasthttp.RequestCtx](ctx, traceId)
+	ctxi := contexti.NewRequestContext[fiber.Ctx](ctx, traceId)
 	ctxi.RequestCtx = req
-	setWithReq(ctxi, r)
+	setWithReq(ctxi, req.Request())
 	return ctxi, span
 }
 
-func setWithReq(c *Context, r *fasthttp.Request) {
+func setWithReq(c *contexti.RequestContext[fiber.Ctx], r *fasthttp.Request) {
+	if r == nil {
+		return
+	}
 	c.Token = fasthttpi.GetToken(r)
-	c.DeviceInfo = Device(&r.Header)
+	c.DeviceInfo = fasthttpctx.Device(&r.Header)
 	c.Internal = stringsi.BytesToString(r.Header.Peek(httpi.HeaderGrpcInternal))
 }
 
-func Device(r *fasthttp.RequestHeader) *contexti.DeviceInfo {
-	return contexti.Device(stringsi.BytesToString(r.Peek(httpi.HeaderDeviceInfo)),
-		stringsi.BytesToString(r.Peek(httpi.HeaderArea)),
-		stringsi.BytesToString(r.Peek(httpi.HeaderLocation)),
-		stringsi.BytesToString(r.Peek(httpi.HeaderUserAgent)),
-		stringsi.BytesToString(r.Peek(httpi.HeaderXForwardedFor)),
-	)
+func DeviceFromHeader(r http.Header) *contexti.DeviceInfo {
+	return contexti.Device(r.Get(httpi.HeaderDeviceInfo),
+		r.Get(httpi.HeaderArea), r.Get(httpi.HeaderLocation),
+		r.Get(httpi.HeaderUserAgent), r.Get(httpi.HeaderXForwardedFor))
 }
 
-type FastHttpContext contexti.RequestContext[*fasthttp.RequestCtx]
+type FiberContext contexti.RequestContext[fiber.Ctx]
 
-func (c *FastHttpContext) SetHeader(md metadata.MD) error {
-	header := c.RequestCtx.Response.Header
+func (c *FiberContext) SetHeader(md metadata.MD) error {
+	resp := c.RequestCtx.Response()
 	for k, v := range md {
 		if len(v) > 0 {
-			header.Set(k, v[0])
+			resp.Header.Set(k, v[0])
 		}
 	}
 	if c.ServerTransportStream != nil {
@@ -87,11 +94,11 @@ func (c *FastHttpContext) SetHeader(md metadata.MD) error {
 	return nil
 }
 
-func (c *FastHttpContext) SendHeader(md metadata.MD) error {
-	header := c.RequestCtx.Response.Header
+func (c *FiberContext) SendHeader(md metadata.MD) error {
+	resp := c.RequestCtx.Response()
 	for k, v := range md {
 		if len(v) > 0 {
-			header.Set(k, v[0])
+			resp.Header.Set(k, v[0])
 		}
 	}
 	if c.ServerTransportStream != nil {
@@ -103,8 +110,8 @@ func (c *FastHttpContext) SendHeader(md metadata.MD) error {
 	return nil
 }
 
-func (c *FastHttpContext) WriteHeader(k, v string) error {
-	c.RequestCtx.Response.Header.Set(k, v)
+func (c *FiberContext) WriteHeader(k, v string) error {
+	c.RequestCtx.Response().Header.Set(k, v)
 	if c.ServerTransportStream != nil {
 		err := c.ServerTransportStream.SendHeader(metadata.MD{k: []string{v}})
 		if err != nil {
@@ -114,8 +121,8 @@ func (c *FastHttpContext) WriteHeader(k, v string) error {
 	return nil
 }
 
-func (c *FastHttpContext) SetCookie(v string) error {
-	c.RequestCtx.Response.Header.Set(httpi.HeaderSetCookie, v)
+func (c *FiberContext) SetCookie(v string) error {
+	c.RequestCtx.Response().Header.Set(httpi.HeaderSetCookie, v)
 	if c.ServerTransportStream != nil {
 		err := c.ServerTransportStream.SendHeader(metadata.MD{httpi.HeaderSetCookie: []string{v}})
 		if err != nil {
@@ -125,10 +132,11 @@ func (c *FastHttpContext) SetCookie(v string) error {
 	return nil
 }
 
-func (c *FastHttpContext) SetTrailer(md metadata.MD) error {
+func (c *FiberContext) SetTrailer(md metadata.MD) error {
+	req := c.RequestCtx.Request()
 	for k, v := range md {
 		if len(v) > 0 {
-			c.RequestCtx.Response.Header.Set(k, v[0])
+			req.Header.Set(k, v[0])
 		}
 	}
 	if c.ServerTransportStream != nil {

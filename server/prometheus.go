@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/hopeio/cherry/context/http_context"
+	"github.com/hopeio/cherry/context/httpctx"
 	"github.com/hopeio/cherry/utils/log"
 	prometheus1 "github.com/hopeio/cherry/utils/net/http/prometheus"
 	prometheus2 "github.com/prometheus/client_golang/prometheus"
@@ -44,9 +44,9 @@ func init() {
 	}
 }
 
-type MetricsRecord = func(ctxi *http_context.Context, uri, method string, code int)
+type MetricsRecord = func(ctxi *httpctx.Context, uri, method string, code int)
 
-var defaultMetricsRecord = func(ctxi *http_context.Context, uri, method string, code int) {
+var defaultMetricsRecord = func(ctxi *httpctx.Context, uri, method string, code int) {
 	labels := prometheus2.Labels{
 		"method": method,
 		"uri":    uri,

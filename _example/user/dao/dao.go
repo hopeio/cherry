@@ -2,17 +2,17 @@ package dao
 
 import (
 	"github.com/hopeio/cherry/_example/user/model"
-	"github.com/hopeio/cherry/context/http_context"
+	"github.com/hopeio/cherry/context/httpctx"
 	"github.com/hopeio/cherry/utils/log"
 	"gorm.io/gorm"
 )
 
 type userDao struct {
-	*http_context.Context
+	*httpctx.Context
 	db *gorm.DB
 }
 
-func GetDao(ctx *http_context.Context, db *gorm.DB) *userDao {
+func GetDao(ctx *httpctx.Context, db *gorm.DB) *userDao {
 	if ctx == nil {
 		log.Fatal("ctx can't nil")
 	}

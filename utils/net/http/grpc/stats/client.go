@@ -2,7 +2,7 @@ package stats
 
 import (
 	"context"
-	"github.com/hopeio/cherry/context/http_context"
+	"github.com/hopeio/cherry/context/httpctx"
 	httpi "github.com/hopeio/cherry/utils/net/http"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/stats"
@@ -28,7 +28,7 @@ func (c *InternalClientHandler) HandleRPC(ctx context.Context, rs stats.RPCStats
 
 // TagRPC implements per-RPC context management.
 func (c *InternalClientHandler) TagRPC(ctx context.Context, rti *stats.RPCTagInfo) context.Context {
-	ctxi := http_context.ContextFromContext(ctx)
+	ctxi := httpctx.ContextFromContext(ctx)
 	return metadata.AppendToOutgoingContext(ctx, httpi.HeaderTraceID,
 		ctxi.TraceID,
 		httpi.HeaderGrpcInternal, httpi.HeaderGrpcInternal)

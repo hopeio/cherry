@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/validator"
-	"github.com/hopeio/cherry/context/http_context"
+	"github.com/hopeio/cherry/context/httpctx"
 	"github.com/hopeio/cherry/protobuf/errorcode"
 	"github.com/hopeio/cherry/utils/encoding/json"
 	"github.com/hopeio/cherry/utils/log"
@@ -102,7 +102,7 @@ func UnaryAccess(conf *Config) func(
 
 		body, _ := json.Marshal(req)
 		result, _ := json.Marshal(resp)
-		ctxi := http_context.ContextFromContext(ctx)
+		ctxi := httpctx.ContextFromContext(ctx)
 		defaultAccessLog(ctxi, info.FullMethod, "grpc",
 			stringsi.BytesToString(body), stringsi.BytesToString(result),
 			code)
