@@ -11,8 +11,8 @@ type Compare[T any] interface {
 }
 
 // comparable 只能比较是否相等,不能比较大小
-type OrderKey[T constraints.Ordered] interface {
-	OrderKey() T
+type SortKey[T constraints.Ordered] interface {
+	SortKey() T
 }
 
 type Sort[T any] interface {
