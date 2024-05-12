@@ -1,12 +1,27 @@
 package cmp
 
-import "golang.org/x/exp/constraints"
+import (
+	constraintsi "github.com/hopeio/cherry/utils/constraints"
+	"golang.org/x/exp/constraints"
+)
 
-type CompareKey[T comparable] interface {
+type EqualKey[T comparable] interface {
+	EqualKey() T
+}
+
+type IsEqual[T any] interface {
+	Equal(T) bool
+}
+
+type CompareKey[T constraintsi.Number] interface {
 	CompareKey() T
 }
 
-type Compare[T any] interface {
+type compareKey[K any, T Comparable[K]] interface {
+	CompareKey() T
+}
+
+type Comparable[T any] interface {
 	Compare(T) int
 }
 

@@ -7,7 +7,7 @@ type Foo struct {
 	B string
 }
 
-func (f *Foo) OrderKey() int {
+func (f *Foo) SortKey() int {
 	return f.A
 }
 

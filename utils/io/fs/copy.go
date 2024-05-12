@@ -1,130 +1,161 @@
-// Copyright 2019 Changkun Ou. All rights reserved.
-// Use of this source code is governed by a MIT
-// license that can be found in the LICENSE file.
-
-// inspiring from https://www.youtube.com/watch?v=1B71SL6Y0kA
 package fs
 
 import (
-	"fmt"
-	"github.com/hopeio/cherry/utils/log"
+	"github.com/hopeio/cherry/utils/crypto/md5"
 	"io"
 	"os"
 )
+
+type mode int
+
+const (
+	Cover mode = iota
+	SameNameSkip
+	SameNameAndMd5Skip
+	// TODO
+	sameNameRename
+)
+
+func (c mode) handle(dst string, src io.Reader) (newname string, skip bool, err error) {
+	switch c {
+	case Cover:
+		return "", false, nil
+	case SameNameSkip:
+		if IsExist(dst) {
+			return "", true, nil
+		}
+	case SameNameAndMd5Skip:
+		if IsExist(dst) {
+			md51, err := Md5(dst)
+			if err != nil {
+				return "", false, err
+			}
+			md52, err := md5.EncodeReaderMD5String(src)
+			if err != nil {
+				return "", false, err
+			}
+
+			if md51 == md52 {
+				return "", true, nil
+			}
+		}
+	}
+	return "", false, nil
+}
 
 // CopyFile : General Approach
 func CopyFile(src, dst string) error {
 	r, err := os.Open(src)
 	if err != nil {
-		return fmt.Errorf("copy %s %s: %v", src, dst, err)
+		return err
 	}
 	defer r.Close()
 
-	w, err := os.Create(dst)
-	if err != nil {
-		return fmt.Errorf("copy %s %s: %v", src, dst, err)
-	}
-
-	if _, err := io.Copy(w, r); err != nil {
-		w.Close()
-		os.Remove(dst)
-		return fmt.Errorf("copy %s %s: %v", src, dst, err)
-	}
-
-	if err := w.Close(); err != nil {
-		os.Remove(dst)
-		return fmt.Errorf("copy %s %s: %v", src, dst, err)
-	}
-
-	return nil
+	return CreatFileFromReader(dst, r)
 }
 
-// SafeCopyFile : Error handling by abstraction
-func SafeCopyFile(src, dst string) error {
-	c := safeOpen(src)
-	c.Create(dst)
-	c.Copy()
-	c.Close()
-
-	if c.err != nil {
-		os.Remove(dst)
-		return fmt.Errorf("copy %s %s: %v", src, dst, c.err)
-	}
-	return nil
-}
-
-type SafeCopy struct {
-	r, w     *os.File
-	src, dst string
-	err      error
-}
-
-func safeOpen(src string) SafeCopy {
+func CopyFileByMode(src, dst string, c mode) error {
 	r, err := os.Open(src)
-	return SafeCopy{r: r, src: src, err: err}
-}
-
-func (c *SafeCopy) Create(dst string) {
-	c.dst = dst
-	if c.err != nil {
-		c.err = fmt.Errorf("copy %s %s: %v", c.src, c.dst, c.err)
-		return
+	if err != nil {
+		return err
 	}
-	c.w, c.err = os.Create(c.dst)
-}
-
-func (c *SafeCopy) Copy() {
-	if c.err != nil {
-		c.r.Close()
-		c.err = fmt.Errorf("copy %s %s: %v", c.src, c.dst, c.err)
-		return
+	defer r.Close()
+	_, skip, err := c.handle(dst, r)
+	if err != nil {
+		return err
 	}
-	_, c.err = io.Copy(c.r, c.w)
-}
-
-func (c *SafeCopy) Close() {
-	if c.err != nil {
-		if c.w != nil {
-			c.w.Close()
-			os.Remove(c.dst)
-		}
-		c.err = fmt.Errorf("copy %s %s: %v", c.src, c.dst, c.err)
-		return
+	if skip {
+		return nil
 	}
-
-	c.err = c.r.Close()
-	c.err = c.w.Close()
+	return CreatFileFromReader(dst, r)
 }
 
 const DownloadKey = ".downloading"
 
 func CreatFileFromReader(filepath string, reader io.Reader) error {
-	filepath = filepath + DownloadKey
 	f, err := Create(filepath)
 	if err != nil {
 		return err
 	}
 
-	_, err = io.Copy(f, reader)
-	if err != nil {
+	if _, err = io.Copy(f, reader); err != nil {
 		f.Close()
 		os.Remove(filepath)
 		return err
 	}
 
-	err = f.Close()
-	if err != nil {
+	if err = f.Close(); err != nil {
 		os.Remove(filepath)
 		return err
 	}
-	return os.Rename(filepath, filepath[:len(filepath)-len(DownloadKey)])
+	return nil
 }
 
-func CreatFileFromReaderIfNotExists(filepath string, reader io.Reader) error {
-	_, err := os.Stat(filepath)
-	if os.IsNotExist(err) {
-		return CreatFileFromReader(filepath, reader)
+func CreatFileFromReaderByMode(filepath string, reader io.Reader, c mode) error {
+	_, skip, err := c.handle(filepath, reader)
+	if err != nil {
+		return err
 	}
-	log.Info("已存在:", filepath)
-	return err
+	if skip {
+		return nil
+	}
+	return CreatFileFromReader(filepath, reader)
+}
+
+func DownloadFile(filepath string, reader io.Reader) error {
+	tmpFilepath := filepath + DownloadKey
+	err := CreatFileFromReader(filepath, reader)
+	if err != nil {
+		return err
+	}
+	return os.Rename(tmpFilepath, filepath)
+}
+
+func DownloadFileByMode(filepath string, reader io.Reader, c mode) error {
+	_, skip, err := c.handle(filepath, reader)
+	if err != nil {
+		return err
+	}
+	if skip {
+		return nil
+	}
+	return DownloadFile(filepath, reader)
+}
+
+// CopyDirByMode 递归复制目录
+func CopyDirByMode(src, dst string, c mode) error {
+	if src[len(src)-1] == os.PathSeparator {
+		src = src[:len(src)-1]
+	}
+	if dst[len(dst)-1] == os.PathSeparator {
+		dst = dst[:len(dst)-1]
+	}
+	err := os.MkdirAll(dst, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	entries, err := os.ReadDir(src)
+	if len(entries) == 0 {
+		return nil
+	}
+	for _, entry := range entries {
+		entityName := entry.Name()
+		if entry.IsDir() {
+			err = CopyDirByMode(src+PathSeparator+entityName, dst+PathSeparator+entityName, c)
+			if err != nil {
+				return err
+			}
+		} else {
+			err = CopyFileByMode(src+PathSeparator+entityName, dst+PathSeparator+entityName, c)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// CopyDir 递归复制目录
+func CopyDir(src, dst string) error {
+	return CopyDirByMode(src, dst, Cover)
 }

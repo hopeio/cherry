@@ -15,11 +15,20 @@ import (
 	"time"
 )
 
-// TODO: Range StatusPartialContent 下载
+type DownloadMode uint8
+
+const (
+	DModeForceOverwrite DownloadMode = iota
+	DModeNotExistDownload
+	DModeContinueDownload
+	DModeMultipartDownload // TODO
+)
+
+// TODO: Range Status(206) PartialContent 下载
 type Downloader struct {
 	Client          *http.Client
 	Request         *http.Request
-	Mode            uint8 // 模式，0-强制覆盖，1-不存在下载，3-断续下载
+	Mode            DownloadMode // 模式，0-强制覆盖，1-不存在下载，2-断续下载
 	ResponseHandler func(response []byte) ([]byte, error)
 }
 
@@ -84,14 +93,14 @@ func (d *Downloader) WithRange(begin, end string) *Downloader {
 	return d
 }
 
-func (d *Downloader) WithMode(mode uint8) *Downloader {
+func (d *Downloader) WithMode(mode DownloadMode) *Downloader {
 	d.Mode = mode
 	return d
 }
 
-// 强制覆盖，如果文件已存在，不下载覆盖
-func (d *Downloader) OverwriteMode() *Downloader {
-	d.Mode = 1
+// 如果文件已存在，不下载覆盖
+func (d *Downloader) ExistsSkipMode() *Downloader {
+	d.Mode = DModeNotExistDownload
 	return d
 }
 
@@ -131,11 +140,11 @@ func (d *Downloader) GetResponse() (*http.Response, error) {
 }
 
 func (d *Downloader) DownloadFile(filepath string) error {
-	if d.Mode == 1 && fs.Exist(filepath) {
+	if d.Mode == DModeNotExistDownload && fs.Exist(filepath) {
 		return nil
 	}
 
-	if d.Mode == 3 {
+	if d.Mode == DModeContinueDownload {
 		return d.ContinuationDownloadFile(filepath)
 	}
 
@@ -155,7 +164,7 @@ func (d *Downloader) DownloadFile(filepath string) error {
 		}
 		reader = bytes.NewReader(data)
 	}
-	err = fs.CreatFileFromReader(filepath, reader)
+	err = fs.DownloadFile(filepath, reader)
 	err1 := resp.Body.Close()
 	if err1 != nil {
 		log.Warn("Close Reader", err1)
@@ -166,7 +175,7 @@ func (d *Downloader) DownloadFile(filepath string) error {
 const DownloadKey = fs.DownloadKey
 
 func (d *Downloader) ContinuationDownloadFile(filepath string) error {
-	f, err := fs.Open(filepath + DownloadKey)
+	f, err := fs.OpenFile(filepath+DownloadKey, os.O_RDWR|os.O_APPEND, 0666)
 	if err != nil {
 		return err
 	}
@@ -176,13 +185,6 @@ func (d *Downloader) ContinuationDownloadFile(filepath string) error {
 	}
 
 	offset := fileinfo.Size()
-	if offset > 0 {
-		_, err = f.Seek(offset, 0)
-		if err != nil {
-			return err
-		}
-	}
-
 	for {
 		d.Request.Header.Set(httpi.HeaderRange, "bytes="+strconv.FormatInt(offset, 10)+"-")
 
@@ -195,11 +197,11 @@ func (d *Downloader) ContinuationDownloadFile(filepath string) error {
 
 		err1 := resp.Body.Close()
 		if err1 != nil {
-			log.Warn("Close Reader error:", err1)
+			log.Warn("close reader error:", err1)
 		}
 
 		if err != nil {
-			log.Warn("Copy error:", err, ",will go on")
+			log.Warn("copy error:", err, ",will go on")
 			offset += written
 		} else {
 			err = f.Close()
@@ -258,7 +260,7 @@ func DownloadImage(filepath, url string) error {
 	if err != nil {
 		return err
 	}
-	return fs.CreatFileFromReader(filepath, reader)
+	return fs.DownloadFile(filepath, reader)
 }
 
 func ImageOption(req *http.Request) {

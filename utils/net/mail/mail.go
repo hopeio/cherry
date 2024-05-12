@@ -25,7 +25,7 @@ Content-Type: {{if .ContentType}}{{.ContentType}}{{- else}}text/html; charset=UT
 `
 
 func init() {
-	templatei.templatei.Parse(msg)
+	templatei.Parse(msg)
 }
 
 func (m *Mail) GenMsg() []byte {

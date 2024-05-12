@@ -5,7 +5,6 @@ import (
 	dbi "github.com/hopeio/cherry/utils/dao/db"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"strings"
 )
 
 type ChainDB func(db *gorm.DB) *gorm.DB
@@ -90,13 +89,6 @@ func (c ChainClause) ByName(name string) ChainClause {
 func (c ChainClause) ByNameNoCheck(name string) ChainClause {
 	return append(c, func(db *gorm.DB) *gorm.DB {
 		return db.Where(`name = ?`, name)
-	})
-}
-
-func (c ChainClause) Or(clauses ...ChainClause) ChainClause {
-	return append(c, func(db *gorm.DB) *gorm.DB {
-		db = db.Where(strings.Join(c.Exprs, " OR "), c.Vars...)
-		return db
 	})
 }
 

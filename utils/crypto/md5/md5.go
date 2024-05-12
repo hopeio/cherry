@@ -1,4 +1,4 @@
-package crypto
+package md5
 
 import (
 	"crypto/md5"
@@ -28,4 +28,14 @@ func EncodeReaderMD5(r io.Reader) ([]byte, error) {
 	}
 
 	return hash.Sum(nil), nil
+}
+
+func EncodeReaderMD5String(r io.Reader) (string, error) {
+	hash := md5.New()
+	_, err := io.Copy(hash, r)
+	if err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(hash.Sum(nil)), nil
 }

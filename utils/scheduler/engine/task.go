@@ -28,7 +28,7 @@ type TaskMeta[KEY Key] struct {
 	TaskStatistics
 }
 
-func (t *TaskMeta[KEY]) OrderKey() int {
+func (t *TaskMeta[KEY]) SortKey() int {
 	return t.Priority
 }
 

@@ -1,12 +1,17 @@
 package slices
 
 import (
+	cmpi "github.com/hopeio/cherry/utils/cmp"
 	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/slices"
 )
 
 func Sort[T constraints.Ordered](s []T) {
 	slices.Sort(s)
+}
+
+func SortByKey[K constraints.Ordered, T cmpi.SortKey[K]](s []T) {
+	slices.SortFunc(s, cmpi.CompareByKey[K, T])
 }
 
 func quickSort[T constraints.Ordered](array []T, left, right int) {

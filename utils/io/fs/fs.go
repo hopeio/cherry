@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"github.com/hopeio/cherry/utils/io/fs/path"
 	"github.com/hopeio/cherry/utils/log"
-	runtimei "github.com/hopeio/cherry/utils/scheduler/monitor"
+	"github.com/hopeio/cherry/utils/scheduler/monitor"
 	"os"
 	"path/filepath"
 	"sort"
@@ -114,7 +114,7 @@ func FindFiles2(path string, deep int8, num int) ([]string, error) {
 	}
 	var file = make(chan string, 1)
 	//属于回调而不是通知
-	ctx := runtimei.New(context.Background(), func() {
+	ctx := monitor.New(context.Background(), func() {
 		close(file)
 	})
 	defer ctx.Cancel()
@@ -147,7 +147,7 @@ func FindFiles2(path string, deep int8, num int) ([]string, error) {
 	return files, nil
 }
 
-func subDirFiles2(dir, path, exclude string, file chan string, deep, step int8, ctx *runtimei.Monitor) error {
+func subDirFiles2(dir, path, exclude string, file chan string, deep, step int8, ctx *monitor.Monitor) error {
 
 	step += 1
 	if step-1 == deep {
@@ -173,9 +173,10 @@ func subDirFiles2(dir, path, exclude string, file chan string, deep, step int8, 
 				case file <- filepath1:
 				}
 			}
+
 			ctx.Run(func() {
 				//TODO: subDirFiles2(filepath.Join(dir, fileInfos[i].Name()), path, "", file, deep, step, ctx) 这种语句有问题,不清楚原因,i会错乱?
-				// 还是go1.22之前的问题，升级go mod go 和toolchain 标签到1.22
+				// 还是go1.22之前的问题，升级go mod go 标签到1.22
 				err := subDirFiles2(filepath.Join(dir, fileInfos[i].Name()), path, "", file, deep, step, ctx)
 				if err != nil {
 					log.Error(err)
@@ -187,7 +188,7 @@ func subDirFiles2(dir, path, exclude string, file chan string, deep, step int8, 
 	return nil
 }
 
-func supDirFiles2(dir, path string, file chan string, deep, step int8, ctx *runtimei.Monitor) error {
+func supDirFiles2(dir, path string, file chan string, deep, step int8, ctx *monitor.Monitor) error {
 	step += 1
 	if step-1 == deep {
 		return nil
@@ -235,90 +236,47 @@ func MkdirAll(src string) error {
 	return os.MkdirAll(src, os.ModePerm)
 }
 
-func CheckExist(src string) bool {
+func IsExist(src string) bool {
 	_, err := os.Stat(src)
 	return !os.IsNotExist(err)
 }
 
-func CheckNotExist(src string) bool {
+func IsNotExist(src string) bool {
 	_, err := os.Stat(src)
 
 	return os.IsNotExist(err)
 }
 
-func CheckPermission(src string) bool {
+func IsPermission(src string) bool {
 	_, err := os.Stat(src)
 
 	return os.IsPermission(err)
 }
 
-func MustOpen(fileName, filePath string) (*os.File, error) {
+func MustOpen(filePath string) (*os.File, error) {
+	perm := IsPermission(filePath)
+	if !perm {
+		return os.Create(filePath)
+	}
 	dir, err := os.Getwd()
 	if err != nil {
 		return nil, fmt.Errorf("os.Getwd err: %v", err)
 	}
 
 	src := dir + PathSeparator + filePath
-	perm := CheckPermission(src)
-	if perm == true {
-		return nil, fmt.Errorf("file.CheckPermission Permission denied src: %s", src)
-	}
 
-	err = Mkdir(src)
-	if err != nil {
-		return nil, fmt.Errorf("mkdir src: %s, err: %v", src, err)
-	}
-
-	f, err := os.OpenFile(src+fileName, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
-	if err != nil {
-		return nil, fmt.Errorf("Fail to OpenFile :%v", err)
-	}
-
-	return f, nil
-}
-
-func GetLogFilePath(RuntimeRootPath, LogSavePath string) string {
-	return RuntimeRootPath + PathSeparator + LogSavePath + PathSeparator
-}
-
-func OpenLogFile(fileName, filePath string) (*os.File, error) {
-	dir, err := os.Getwd()
-	if err != nil {
-		return nil, fmt.Errorf("os.Getwd err: %v", err)
-	}
-
-	src := dir + filePath
-	perm := CheckPermission(src)
-	if perm == true {
-		return nil, fmt.Errorf("权限不足 src: %s", src)
-	}
-
-	err = Mkdir(src)
-	if err != nil {
-		return nil, fmt.Errorf("文件不存在 src: %s, err: %v", src, err)
-	}
-
-	f, err := os.OpenFile(src+fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return nil, fmt.Errorf("打开失败 :%v", err)
-	}
-
-	return f, nil
+	return Create(src)
 }
 
 func Create(filepath string) (*os.File, error) {
-	_, err := os.Stat(filepath)
-	if os.IsNotExist(err) {
-		dir := path.GetDirName(filepath)
-		err = os.MkdirAll(dir, os.ModePerm)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return os.Create(filepath)
+	return OpenFile(filepath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 }
 
 func Open(filepath string) (*os.File, error) {
+	return OpenFile(filepath, os.O_RDWR, 0666)
+}
+
+func OpenFile(filepath string, flag int, perm os.FileMode) (*os.File, error) {
 	_, err := os.Stat(filepath)
 	if os.IsNotExist(err) {
 		dir := path.GetDirName(filepath)
@@ -326,9 +284,8 @@ func Open(filepath string) (*os.File, error) {
 		if err != nil {
 			return nil, err
 		}
-		return os.Create(filepath)
 	}
-	return os.OpenFile(filepath, os.O_RDWR, 0666)
+	return os.OpenFile(filepath, flag, perm)
 }
 
 // LastFile 当前目录最后一个创建的文件
@@ -347,64 +304,6 @@ func LastFile(dir string) (os.FileInfo, map[string]os.FileInfo, error) {
 		m[entity.Name()], _ = entity.Info()
 	}
 	return lastFile, m, nil
-}
-
-// CopyDir 递归复制目录
-func CopyDir(src, dst string) error {
-	if src[len(src)-1] == os.PathSeparator {
-		src = src[:len(src)-1]
-	}
-	if dst[len(dst)-1] == os.PathSeparator {
-		dst = dst[:len(dst)-1]
-	}
-	_, err := os.Stat(dst)
-	if os.IsNotExist(err) {
-		err = os.MkdirAll(dst, os.ModePerm)
-		if err != nil {
-			return err
-		}
-	}
-	entries, err := os.ReadDir(src)
-	if len(entries) == 0 {
-		return nil
-	}
-	for _, entry := range entries {
-		entityName := entry.Name()
-		if entry.IsDir() {
-			err = CopyDir(src+PathSeparator+entityName, dst+PathSeparator+entityName)
-			if err != nil {
-				return err
-			}
-		} else {
-			_, err = os.Stat(dst + PathSeparator + entityName)
-			if os.IsNotExist(err) {
-				err = CopyFile(src+PathSeparator+entityName, dst+PathSeparator+entityName)
-				if err != nil {
-					return err
-				}
-			}
-		}
-	}
-	return nil
-}
-
-func Check(src string) error {
-	dir, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("os.Getwd err: %v", err)
-	}
-
-	err = Mkdir(dir + PathSeparator + src)
-	if err != nil {
-		return fmt.Errorf("mkdir err: %v", err)
-	}
-
-	perm := CheckPermission(src)
-	if perm == true {
-		return fmt.Errorf("file.CheckPermission Permission denied src: %s", src)
-	}
-
-	return nil
 }
 
 func Move(src, dst string) error {

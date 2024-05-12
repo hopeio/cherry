@@ -78,6 +78,7 @@ require (
 	github.com/gonutz/w32/v2 v2.11.1
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.0.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0
+	github.com/hashicorp/raft v1.6.1
 	github.com/jhump/protoreflect v1.16.0
 	github.com/lni/dragonboat/v4 v4.0.0-20231222133740-1d6e2d76cd57
 	github.com/lni/goutils v1.4.0
@@ -98,6 +99,7 @@ require (
 	github.com/tidwall/sjson v1.2.5
 	github.com/urfave/cli/v2 v2.27.1
 	github.com/vektah/gqlparser/v2 v2.5.11
+	go.etcd.io/etcd/raft/v3 v3.5.13
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.50.0
 	go.opentelemetry.io/otel v1.25.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.47.0

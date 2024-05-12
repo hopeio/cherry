@@ -3,7 +3,7 @@ package fs
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"github.com/hopeio/cherry/utils/crypto"
+	md52 "github.com/hopeio/cherry/utils/crypto/md5"
 	"github.com/hopeio/cherry/utils/log"
 	"github.com/hopeio/cherry/utils/slices"
 	"io"
@@ -34,7 +34,7 @@ func Md5(path string) (string, error) {
 		file.Close()
 		return "", err
 	}
-	file.Close()
+	err = file.Close()
 	if err != nil {
 		return "", err
 	}
@@ -56,7 +56,7 @@ func Md5Equal(path1, path2 string) (bool, error) {
 func GetMd5Name(name string) string {
 	ext := stdpath.Ext(name)
 	fileName := strings.TrimSuffix(name, ext)
-	fileName = crypto.EncodeMD5String(fileName)
+	fileName = md52.EncodeMD5String(fileName)
 	return fileName + ext
 }
 

@@ -1,12 +1,10 @@
 package heap
 
-type Interface2[T any] interface {
-	Less(v T) bool
-}
+import "github.com/hopeio/cherry/utils/cmp"
 
-type Heap2[T Interface2[T]] []T
+type Heap2[T cmp.Sort[T]] []T
 
-func NewHeap2[T Interface2[T]](arr []T) Heap2[T] {
+func NewHeap2[T cmp.Sort[T]](arr []T) Heap2[T] {
 	heap := Heap2[T](arr)
 	for i := 1; i < len(arr); i++ {
 		heap.up(i)

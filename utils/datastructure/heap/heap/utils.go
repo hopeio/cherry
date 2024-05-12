@@ -5,7 +5,7 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-func HeapInit[T cmp.OrderKey[V], V constraints.Ordered](heap []T, less cmp.SortFunc[V]) {
+func HeapInit[T cmp.SortKey[V], V constraints.Ordered](heap []T, less cmp.SortFunc[V]) {
 	// heapify
 	n := len(heap)
 	for i := n/2 - 1; i >= 0; i-- {
@@ -13,7 +13,7 @@ func HeapInit[T cmp.OrderKey[V], V constraints.Ordered](heap []T, less cmp.SortF
 	}
 }
 
-func Down[T cmp.OrderKey[V], V constraints.Ordered](heap []T, i0, n int, less cmp.SortFunc[V]) bool {
+func Down[T cmp.SortKey[V], V constraints.Ordered](heap []T, i0, n int, less cmp.SortFunc[V]) bool {
 	i := i0
 	for {
 		j1 := 2*i + 1
@@ -21,10 +21,10 @@ func Down[T cmp.OrderKey[V], V constraints.Ordered](heap []T, i0, n int, less cm
 			break
 		}
 		j := j1 // left child
-		if j2 := j1 + 1; j2 < n && less(heap[j2].OrderKey(), heap[j1].OrderKey()) {
+		if j2 := j1 + 1; j2 < n && less(heap[j2].SortKey(), heap[j1].SortKey()) {
 			j = j2 // = 2*i + 2  // right child
 		}
-		if !less(heap[j].OrderKey(), heap[i].OrderKey()) {
+		if !less(heap[j].SortKey(), heap[i].SortKey()) {
 			break
 		}
 		heap[i], heap[j] = heap[j], heap[i]
@@ -33,11 +33,11 @@ func Down[T cmp.OrderKey[V], V constraints.Ordered](heap []T, i0, n int, less cm
 	return i > i0
 }
 
-func Up[T cmp.OrderKey[V], V constraints.Ordered](heap []T, j int, less cmp.SortFunc[V]) {
+func Up[T cmp.SortKey[V], V constraints.Ordered](heap []T, j int, less cmp.SortFunc[V]) {
 
 	for {
 		i := (j - 1) / 2 // parent
-		if i == j || !less(heap[j].OrderKey(), heap[i].OrderKey()) {
+		if i == j || !less(heap[j].SortKey(), heap[i].SortKey()) {
 			break
 		}
 		heap[i], heap[j] = heap[j], heap[i]
@@ -45,7 +45,7 @@ func Up[T cmp.OrderKey[V], V constraints.Ordered](heap []T, j int, less cmp.Sort
 	}
 }
 
-func Fix[T cmp.OrderKey[V], V constraints.Ordered](heap []T, i int, less cmp.SortFunc[V]) {
+func Fix[T cmp.SortKey[V], V constraints.Ordered](heap []T, i int, less cmp.SortFunc[V]) {
 	if !Down(heap, i, len(heap), less) {
 		Up(heap, i, less)
 	}

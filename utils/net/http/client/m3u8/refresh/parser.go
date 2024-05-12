@@ -4,7 +4,7 @@ import (
 	bytesp "bytes"
 	"errors"
 	"fmt"
-	"github.com/hopeio/cherry/utils/crypto"
+	"github.com/hopeio/cherry/utils/crypto/aes"
 	em3u8 "github.com/hopeio/cherry/utils/encoding/m3u8"
 	"github.com/hopeio/cherry/utils/net/http/client"
 	"io"
@@ -109,7 +109,7 @@ func (r *Result) Download(segIndex int) ([]byte, error) {
 
 	key, ok := r.Keys[sf.KeyIndex]
 	if ok && key != "" {
-		bytes, err = crypto.AESCBCDecrypt(bytes, []byte(key),
+		bytes, err = aes.AESCBCDecrypt(bytes, []byte(key),
 			[]byte(r.M3u8.Keys[sf.KeyIndex].IV))
 		if err != nil {
 			return nil, fmt.Errorf("decryt: %s, %s", tsUrl, err.Error())

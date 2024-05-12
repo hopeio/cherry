@@ -5,9 +5,9 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-type MaxHeap[T cmp.OrderKey[V], V constraints.Ordered] Heap[T, V]
+type MaxHeap[T cmp.SortKey[V], V constraints.Ordered] Heap[T, V]
 
-func NewMaxHeap[T cmp.OrderKey[V], V constraints.Ordered](l int) MaxHeap[T, V] {
+func NewMaxHeap[T cmp.SortKey[V], V constraints.Ordered](l int) MaxHeap[T, V] {
 	maxHeap := make([]T, 0, l)
 	return MaxHeap[T, V]{
 		entry: maxHeap,
@@ -15,7 +15,7 @@ func NewMaxHeap[T cmp.OrderKey[V], V constraints.Ordered](l int) MaxHeap[T, V] {
 	}
 }
 
-func NewMaxHeapFromArray[T cmp.OrderKey[V], V constraints.Ordered](arr []T) MaxHeap[T, V] {
+func NewMaxHeapFromArray[T cmp.SortKey[V], V constraints.Ordered](arr []T) MaxHeap[T, V] {
 	heap := NewHeapFromArray[T, V](arr, cmp.Greater[V])
 	return MaxHeap[T, V](heap)
 }
