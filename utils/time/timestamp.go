@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -42,16 +41,6 @@ func (t timestamp[T]) MarshalJSON() ([]byte, error) {
 func (t *timestamp[T]) UnmarshalJSON(data []byte) error {
 	str := string(data)
 	if len(data) == 0 || str == "null" {
-		return nil
-	}
-	// 2018-08-08 00:00:00
-	if strings.Contains(str, "-") {
-		var v T
-		var st time.Time
-		if err := st.UnmarshalJSON(data); err != nil {
-			return err
-		}
-		*t = timestamp[T](v.Timestamp(st))
 		return nil
 	}
 	parseInt, err := strconv.ParseInt(str, 10, 64)
@@ -109,4 +98,4 @@ func NewTimeStamp(t time.Time) Timestamp {
 type SecondTimestamp = timestamp[SecondTime]
 type MilliTimestamp = timestamp[MilliTime]
 type MicroTimestamp = timestamp[MicroTime]
-type NanoTimeTimestamp = timestamp[NanoTime]
+type NanoTimestamp = timestamp[NanoTime]

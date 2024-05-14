@@ -7,8 +7,6 @@
 package time
 
 import (
-	_ "github.com/hopeio/cherry/protobuf/time/timestamp"
-	_ "github.com/hopeio/cherry/protobuf/utils/patch"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -22,16 +20,16 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type Time struct {
+type NanoTime struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	T int64 `protobuf:"varint,1,opt,name=t,proto3" json:"t,omitempty"`
+	Nanos int64 `protobuf:"varint,1,opt,name=nanos,proto3" json:"nanos,omitempty"`
 }
 
-func (x *Time) Reset() {
-	*x = Time{}
+func (x *NanoTime) Reset() {
+	*x = NanoTime{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_cherry_protobuf_time_time_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -39,13 +37,13 @@ func (x *Time) Reset() {
 	}
 }
 
-func (x *Time) String() string {
+func (x *NanoTime) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Time) ProtoMessage() {}
+func (*NanoTime) ProtoMessage() {}
 
-func (x *Time) ProtoReflect() protoreflect.Message {
+func (x *NanoTime) ProtoReflect() protoreflect.Message {
 	mi := &file_cherry_protobuf_time_time_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -57,14 +55,108 @@ func (x *Time) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Time.ProtoReflect.Descriptor instead.
-func (*Time) Descriptor() ([]byte, []int) {
+// Deprecated: Use NanoTime.ProtoReflect.Descriptor instead.
+func (*NanoTime) Descriptor() ([]byte, []int) {
 	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Time) GetT() int64 {
+func (x *NanoTime) GetNanos() int64 {
 	if x != nil {
-		return x.T
+		return x.Nanos
+	}
+	return 0
+}
+
+type MilliTime struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Millis int64 `protobuf:"varint,1,opt,name=millis,proto3" json:"millis,omitempty"`
+}
+
+func (x *MilliTime) Reset() {
+	*x = MilliTime{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cherry_protobuf_time_time_proto_msgTypes[1]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MilliTime) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MilliTime) ProtoMessage() {}
+
+func (x *MilliTime) ProtoReflect() protoreflect.Message {
+	mi := &file_cherry_protobuf_time_time_proto_msgTypes[1]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MilliTime.ProtoReflect.Descriptor instead.
+func (*MilliTime) Descriptor() ([]byte, []int) {
+	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *MilliTime) GetMillis() int64 {
+	if x != nil {
+		return x.Millis
+	}
+	return 0
+}
+
+type SecondTime struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Seconds int64 `protobuf:"varint,1,opt,name=seconds,proto3" json:"seconds,omitempty"`
+}
+
+func (x *SecondTime) Reset() {
+	*x = SecondTime{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cherry_protobuf_time_time_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SecondTime) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SecondTime) ProtoMessage() {}
+
+func (x *SecondTime) ProtoReflect() protoreflect.Message {
+	mi := &file_cherry_protobuf_time_time_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SecondTime.ProtoReflect.Descriptor instead.
+func (*SecondTime) Descriptor() ([]byte, []int) {
+	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *SecondTime) GetSeconds() int64 {
+	if x != nil {
+		return x.Seconds
 	}
 	return 0
 }
@@ -74,13 +166,13 @@ type Date struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	T int64 `protobuf:"varint,1,opt,name=t,proto3" json:"t,omitempty"`
+	Seconds int64 `protobuf:"varint,1,opt,name=seconds,proto3" json:"seconds,omitempty"`
 }
 
 func (x *Date) Reset() {
 	*x = Date{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cherry_protobuf_time_time_proto_msgTypes[1]
+		mi := &file_cherry_protobuf_time_time_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -93,7 +185,7 @@ func (x *Date) String() string {
 func (*Date) ProtoMessage() {}
 
 func (x *Date) ProtoReflect() protoreflect.Message {
-	mi := &file_cherry_protobuf_time_time_proto_msgTypes[1]
+	mi := &file_cherry_protobuf_time_time_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -106,200 +198,12 @@ func (x *Date) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Date.ProtoReflect.Descriptor instead.
 func (*Date) Descriptor() ([]byte, []int) {
-	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *Date) GetT() int64 {
-	if x != nil {
-		return x.T
-	}
-	return 0
-}
-
-type ModelTimeStr struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	CreatedAt string `protobuf:"bytes,1,opt,name=createdAt,proto3" json:"createdAt,omitempty" gorm:"type:timestamptz(6);default:now();index"`
-	UpdateAt  string `protobuf:"bytes,2,opt,name=updateAt,proto3" json:"updateAt,omitempty" gorm:"type:timestamptz(6);default:now()"`
-	DeletedAt string `protobuf:"bytes,3,opt,name=deletedAt,proto3" json:"deletedAt,omitempty" gorm:"<-:false;type:timestamptz(6);index"`
-}
-
-func (x *ModelTimeStr) Reset() {
-	*x = ModelTimeStr{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_cherry_protobuf_time_time_proto_msgTypes[2]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ModelTimeStr) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ModelTimeStr) ProtoMessage() {}
-
-func (x *ModelTimeStr) ProtoReflect() protoreflect.Message {
-	mi := &file_cherry_protobuf_time_time_proto_msgTypes[2]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ModelTimeStr.ProtoReflect.Descriptor instead.
-func (*ModelTimeStr) Descriptor() ([]byte, []int) {
-	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *ModelTimeStr) GetCreatedAt() string {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return ""
-}
-
-func (x *ModelTimeStr) GetUpdateAt() string {
-	if x != nil {
-		return x.UpdateAt
-	}
-	return ""
-}
-
-func (x *ModelTimeStr) GetDeletedAt() string {
-	if x != nil {
-		return x.DeletedAt
-	}
-	return ""
-}
-
-type ModelTimestamp struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	CreatedAt *Timestamp `protobuf:"bytes,1,opt,name=createdAt,proto3" json:"createdAt,omitempty" gorm:"type:timestamptz(6);default:now()"`
-	UpdateAt  *Timestamp `protobuf:"bytes,2,opt,name=updateAt,proto3" json:"updateAt,omitempty" gorm:"type:timestamptz(6);default:now()"`
-	DeletedAt *Timestamp `protobuf:"bytes,3,opt,name=deletedAt,proto3" json:"deletedAt,omitempty" gorm:"<-:false;type:timestamptz(6);index"`
-}
-
-func (x *ModelTimestamp) Reset() {
-	*x = ModelTimestamp{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_cherry_protobuf_time_time_proto_msgTypes[3]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ModelTimestamp) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ModelTimestamp) ProtoMessage() {}
-
-func (x *ModelTimestamp) ProtoReflect() protoreflect.Message {
-	mi := &file_cherry_protobuf_time_time_proto_msgTypes[3]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ModelTimestamp.ProtoReflect.Descriptor instead.
-func (*ModelTimestamp) Descriptor() ([]byte, []int) {
 	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *ModelTimestamp) GetCreatedAt() *Timestamp {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return nil
-}
-
-func (x *ModelTimestamp) GetUpdateAt() *Timestamp {
-	if x != nil {
-		return x.UpdateAt
-	}
-	return nil
-}
-
-func (x *ModelTimestamp) GetDeletedAt() *Timestamp {
-	if x != nil {
-		return x.DeletedAt
-	}
-	return nil
-}
-
-type Timestamp struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// Represents seconds of UTC time since Unix epoch
-	// 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
-	// 9999-12-31T23:59:59Z inclusive.
-	Seconds int64 `protobuf:"varint,1,opt,name=seconds,proto3" json:"seconds,omitempty"`
-	// Non-negative fractions of a second at nanosecond resolution. Negative
-	// second values with fractions must still have non-negative nanos values
-	// that count forward in time. Must be from 0 to 999,999,999
-	// inclusive.
-	Nanos int32 `protobuf:"varint,2,opt,name=nanos,proto3" json:"nanos,omitempty"`
-}
-
-func (x *Timestamp) Reset() {
-	*x = Timestamp{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_cherry_protobuf_time_time_proto_msgTypes[4]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *Timestamp) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Timestamp) ProtoMessage() {}
-
-func (x *Timestamp) ProtoReflect() protoreflect.Message {
-	mi := &file_cherry_protobuf_time_time_proto_msgTypes[4]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Timestamp.ProtoReflect.Descriptor instead.
-func (*Timestamp) Descriptor() ([]byte, []int) {
-	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *Timestamp) GetSeconds() int64 {
+func (x *Date) GetSeconds() int64 {
 	if x != nil {
 		return x.Seconds
-	}
-	return 0
-}
-
-func (x *Timestamp) GetNanos() int32 {
-	if x != nil {
-		return x.Nanos
 	}
 	return 0
 }
@@ -309,23 +213,13 @@ type Duration struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Signed seconds of the span of time. Must be from -315,576,000,000
-	// to +315,576,000,000 inclusive. Note: these bounds are computed from:
-	// 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years
-	Seconds int64 `protobuf:"varint,1,opt,name=seconds,proto3" json:"seconds,omitempty"`
-	// Signed fractions of a second at nanosecond resolution of the span
-	// of time. Durations less than one second are represented with a 0
-	// `seconds` field and a positive or negative `nanos` field. For durations
-	// of one second or more, a non-zero value for the `nanos` field must be
-	// of the same sign as the `seconds` field. Must be from -999,999,999
-	// to +999,999,999 inclusive.
-	Nanos int32 `protobuf:"varint,2,opt,name=nanos,proto3" json:"nanos,omitempty"`
+	Duration int64 `protobuf:"varint,1,opt,name=duration,proto3" json:"duration,omitempty"`
 }
 
 func (x *Duration) Reset() {
 	*x = Duration{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cherry_protobuf_time_time_proto_msgTypes[5]
+		mi := &file_cherry_protobuf_time_time_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -338,7 +232,7 @@ func (x *Duration) String() string {
 func (*Duration) ProtoMessage() {}
 
 func (x *Duration) ProtoReflect() protoreflect.Message {
-	mi := &file_cherry_protobuf_time_time_proto_msgTypes[5]
+	mi := &file_cherry_protobuf_time_time_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -351,24 +245,64 @@ func (x *Duration) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Duration.ProtoReflect.Descriptor instead.
 func (*Duration) Descriptor() ([]byte, []int) {
+	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Duration) GetDuration() int64 {
+	if x != nil {
+		return x.Duration
+	}
+	return 0
+}
+
+type Timestamp struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Millis int64 `protobuf:"varint,1,opt,name=millis,proto3" json:"millis,omitempty"`
+}
+
+func (x *Timestamp) Reset() {
+	*x = Timestamp{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cherry_protobuf_time_time_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Timestamp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Timestamp) ProtoMessage() {}
+
+func (x *Timestamp) ProtoReflect() protoreflect.Message {
+	mi := &file_cherry_protobuf_time_time_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Timestamp.ProtoReflect.Descriptor instead.
+func (*Timestamp) Descriptor() ([]byte, []int) {
 	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *Duration) GetSeconds() int64 {
+func (x *Timestamp) GetMillis() int64 {
 	if x != nil {
-		return x.Seconds
+		return x.Millis
 	}
 	return 0
 }
 
-func (x *Duration) GetNanos() int32 {
-	if x != nil {
-		return x.Nanos
-	}
-	return 0
-}
-
-type DeletedAt struct {
+type Time struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -384,8 +318,8 @@ type DeletedAt struct {
 	Nanos int32 `protobuf:"varint,2,opt,name=nanos,proto3" json:"nanos,omitempty"`
 }
 
-func (x *DeletedAt) Reset() {
-	*x = DeletedAt{}
+func (x *Time) Reset() {
+	*x = Time{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_cherry_protobuf_time_time_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -393,13 +327,13 @@ func (x *DeletedAt) Reset() {
 	}
 }
 
-func (x *DeletedAt) String() string {
+func (x *Time) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DeletedAt) ProtoMessage() {}
+func (*Time) ProtoMessage() {}
 
-func (x *DeletedAt) ProtoReflect() protoreflect.Message {
+func (x *Time) ProtoReflect() protoreflect.Message {
 	mi := &file_cherry_protobuf_time_time_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -411,19 +345,19 @@ func (x *DeletedAt) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DeletedAt.ProtoReflect.Descriptor instead.
-func (*DeletedAt) Descriptor() ([]byte, []int) {
+// Deprecated: Use Time.ProtoReflect.Descriptor instead.
+func (*Time) Descriptor() ([]byte, []int) {
 	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *DeletedAt) GetSeconds() int64 {
+func (x *Time) GetSeconds() int64 {
 	if x != nil {
 		return x.Seconds
 	}
 	return 0
 }
 
-func (x *DeletedAt) GetNanos() int32 {
+func (x *Time) GetNanos() int32 {
 	if x != nil {
 		return x.Nanos
 	}
@@ -435,65 +369,28 @@ var File_cherry_protobuf_time_time_proto protoreflect.FileDescriptor
 var file_cherry_protobuf_time_time_proto_rawDesc = []byte{
 	0x0a, 0x1f, 0x63, 0x68, 0x65, 0x72, 0x72, 0x79, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75,
 	0x66, 0x2f, 0x74, 0x69, 0x6d, 0x65, 0x2f, 0x74, 0x69, 0x6d, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x12, 0x04, 0x74, 0x69, 0x6d, 0x65, 0x1a, 0x24, 0x63, 0x68, 0x65, 0x72, 0x72, 0x79, 0x2f,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x75, 0x74, 0x69, 0x6c, 0x73, 0x2f, 0x70,
-	0x61, 0x74, 0x63, 0x68, 0x2f, 0x67, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x2e, 0x63,
-	0x68, 0x65, 0x72, 0x72, 0x79, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x74,
-	0x69, 0x6d, 0x65, 0x2f, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x2f, 0x74, 0x69,
-	0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x14, 0x0a,
-	0x04, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x0c, 0x0a, 0x01, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03,
-	0x52, 0x01, 0x74, 0x22, 0x14, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x65, 0x12, 0x0c, 0x0a, 0x01, 0x74,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x01, 0x74, 0x22, 0x80, 0x02, 0x0a, 0x0c, 0x4d, 0x6f,
-	0x64, 0x65, 0x6c, 0x54, 0x69, 0x6d, 0x65, 0x53, 0x74, 0x72, 0x12, 0x53, 0x0a, 0x09, 0x63, 0x72,
-	0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x35, 0xd2,
-	0xb5, 0x03, 0x31, 0xa2, 0x01, 0x2e, 0x67, 0x6f, 0x72, 0x6d, 0x3a, 0x22, 0x74, 0x79, 0x70, 0x65,
-	0x3a, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x74, 0x7a, 0x28, 0x36, 0x29, 0x3b,
-	0x64, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x3a, 0x6e, 0x6f, 0x77, 0x28, 0x29, 0x3b, 0x69, 0x6e,
-	0x64, 0x65, 0x78, 0x22, 0x52, 0x09, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x12,
-	0x4b, 0x0a, 0x08, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x41, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28,
-	0x09, 0x42, 0x2f, 0xd2, 0xb5, 0x03, 0x2b, 0xa2, 0x01, 0x28, 0x67, 0x6f, 0x72, 0x6d, 0x3a, 0x22,
-	0x74, 0x79, 0x70, 0x65, 0x3a, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x74, 0x7a,
-	0x28, 0x36, 0x29, 0x3b, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x3a, 0x6e, 0x6f, 0x77, 0x28,
-	0x29, 0x22, 0x52, 0x08, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x41, 0x74, 0x12, 0x4e, 0x0a, 0x09,
-	0x64, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x64, 0x41, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x42,
-	0x30, 0xd2, 0xb5, 0x03, 0x2c, 0xa2, 0x01, 0x29, 0x67, 0x6f, 0x72, 0x6d, 0x3a, 0x22, 0x3c, 0x2d,
-	0x3a, 0x66, 0x61, 0x6c, 0x73, 0x65, 0x3b, 0x74, 0x79, 0x70, 0x65, 0x3a, 0x74, 0x69, 0x6d, 0x65,
-	0x73, 0x74, 0x61, 0x6d, 0x70, 0x74, 0x7a, 0x28, 0x36, 0x29, 0x3b, 0x69, 0x6e, 0x64, 0x65, 0x78,
-	0x22, 0x52, 0x09, 0x64, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x64, 0x41, 0x74, 0x22, 0xaf, 0x02, 0x0a,
-	0x0e, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x12,
-	0x5e, 0x0a, 0x09, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x0b, 0x32, 0x0f, 0x2e, 0x74, 0x69, 0x6d, 0x65, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74,
-	0x61, 0x6d, 0x70, 0x42, 0x2f, 0xd2, 0xb5, 0x03, 0x2b, 0xa2, 0x01, 0x28, 0x67, 0x6f, 0x72, 0x6d,
-	0x3a, 0x22, 0x74, 0x79, 0x70, 0x65, 0x3a, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70,
-	0x74, 0x7a, 0x28, 0x36, 0x29, 0x3b, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x3a, 0x6e, 0x6f,
-	0x77, 0x28, 0x29, 0x22, 0x52, 0x09, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x12,
-	0x5c, 0x0a, 0x08, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x41, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28,
-	0x0b, 0x32, 0x0f, 0x2e, 0x74, 0x69, 0x6d, 0x65, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61,
-	0x6d, 0x70, 0x42, 0x2f, 0xd2, 0xb5, 0x03, 0x2b, 0xa2, 0x01, 0x28, 0x67, 0x6f, 0x72, 0x6d, 0x3a,
-	0x22, 0x74, 0x79, 0x70, 0x65, 0x3a, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x74,
-	0x7a, 0x28, 0x36, 0x29, 0x3b, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x3a, 0x6e, 0x6f, 0x77,
-	0x28, 0x29, 0x22, 0x52, 0x08, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x41, 0x74, 0x12, 0x5f, 0x0a,
-	0x09, 0x64, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x64, 0x41, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x0f, 0x2e, 0x74, 0x69, 0x6d, 0x65, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d,
-	0x70, 0x42, 0x30, 0xd2, 0xb5, 0x03, 0x2c, 0xa2, 0x01, 0x29, 0x67, 0x6f, 0x72, 0x6d, 0x3a, 0x22,
-	0x3c, 0x2d, 0x3a, 0x66, 0x61, 0x6c, 0x73, 0x65, 0x3b, 0x74, 0x79, 0x70, 0x65, 0x3a, 0x74, 0x69,
-	0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x74, 0x7a, 0x28, 0x36, 0x29, 0x3b, 0x69, 0x6e, 0x64,
-	0x65, 0x78, 0x22, 0x52, 0x09, 0x64, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x64, 0x41, 0x74, 0x22, 0x3b,
-	0x0a, 0x09, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x12, 0x18, 0x0a, 0x07, 0x73,
-	0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x07, 0x73, 0x65,
-	0x63, 0x6f, 0x6e, 0x64, 0x73, 0x12, 0x14, 0x0a, 0x05, 0x6e, 0x61, 0x6e, 0x6f, 0x73, 0x18, 0x02,
-	0x20, 0x01, 0x28, 0x05, 0x52, 0x05, 0x6e, 0x61, 0x6e, 0x6f, 0x73, 0x22, 0x3a, 0x0a, 0x08, 0x44,
-	0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x65, 0x63, 0x6f, 0x6e,
-	0x64, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x07, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64,
-	0x73, 0x12, 0x14, 0x0a, 0x05, 0x6e, 0x61, 0x6e, 0x6f, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05,
-	0x52, 0x05, 0x6e, 0x61, 0x6e, 0x6f, 0x73, 0x22, 0x3b, 0x0a, 0x09, 0x44, 0x65, 0x6c, 0x65, 0x74,
-	0x65, 0x64, 0x41, 0x74, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x07, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x12, 0x14,
-	0x0a, 0x05, 0x6e, 0x61, 0x6e, 0x6f, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x05, 0x6e,
-	0x61, 0x6e, 0x6f, 0x73, 0x42, 0x2a, 0x50, 0x01, 0x5a, 0x26, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62,
-	0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x68, 0x6f, 0x70, 0x65, 0x69, 0x6f, 0x2f, 0x63, 0x68, 0x65, 0x72,
-	0x72, 0x79, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x74, 0x69, 0x6d, 0x65,
-	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6f, 0x12, 0x04, 0x74, 0x69, 0x6d, 0x65, 0x22, 0x20, 0x0a, 0x08, 0x4e, 0x61, 0x6e, 0x6f, 0x54,
+	0x69, 0x6d, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x6e, 0x61, 0x6e, 0x6f, 0x73, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x03, 0x52, 0x05, 0x6e, 0x61, 0x6e, 0x6f, 0x73, 0x22, 0x23, 0x0a, 0x09, 0x4d, 0x69, 0x6c,
+	0x6c, 0x69, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x6d, 0x69, 0x6c, 0x6c, 0x69, 0x73,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x06, 0x6d, 0x69, 0x6c, 0x6c, 0x69, 0x73, 0x22, 0x26,
+	0x0a, 0x0a, 0x53, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x18, 0x0a, 0x07,
+	0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x07, 0x73,
+	0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x22, 0x20, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x65, 0x12, 0x18,
+	0x0a, 0x07, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52,
+	0x07, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x22, 0x26, 0x0a, 0x08, 0x44, 0x75, 0x72, 0x61,
+	0x74, 0x69, 0x6f, 0x6e, 0x12, 0x1a, 0x0a, 0x08, 0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x08, 0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x22, 0x23, 0x0a, 0x09, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x12, 0x16, 0x0a,
+	0x06, 0x6d, 0x69, 0x6c, 0x6c, 0x69, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x06, 0x6d,
+	0x69, 0x6c, 0x6c, 0x69, 0x73, 0x22, 0x36, 0x0a, 0x04, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x18, 0x0a,
+	0x07, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x07,
+	0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x12, 0x14, 0x0a, 0x05, 0x6e, 0x61, 0x6e, 0x6f, 0x73,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x05, 0x6e, 0x61, 0x6e, 0x6f, 0x73, 0x42, 0x2a, 0x50,
+	0x01, 0x5a, 0x26, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x68, 0x6f,
+	0x70, 0x65, 0x69, 0x6f, 0x2f, 0x63, 0x68, 0x65, 0x72, 0x72, 0x79, 0x2f, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x62, 0x75, 0x66, 0x2f, 0x74, 0x69, 0x6d, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x33,
 }
 
 var (
@@ -510,23 +407,20 @@ func file_cherry_protobuf_time_time_proto_rawDescGZIP() []byte {
 
 var file_cherry_protobuf_time_time_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_cherry_protobuf_time_time_proto_goTypes = []interface{}{
-	(*Time)(nil),           // 0: time.Time
-	(*Date)(nil),           // 1: time.Date
-	(*ModelTimeStr)(nil),   // 2: time.ModelTimeStr
-	(*ModelTimestamp)(nil), // 3: time.ModelTimestamp
-	(*Timestamp)(nil),      // 4: time.Timestamp
-	(*Duration)(nil),       // 5: time.Duration
-	(*DeletedAt)(nil),      // 6: time.DeletedAt
+	(*NanoTime)(nil),   // 0: time.NanoTime
+	(*MilliTime)(nil),  // 1: time.MilliTime
+	(*SecondTime)(nil), // 2: time.SecondTime
+	(*Date)(nil),       // 3: time.Date
+	(*Duration)(nil),   // 4: time.Duration
+	(*Timestamp)(nil),  // 5: time.Timestamp
+	(*Time)(nil),       // 6: time.Time
 }
 var file_cherry_protobuf_time_time_proto_depIdxs = []int32{
-	4, // 0: time.ModelTimestamp.createdAt:type_name -> time.Timestamp
-	4, // 1: time.ModelTimestamp.updateAt:type_name -> time.Timestamp
-	4, // 2: time.ModelTimestamp.deletedAt:type_name -> time.Timestamp
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	0, // [0:0] is the sub-list for method output_type
+	0, // [0:0] is the sub-list for method input_type
+	0, // [0:0] is the sub-list for extension type_name
+	0, // [0:0] is the sub-list for extension extendee
+	0, // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_cherry_protobuf_time_time_proto_init() }
@@ -536,7 +430,7 @@ func file_cherry_protobuf_time_time_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_cherry_protobuf_time_time_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Time); i {
+			switch v := v.(*NanoTime); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -548,7 +442,7 @@ func file_cherry_protobuf_time_time_proto_init() {
 			}
 		}
 		file_cherry_protobuf_time_time_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Date); i {
+			switch v := v.(*MilliTime); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -560,7 +454,7 @@ func file_cherry_protobuf_time_time_proto_init() {
 			}
 		}
 		file_cherry_protobuf_time_time_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ModelTimeStr); i {
+			switch v := v.(*SecondTime); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -572,7 +466,7 @@ func file_cherry_protobuf_time_time_proto_init() {
 			}
 		}
 		file_cherry_protobuf_time_time_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ModelTimestamp); i {
+			switch v := v.(*Date); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -584,18 +478,6 @@ func file_cherry_protobuf_time_time_proto_init() {
 			}
 		}
 		file_cherry_protobuf_time_time_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Timestamp); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_cherry_protobuf_time_time_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Duration); i {
 			case 0:
 				return &v.state
@@ -607,8 +489,20 @@ func file_cherry_protobuf_time_time_proto_init() {
 				return nil
 			}
 		}
+		file_cherry_protobuf_time_time_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Timestamp); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 		file_cherry_protobuf_time_time_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeletedAt); i {
+			switch v := v.(*Time); i {
 			case 0:
 				return &v.state
 			case 1:

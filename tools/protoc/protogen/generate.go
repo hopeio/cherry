@@ -93,7 +93,7 @@ func init() {
 var rootCmd = &cobra.Command{
 	Use: "protogen",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		if fs.CheckNotExist(config.genpath) {
+		if fs.IsNotExist(config.genpath) {
 			os.MkdirAll(config.genpath, os.ModePerm)
 		}
 		if config.useEnumPlugin {

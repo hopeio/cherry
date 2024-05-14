@@ -3,8 +3,10 @@ package timestamp
 import (
 	"database/sql"
 	"database/sql/driver"
+	"errors"
+	timei "github.com/hopeio/cherry/utils/time"
 	"google.golang.org/protobuf/runtime/protoimpl"
-	"strconv"
+	"io"
 	"time"
 )
 
@@ -84,7 +86,7 @@ func (t *Timestamp) Scan(value interface{}) (err error) {
 }
 
 // Value get time value.
-func (t Timestamp) Value() (driver.Value, error) {
+func (t *Timestamp) Value() (driver.Value, error) {
 	return t.Time(), nil
 }
 
@@ -93,52 +95,35 @@ func (t *Timestamp) Time() time.Time {
 	return time.Unix(t.Seconds, int64(t.Nanos))
 }
 
-type jsonType int
-
-const (
-	JsonTypeLayout jsonType = iota
-	JsonTypeUnixSeconds
-	JsonTypeUnixMilliseconds
-	JsonTypeUnixMicroseconds
-	JsonTypeUnixNanoseconds
-)
-
-var jsonTyp jsonType
-
-func SetJsonType(typ jsonType) {
-	jsonTyp = typ
-}
-
-var layout = time.RFC3339Nano
-
-func SetLayout(l string) {
-	layout = l
-}
-
-func (t Timestamp) MarshalJSON() ([]byte, error) {
-	switch jsonTyp {
-	case JsonTypeLayout:
-		if layout == time.RFC3339Nano {
-			return t.Time().MarshalJSON()
-		}
-		return []byte(t.Time().Format(layout)), nil
-	case JsonTypeUnixSeconds:
-		return strconv.AppendInt(nil, t.Time().Unix(), 10), nil
-	case JsonTypeUnixMilliseconds:
-		return strconv.AppendInt(nil, t.Time().UnixMilli(), 10), nil
-	case JsonTypeUnixMicroseconds:
-		return strconv.AppendInt(nil, t.Time().UnixMicro(), 10), nil
-	case JsonTypeUnixNanoseconds:
-		return strconv.AppendInt(nil, t.Time().UnixNano(), 10), nil
-	}
-	return t.Time().MarshalJSON()
+func (t *Timestamp) MarshalJSON() ([]byte, error) {
+	return timei.MarshalJSON(t.Time())
 }
 
 func (t *Timestamp) UnmarshalJSON(data []byte) error {
 	var st time.Time
-	if err := st.UnmarshalJSON(data); err != nil {
+	if err := timei.UnmarshalJSON(&st, data); err != nil {
 		return err
 	}
 	*t = Timestamp{Seconds: st.Unix(), Nanos: int32(st.Nanosecond())}
 	return nil
 }
+
+func (x *Timestamp) MarshalGQL(w io.Writer) {
+	data, _ := timei.MarshalText(x.Time())
+	w.Write(data)
+}
+
+func (x *Timestamp) UnmarshalGQL(v interface{}) error {
+	var t time.Time
+	if i, ok := v.(string); ok {
+		err := timei.UnmarshalText(&t, []byte(i))
+		if err != nil {
+			return err
+		}
+		*x = Timestamp{Seconds: t.Unix(), Nanos: int32(t.Nanosecond())}
+		return nil
+	}
+	return errors.New("enum need integer type")
+}
+
+type TimestampInput = Timestamp

@@ -22,6 +22,9 @@ autobind:
 {{end}}  - github.com/hopeio/cherry/protobuf/request
   - github.com/hopeio/cherry/protobuf/response
   - github.com/hopeio/cherry/protobuf/oauth
+  - github.com/hopeio/cherry/protobuf/time/timestamp
+  - github.com/hopeio/cherry/protobuf/time/deletedAt
+  - github.com/hopeio/cherry/protobuf/time/duration
 
 struct_fields_always_pointers: false
 
@@ -68,6 +71,8 @@ models:
     model: github.com/hopeio/cherry/utils/net/http/api/graphql.Bytes
   Header:
     model: github.com/hopeio/cherry/utils/net/http/api/graphql.Header
+  Date:
+    model: github.com/hopeio/cherry/protobuf/time.Date
 `
 
 //经过一番查找，发现yaml语法对格式是非常严格的，不可以有制表符！不可以有制表符！不可以有制表符！

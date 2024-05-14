@@ -5,7 +5,7 @@ import "net/url"
 type DeviceInfo struct {
 	//设备
 	Device     string `json:"device" gorm:"size:255"`
-	Os         string `json:"os" gorm:"size:255"`
+	OS         string `json:"os" gorm:"size:255"`
 	AppCode    string `json:"appCode" gorm:"size:255"`
 	AppVersion string `json:"appVersion" gorm:"size:255"`
 	IP         string `json:"ip" gorm:"size:255"`
@@ -28,7 +28,7 @@ func Device(infoHeader, area, localHeader, userAgent, ip string) *DeviceInfo {
 				case 0:
 					info.Device = infoHeader[m:i]
 				case 1:
-					info.Os = infoHeader[m:i]
+					info.OS = infoHeader[m:i]
 				case 2:
 					info.AppCode = infoHeader[m:i]
 				case 3:

@@ -1,35 +1,11 @@
 syntax = "proto3";
-package time;
+package deletedAt;
 
-option go_package = "github.com/hopeio/cherry/protobuf/time";
+
+option go_package = "github.com/hopeio/cherry/protobuf/time/deletedAt";
 option java_multiple_files = true;
 
-message NanoTime {
-  int64 nanos = 1;
-}
-
-message MilliTime {
-  int64 millis = 1;
-}
-
-message SecondTime {
-  int64 seconds = 1;
-}
-
-
-message Date {
-  int64 seconds = 1;
-}
-
-message Duration{
-  int64 duration = 1;
-}
-
-message Timestamp {
-  int64 millis = 1;
-}
-
-message Time {
+message DeletedAt {
   // Represents seconds of UTC time since Unix epoch
   // 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
   // 9999-12-31T23:59:59Z inclusive.
@@ -40,5 +16,6 @@ message Time {
   // that count forward in time. Must be from 0 to 999,999,999
   // inclusive.
   int32 nanos = 2;
+  // Valid is true if this represents a valid time.
+  bool valid = 3;
 }
-

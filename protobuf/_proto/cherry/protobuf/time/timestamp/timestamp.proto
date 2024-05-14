@@ -30,7 +30,7 @@
 
 syntax = "proto3";
 
-package time.timestamp;
+package timestamp;
 
 option cc_enable_arenas = true;
 option go_package = "github.com/hopeio/cherry/protobuf/time/timestamp";

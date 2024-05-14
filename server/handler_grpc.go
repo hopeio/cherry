@@ -2,11 +2,11 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/validator"
 	"github.com/hopeio/cherry/context/httpctx"
 	"github.com/hopeio/cherry/protobuf/errorcode"
-	"github.com/hopeio/cherry/utils/encoding/json"
 	"github.com/hopeio/cherry/utils/log"
 	runtimei "github.com/hopeio/cherry/utils/runtime"
 	stringsi "github.com/hopeio/cherry/utils/strings"
@@ -66,11 +66,7 @@ func (s *Server) grpcHandler() *grpc.Server {
 	return nil
 }
 
-func UnaryAccess(conf *Config) func(
-	context.Context, interface{},
-	*grpc.UnaryServerInfo,
-	grpc.UnaryHandler,
-) (interface{}, error) {
+func UnaryAccess(conf *Config) grpc.UnaryServerInterceptor {
 	enablePrometheus := conf.Metrics
 	return func(
 		ctx context.Context, req interface{},
@@ -99,7 +95,8 @@ func UnaryAccess(conf *Config) func(
 		if err == nil && reflect2.IsNil(resp) {
 			resp = reflect.New(reflect.TypeOf(resp).Elem()).Interface()
 		}
-
+		/*		body, _ := protojson.Marshal(req.(proto.Message)) // 性能比标准库差很多
+				result, _ := protojson.Marshal(resp.(proto.Message))*/
 		body, _ := json.Marshal(req)
 		result, _ := json.Marshal(resp)
 		ctxi := httpctx.ContextFromContext(ctx)

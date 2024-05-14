@@ -22,3 +22,7 @@ type Key interface {
 }
 
 type ID = Key
+
+type Basic interface {
+	Number | ~bool
+}

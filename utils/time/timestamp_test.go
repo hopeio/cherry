@@ -11,7 +11,7 @@ import (
 func TestTimeStamp(t *testing.T) {
 	var t1 = Timestamp(time.Now().UnixMilli())
 	var t2 = SecondTimestamp(time.Now().Unix())
-	var t3 = NanoTimeTimestamp(time.Now().UnixNano())
+	var t3 = NanoTimestamp(time.Now().UnixNano())
 	var t4 = MicroTimestamp(time.Now().UnixMicro())
 	data, _ := t1.MarshalJSON()
 	t.Log(string(data))
