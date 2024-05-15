@@ -28,7 +28,7 @@ func (x *Timestamp) AsTime() time.Time {
 // IsValid reports whether the timestamp is valid.
 // It is equivalent to CheckValid == nil.
 func (x *Timestamp) IsValid() bool {
-	return x.check() == 0
+	return x != nil && x.check() == 0
 }
 
 // CheckValid returns an error if the timestamp is invalid.
@@ -78,16 +78,28 @@ func (x *Timestamp) check() uint {
 }
 
 // Scan scan time.
-func (t *Timestamp) Scan(value interface{}) (err error) {
+func (t *Timestamp) Scan(value interface{}) error {
 	nullTime := &sql.NullTime{}
-	err = nullTime.Scan(value)
-	*t = Timestamp{Seconds: nullTime.Time.Unix(), Nanos: int32(nullTime.Time.Nanosecond())}
-	return
+	err := nullTime.Scan(value)
+	if err != nil {
+		return err
+	}
+	if nullTime.Valid {
+		*t = Timestamp{Seconds: nullTime.Time.Unix(), Nanos: int32(nullTime.Time.Nanosecond())}
+	}
+	return nil
 }
 
 // Value get time value.
 func (t *Timestamp) Value() (driver.Value, error) {
+	if t == nil {
+		return nil, nil
+	}
 	return t.Time(), nil
+}
+
+func (ts *Timestamp) GormDataType() string {
+	return "time"
 }
 
 // Time get time.

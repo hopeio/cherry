@@ -18,6 +18,37 @@ func (t *DeletedAt) Time() time.Time {
 	return time.Unix(t.Seconds, int64(t.Nanos))
 }
 
+func (x *DeletedAt) IsValid() bool {
+	return x != nil && x.check() == 0
+}
+
+const (
+	_ = iota
+	invalidNil
+	invalidUnderflow
+	invalidOverflow
+	invalidNanos
+)
+
+func (x *DeletedAt) check() uint {
+	const minTimestamp = -62135596800  // Seconds between 1970-01-01T00:00:00Z and 0001-01-01T00:00:00Z, inclusive
+	const maxTimestamp = +253402300799 // Seconds between 1970-01-01T00:00:00Z and 9999-12-31T23:59:59Z, inclusive
+	secs := x.GetSeconds()
+	nanos := x.GetNanos()
+	switch {
+	case x == nil:
+		return invalidNil
+	case secs < minTimestamp:
+		return invalidUnderflow
+	case secs > maxTimestamp:
+		return invalidOverflow
+	case nanos < 0 || nanos >= 1e9:
+		return invalidNanos
+	default:
+		return 0
+	}
+}
+
 // Scan implements the Scanner interface.
 func (ts *DeletedAt) Scan(value interface{}) error {
 	nullTime := &sql.NullTime{}
@@ -25,20 +56,22 @@ func (ts *DeletedAt) Scan(value interface{}) error {
 	if err != nil {
 		return err
 	}
-	if !nullTime.Valid {
-		*ts = DeletedAt{}
-		return err
+	if nullTime.Valid {
+		*ts = DeletedAt{Seconds: nullTime.Time.Unix(), Nanos: int32(nullTime.Time.Nanosecond())}
 	}
-	*ts = DeletedAt{Seconds: int64(nullTime.Time.Second()), Nanos: int32(nullTime.Time.Nanosecond()), Valid: true}
-	return err
+	return nil
 }
 
 // Value implements the driver Valuer interface.
 func (t *DeletedAt) Value() (driver.Value, error) {
-	if t.Nanos < 0 {
+	if t == nil {
 		return nil, nil
 	}
 	return time.Unix(t.Seconds, int64(t.Nanos)), nil
+}
+
+func (ts *DeletedAt) GormDataType() string {
+	return "time"
 }
 
 var (

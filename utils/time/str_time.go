@@ -2,6 +2,10 @@ package time
 
 import "time"
 
+type Layout interface {
+	Layout() string
+}
+
 type StrTime[T Layout] string
 
 func (t StrTime[T]) Time() (time.Time, error) {
@@ -28,13 +32,13 @@ func (dt *StrTime[T]) UnmarshalJSON(data []byte) error {
 }
 
 // time.DateTime
-type DateTimeStr = StrTime[dateTime]
+type DateTimeStr = StrTime[EdateTime]
 
 func NewDateTimeStr(t time.Time) DateTimeStr {
 	return DateTimeStr(t.Format(time.DateTime))
 }
 
-type DateStr = StrTime[date]
+type DateStr = StrTime[Edate]
 
 func NewDateStr(t time.Time) DateStr {
 	return DateStr(t.Format(time.DateOnly))

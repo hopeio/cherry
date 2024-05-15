@@ -63,7 +63,7 @@ type globalConfig struct {
 }
 
 func Start(conf Config, dao Dao, configCenter ...conf_center.ConfigCenter) func() {
-	if conf == nil {
+	if reflect.ValueOf(conf).IsNil() {
 		log.Fatalf("初始化错误: 配置不能为空")
 	}
 	gConfig.initialized = false

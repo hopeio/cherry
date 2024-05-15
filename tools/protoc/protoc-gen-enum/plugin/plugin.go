@@ -20,6 +20,7 @@ type Builder struct {
 	importCodes     protogen.GoImportPath
 	importLog       protogen.GoImportPath
 	importStrings   protogen.GoImportPath
+	importStrconv   protogen.GoImportPath
 	importErrorcode protogen.GoImportPath
 	importErrors    protogen.GoImportPath
 	importIo        protogen.GoImportPath
@@ -32,6 +33,7 @@ func NewBuilder(gen *protogen.Plugin) *Builder {
 		importCodes:     "google.golang.org/grpc/codes",
 		importLog:       "github.com/hopeio/cherry/utils/log",
 		importStrings:   "github.com/hopeio/cherry/utils/strings",
+		importStrconv:   "strconv",
 		importErrorcode: "github.com/hopeio/cherry/protobuf/errorcode",
 		importErrors:    "errors",
 		importIo:        "io",
@@ -179,14 +181,25 @@ func (b *Builder) generateJsonMarshal(e *protogen.Enum, g *protogen.GeneratedFil
 	g.P()
 	g.P("func (x *", ccTypeName, ") UnmarshalJSON(data []byte) error {")
 
-	g.P("value, ok := ", ccTypeName, `_value[string(data)]`)
+	g.P("if len(data) > 0 && data[0] == '\"' {")
+
+	g.P("value, ok := ", ccTypeName, `_value[string(data[1:len(data)-1])]`)
 	g.P("if ok {")
 
 	g.P("*x = ", ccTypeName, "(value)")
 	g.P("return nil")
-
 	g.P("}")
-	g.P(`return `, b.importErrors.Ident("New"), `("invalid`, ccTypeName, `")`)
+	g.P("} else {")
+	g.P("value, err := ", b.importStrconv.Ident("ParseInt"), `(string(data), 10, 32)`)
+	g.P("if err == nil {")
+	g.P("_, ok := ", ccTypeName, `_name[int32(value)]`)
+	g.P("if ok {")
+	g.P("*x = ", ccTypeName, "(value)")
+	g.P("return nil")
+	g.P("}")
+	g.P("}")
+	g.P("}")
+	g.P(`return `, b.importErrors.Ident("New"), `("invalid enum value: `, ccTypeName, `")`)
 
 	g.P("}")
 	g.P()

@@ -5,26 +5,26 @@ import (
 	"time"
 )
 
-type jsonType int8
+type EncodeType int8
 
 const (
-	JsonTypeLayout jsonType = iota
-	JsonTypeUnixSeconds
-	JsonTypeUnixMilliseconds
-	JsonTypeUnixMicroseconds
-	JsonTypeUnixNanoseconds
+	EncodeTypeLayout EncodeType = iota
+	EncodeTypeUnixSeconds
+	EncodeTypeUnixMilliseconds
+	EncodeTypeUnixMicroseconds
+	EncodeTypeUnixNanoseconds
 )
 
-func SetJsonType(typ jsonType) {
-	encoding.JsonType(typ)
+func SetJsonType(typ EncodeType) {
+	encoding.SetJsonType(typ)
 }
 
 func SetLayout(l string) {
-	encoding.Layout(l)
+	encoding.SetLayout(l)
 }
 
 var encoding = &Encoding{
-	layout: time.RFC3339Nano,
+	Layout: time.RFC3339Nano,
 }
 
 func MarshalJSON(t time.Time) ([]byte, error) {
@@ -44,32 +44,32 @@ func UnmarshalText(t *time.Time, data []byte) error {
 }
 
 type Encoding struct {
-	jsonType
-	layout string
+	EncodeType
+	Layout string
 }
 
-func (u *Encoding) JsonType(typ jsonType) {
-	u.jsonType = typ
+func (u *Encoding) SetJsonType(typ EncodeType) {
+	u.EncodeType = typ
 }
 
-func (u *Encoding) Layout(l string) {
-	u.layout = l
+func (u *Encoding) SetLayout(l string) {
+	u.Layout = l
 }
 
 func (u *Encoding) marshalText(t time.Time) ([]byte, error) {
-	switch u.jsonType {
-	case JsonTypeLayout:
-		if u.layout == time.RFC3339Nano {
+	switch u.EncodeType {
+	case EncodeTypeLayout:
+		if u.Layout == time.RFC3339Nano {
 			return t.MarshalText()
 		}
-		return []byte(t.Format(u.layout)), nil
-	case JsonTypeUnixSeconds:
+		return []byte(t.Format(u.Layout)), nil
+	case EncodeTypeUnixSeconds:
 		return strconv.AppendInt(nil, t.Unix(), 10), nil
-	case JsonTypeUnixMilliseconds:
+	case EncodeTypeUnixMilliseconds:
 		return strconv.AppendInt(nil, t.UnixMilli(), 10), nil
-	case JsonTypeUnixMicroseconds:
+	case EncodeTypeUnixMicroseconds:
 		return strconv.AppendInt(nil, t.UnixMicro(), 10), nil
-	case JsonTypeUnixNanoseconds:
+	case EncodeTypeUnixNanoseconds:
 		return strconv.AppendInt(nil, t.UnixNano(), 10), nil
 	}
 	return t.MarshalText()
@@ -81,13 +81,13 @@ func (u *Encoding) unmarshalText(t *time.Time, data []byte) error {
 		return nil
 	}
 
-	if u.jsonType == JsonTypeLayout {
+	if u.EncodeType == EncodeTypeLayout {
 		data = data[1 : len(data)-1]
-		if u.layout == time.RFC3339Nano {
+		if u.Layout == time.RFC3339Nano {
 			return t.UnmarshalText(data)
 		} else {
 			var err error
-			*t, err = time.ParseInLocation(u.layout, string(data), time.Local)
+			*t, err = time.ParseInLocation(u.Layout, string(data), time.Local)
 			return err
 		}
 	} else {
@@ -95,18 +95,17 @@ func (u *Encoding) unmarshalText(t *time.Time, data []byte) error {
 		if err != nil {
 			return err
 		}
-		switch u.jsonType {
-		case JsonTypeUnixSeconds:
+		switch u.EncodeType {
+		case EncodeTypeUnixSeconds:
 			*t = time.Unix(parseInt, 0)
 			return nil
-		case JsonTypeUnixMilliseconds:
-
+		case EncodeTypeUnixMilliseconds:
 			*t = time.UnixMilli(parseInt)
 			return nil
-		case JsonTypeUnixMicroseconds:
+		case EncodeTypeUnixMicroseconds:
 			*t = time.UnixMicro(parseInt)
 			return nil
-		case JsonTypeUnixNanoseconds:
+		case EncodeTypeUnixNanoseconds:
 			*t = time.Unix(0, parseInt)
 			return nil
 		}
@@ -116,20 +115,20 @@ func (u *Encoding) unmarshalText(t *time.Time, data []byte) error {
 }
 
 func (u *Encoding) marshalJSON(t time.Time) ([]byte, error) {
-	if u.jsonType == JsonTypeLayout {
-		if u.layout == time.RFC3339Nano {
+	if u.EncodeType == EncodeTypeLayout {
+		if u.Layout == time.RFC3339Nano {
 			return t.MarshalJSON()
 		}
-		return []byte(`"` + t.Format(u.layout) + `"`), nil
+		return []byte(`"` + t.Format(u.Layout) + `"`), nil
 	} else {
-		switch u.jsonType {
-		case JsonTypeUnixSeconds:
+		switch u.EncodeType {
+		case EncodeTypeUnixSeconds:
 			return strconv.AppendInt(nil, t.Unix(), 10), nil
-		case JsonTypeUnixMilliseconds:
+		case EncodeTypeUnixMilliseconds:
 			return strconv.AppendInt(nil, t.UnixMilli(), 10), nil
-		case JsonTypeUnixMicroseconds:
+		case EncodeTypeUnixMicroseconds:
 			return strconv.AppendInt(nil, t.UnixMicro(), 10), nil
-		case JsonTypeUnixNanoseconds:
+		case EncodeTypeUnixNanoseconds:
 			return strconv.AppendInt(nil, t.UnixNano(), 10), nil
 		}
 	}
@@ -142,13 +141,13 @@ func (u *Encoding) unmarshalJSON(t *time.Time, data []byte) error {
 	if tstr == "null" {
 		return nil
 	}
-	if u.jsonType == JsonTypeLayout {
+	if u.EncodeType == EncodeTypeLayout {
 		data = data[1 : len(data)-1]
-		if u.layout == time.RFC3339Nano {
+		if u.Layout == time.RFC3339Nano {
 			return t.UnmarshalJSON(data)
 		} else {
 			var err error
-			*t, err = time.ParseInLocation(`"`+u.layout+`"`, string(data), time.Local)
+			*t, err = time.ParseInLocation(`"`+u.Layout+`"`, string(data), time.Local)
 			return err
 		}
 	} else {
@@ -156,17 +155,17 @@ func (u *Encoding) unmarshalJSON(t *time.Time, data []byte) error {
 		if err != nil {
 			return err
 		}
-		switch u.jsonType {
-		case JsonTypeUnixSeconds:
+		switch u.EncodeType {
+		case EncodeTypeUnixSeconds:
 			*t = time.Unix(parseInt, 0)
 			return nil
-		case JsonTypeUnixMilliseconds:
+		case EncodeTypeUnixMilliseconds:
 			*t = time.UnixMilli(parseInt)
 			return nil
-		case JsonTypeUnixMicroseconds:
+		case EncodeTypeUnixMicroseconds:
 			*t = time.UnixMicro(parseInt)
 			return nil
-		case JsonTypeUnixNanoseconds:
+		case EncodeTypeUnixNanoseconds:
 			*t = time.Unix(0, parseInt)
 			return nil
 		}

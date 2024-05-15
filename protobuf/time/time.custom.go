@@ -25,6 +25,10 @@ func (ts *Timestamp) Time() time.Time {
 	return time.UnixMilli(ts.Millis)
 }
 
+func (ts *Timestamp) GormDataType() string {
+	return "time"
+}
+
 func (ts *Timestamp) MarshalBinary() ([]byte, error) {
 	return binary.ToBinary(ts.Millis), nil
 }
@@ -67,6 +71,10 @@ func (ts *Date) Scan(value interface{}) (err error) {
 
 func (ts *Date) Value() (driver.Value, error) {
 	return time.Unix(ts.Seconds, 0), nil
+}
+
+func (ts *Date) GormDataType() string {
+	return "time"
 }
 
 func (ts *Date) Time() time.Time {

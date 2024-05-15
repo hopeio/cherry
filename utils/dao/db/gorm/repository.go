@@ -1,21 +1,22 @@
 package gorm
 
 import (
-	"context"
 	"gorm.io/gorm"
 )
 
-type Repository[T any] ChainDao
+type Repository[T any] struct {
+	*gorm.DB
+}
 
-func NewRepository[T any](ctx context.Context, db *gorm.DB) *Repository[T] {
-	return (*Repository[T])(NewChainDao(ctx, db))
+func NewRepository[T any](db *gorm.DB) *Repository[T] {
+	return &Repository[T]{db}
 }
 
 func (r *Repository[T]) Create(t *T) error {
 	return r.DB.Create(t).Error
 }
 
-func (r *Repository[T]) Retrieve(id int) (*T, error) {
+func (r *Repository[T]) Retrieve(id any) (*T, error) {
 	var t T
 	err := r.DB.First(&t, id).Error
 	if err != nil {
@@ -28,32 +29,7 @@ func (r *Repository[T]) Update(t *T) error {
 	return r.DB.Updates(&t).Error
 }
 
-func (r *Repository[T]) Delete(id int) error {
-	//(*T)(nil)
+func (r *Repository[T]) Delete(id any) error {
 	var t T
 	return r.DB.Delete(&t, id).Error
-}
-
-func GetById[T any](db *gorm.DB, id int) (*T, error) {
-	t := new(T)
-	err := db.First(t, id).Error
-	return t, err
-}
-
-type Repository2[T any] gorm.DB
-
-func (db *Repository2[T]) GetById(id int) (*T, error) {
-	t := new(T)
-	err := (*gorm.DB)(db).First(t, id).Error
-	return t, err
-}
-
-type Repository3[T any] struct {
-	gorm.DB
-}
-
-func (db *Repository3[T]) GetById(id int) (*T, error) {
-	t := new(T)
-	err := db.First(t, id).Error
-	return t, err
 }

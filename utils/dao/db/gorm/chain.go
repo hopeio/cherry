@@ -1,7 +1,6 @@
 package gorm
 
 import (
-	"context"
 	"gorm.io/gorm"
 )
 
@@ -9,9 +8,9 @@ type ChainDao struct {
 	DB, OriginDB *gorm.DB
 }
 
-func NewChainDao(ctx context.Context, db *gorm.DB) *ChainDao {
+func NewChainDao(db *gorm.DB) *ChainDao {
 	return &ChainDao{
-		db.WithContext(ctx), db.WithContext(ctx),
+		db, db,
 	}
 }
 
@@ -19,26 +18,31 @@ func (c *ChainDao) ResetDB() {
 	c.DB = c.OriginDB
 }
 
-func (c *ChainDao) ById(id int) *ChainDao {
+func (c *ChainDao) By(field string, v any) *ChainDao {
+	c.DB = c.DB.Where(field+` = ?`, v)
+	return c
+}
+
+func (c *ChainDao) ByIdCheck(id int) *ChainDao {
 	if id != 0 {
-		return c.ByIdNoCheck(id)
+		return c.ById(id)
 	}
 	return c
 }
 
-func (c *ChainDao) ByName(name string) *ChainDao {
+func (c *ChainDao) ByNameCheck(name string) *ChainDao {
 	if name != "" {
-		return c.ByNameNoCheck(name)
+		return c.ByName(name)
 	}
 	return c
 }
 
-func (c *ChainDao) ByIdNoCheck(id int) *ChainDao {
+func (c *ChainDao) ById(id int) *ChainDao {
 	c.DB = c.DB.Where(`id = ?`, id)
 	return c
 }
 
-func (c *ChainDao) ByNameNoCheck(name string) *ChainDao {
+func (c *ChainDao) ByName(name string) *ChainDao {
 	c.DB = c.DB.Where(`name = ?`, name)
 	return c
 }

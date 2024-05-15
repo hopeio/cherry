@@ -74,7 +74,15 @@ func (gc *globalConfig) newStruct() any {
 	confValue = reflect.ValueOf(gc.conf).Elem()
 	confType = confValue.Type()
 	for i := 0; i < confValue.NumField(); i++ {
-		field := confValue.Field(i).Addr()
+		field := confValue.Field(i)
+		fieldType := field.Type()
+		// panic: reflect: embedded type with methods not implemented if type is not first field // Issue 15924.
+		if confValue.Field(i).Type() == EmbeddedPresetsType {
+			continue
+		}
+		if fieldType.Kind() == reflect.Struct {
+			field = field.Addr()
+		}
 
 		structField := confType.Field(i)
 		name := structField.Name
@@ -117,12 +125,17 @@ func (gc *globalConfig) newStruct() any {
 		daoType := daoValue.Type()
 		for i := 0; i < daoValue.NumField(); i++ {
 			field := daoValue.Field(i)
-			if field.Addr().CanInterface() {
-				inter := field.Addr().Interface()
-				if daofield, ok := inter.(DaoField); ok {
+			if field.Type().Kind() == reflect.Struct {
+				field = field.Addr()
+			}
+			if field.CanInterface() {
+				inter := field.Interface()
+				if daoField, ok := inter.(DaoField); ok {
+
 					structField := daoType.Field(i)
+
 					// TODO: 加强校验,必须不为nil
-					daoConfig := daofield.Config()
+					daoConfig := daoField.Config()
 					if daoConfig == nil {
 						log.Fatalf("dao %s Config() return nil", structField.Name)
 					}
@@ -143,7 +156,7 @@ func (gc *globalConfig) newStruct() any {
 					}
 
 					if _, ok := nameValueMap[name]; ok {
-						log.Fatalf(`exists Field: %s, please rename or use init tag [init:"{{otherConfigName}}"]`, name)
+						log.Fatalf(`exists field: %s, please rename or use init tag [init:"{{otherConfigName}}"]`, name)
 					}
 
 					structFields = append(structFields, reflect.StructField{

@@ -54,6 +54,12 @@ func (t *timestamp[T]) UnmarshalJSON(data []byte) error {
 // go生成的纳米级时间戳最后两位恒为0
 type NanoTime struct{}
 
+func (NanoTime) Encoding() *Encoding {
+	return &Encoding{
+		EncodeType: EncodeTypeUnixNanoseconds,
+	}
+}
+
 func (NanoTime) Timestamp(t time.Time) int64 {
 	return t.UnixNano()
 }
@@ -63,6 +69,11 @@ func (NanoTime) Time(t int64) time.Time {
 
 type MicroTime struct{}
 
+func (MicroTime) Encoding() *Encoding {
+	return &Encoding{
+		EncodeType: EncodeTypeUnixMicroseconds,
+	}
+}
 func (MicroTime) Timestamp(t time.Time) int64 {
 	return t.UnixMicro()
 }
@@ -72,6 +83,12 @@ func (MicroTime) Time(t int64) time.Time {
 
 type MilliTime struct{}
 
+func (MilliTime) Encoding() *Encoding {
+	return &Encoding{
+		EncodeType: EncodeTypeUnixMilliseconds,
+	}
+}
+
 func (MilliTime) Timestamp(t time.Time) int64 {
 	return t.UnixMilli()
 }
@@ -80,6 +97,12 @@ func (MilliTime) Time(t int64) time.Time {
 }
 
 type SecondTime struct{}
+
+func (SecondTime) Encoding() *Encoding {
+	return &Encoding{
+		EncodeType: EncodeTypeUnixSeconds,
+	}
+}
 
 func (SecondTime) Timestamp(t time.Time) int64 {
 	return t.Unix()

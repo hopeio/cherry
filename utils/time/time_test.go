@@ -7,12 +7,12 @@ import (
 )
 
 type Foo struct {
-	T1 UnixTime[MilliTime]
-	T2 UnixTime[NanoTime]
+	T1 Time[MilliTime]
+	T2 Time[NanoTime]
 }
 
 func TestType(t *testing.T) {
-	foo := Foo{T1: UnixTime[MilliTime](time.Now()), T2: UnixTime[NanoTime](time.Now())}
+	foo := Foo{T1: Time[MilliTime](time.Now()), T2: Time[NanoTime](time.Now())}
 	data, _ := json.Marshal(&foo)
 	t.Log(string(data))
 }
@@ -31,17 +31,15 @@ type Foo1 struct {
 
 func TestUnionTime(t *testing.T) {
 
-	foo := Foo1{T1: DateTime(time.Now()),
-		T2: Date(time.Now()),
-		T3: NewUnixTime[SecondTime](time.Now()),
-		T4: NewUnixTime[NanoTime](time.Now()),
+	foo := Foo1{T1: DateTime(time.Now().Unix()),
+		T2: Date(time.Now().Unix()),
+		T3: NewTime[SecondTime](time.Now()),
+		T4: NewTime[NanoTime](time.Now()),
 	}
 	data, _ := json.Marshal(&foo)
 	t.Log(string(data)) // {"T1":"2023-02-09 15:00:49","T2":"2023-02-09","T3":1675926049,"T4":1675926049057035300}
 	data = []byte(`{"T1":"2023-02-09 15:00:49","T2":"2023-02-09","T3":1675926049,"T4":1675926049057035300}`)
 	foo1 := Foo1{
-		T1: DateTime{},
-		T2: Date{},
 		T3: UnixSecondTime{},
 		T4: UnixNanoTime{},
 	}
@@ -50,12 +48,11 @@ func TestUnionTime(t *testing.T) {
 }
 
 func TestTimeScan(t *testing.T) {
-	var d interface{}
-	d = Date(time.Now())
-	switch s := d.(type) {
-	case time.Time:
-		t.Log(s)
-	case Date:
-		t.Log(s)
+	var d Date
+	date := time.Now()
+	err := d.Scan(date)
+	if err != nil {
+		t.Error(err)
 	}
+	t.Log(d)
 }
