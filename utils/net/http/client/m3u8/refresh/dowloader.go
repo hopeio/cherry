@@ -43,7 +43,7 @@ func NewTask(filePath, tsFolder string, url string) (*Downloader, error) {
 		}
 		filePath = pwd + fs2.PathSeparator + filePath
 	} else {
-		if err := os.MkdirAll(path.GetDirName(filePath), os.ModePerm); err != nil {
+		if err := os.MkdirAll(path.CleanedDir(filePath), os.ModePerm); err != nil {
 			return nil, fmt.Errorf("create storage folder failed: %s", err.Error())
 		}
 	}

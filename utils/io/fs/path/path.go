@@ -7,7 +7,7 @@ import (
 )
 
 // windows需要,由于linux的文件也要放到windows看,统一处理
-func FileNameRewrite(filename string) string {
+func FileRewrite(filename string) string {
 	filename = stringsi.ReplaceRunesEmpty(filename, '/', '\\', '*', '|')
 	filename = strings.ReplaceAll(filename, "<", "《")
 	filename = strings.ReplaceAll(filename, ">", "》")
@@ -17,7 +17,7 @@ func FileNameRewrite(filename string) string {
 }
 
 // 仅仅针对文件名
-func FileNameClean(filename string) string {
+func FileClean(filename string) string {
 
 	filename = strings.Trim(filename, ".")
 	filename = strings.TrimPrefix(filename, "-")
@@ -34,7 +34,7 @@ func FileNameClean(filename string) string {
 }
 
 // 仅仅针对目录名
-func DirNameClean(dir string) string { // will be used when save the dir or the part
+func DirClean(dir string) string { // will be used when save the dir or the part
 	// remove special symbol
 	// :unix允许存在，windows需要
 	// windows path
@@ -45,26 +45,26 @@ func DirNameClean(dir string) string { // will be used when save the dir or the 
 }
 
 // 针对带目录的完整文件名
-func PathClean(path string) string { // will be used when save the dir or the part
+func Clean(path string) string { // will be used when save the dir or the part
 	dir, file := Split(path)
 	if dir == "" {
-		return DirNameClean(dir)
+		return DirClean(dir)
 	}
 	if file == "" {
-		return FileNameClean(file)
+		return FileClean(file)
 	}
 	// remove special symbol
-	return DirNameClean(dir) + string(path[len(dir)-1-len(file)]) + FileNameClean(file)
+	return DirClean(dir) + string(path[len(dir)-1-len(file)]) + FileClean(file)
 }
 
 // 获取url的目录部分
-func GetDirName(path string) string {
+func CleanedDir(path string) string {
 	dir, _ := Split(path)
 	return sdpath.Clean(dir)
 }
 
 // 获取url的文件部分
-func GetFileName(path string) string {
+func Base(path string) string {
 	_, file := Split(path)
 	return file
 }
@@ -76,7 +76,12 @@ func Split(path string) (dir, file string) {
 }
 
 // 获取文件名除去扩展名
-func FileNameExcludeExt(filepath string) string {
+func FileExcludeExt(filepath string) string {
 	base := sdpath.Base(filepath)
 	return base[:len(base)-len(sdpath.Ext(base))]
+}
+
+func Dir(path string) string {
+	i := lastSlash(path)
+	return path[:i+1]
 }

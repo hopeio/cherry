@@ -4,12 +4,17 @@ package time;
 option go_package = "github.com/hopeio/cherry/protobuf/time";
 option java_multiple_files = true;
 
+// js不选择支持纳秒级时间戳,都是浮点数,最大53位
 message NanoTime {
   int64 nanos = 1;
 }
 
 message MilliTime {
   int64 millis = 1;
+}
+
+message MacroTime {
+  int64 macros = 1;
 }
 
 message SecondTime {

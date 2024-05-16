@@ -31,7 +31,7 @@ const GetFrameCmd = CommonCmd + `-vf "select=eq(pict_type\,%s)" -fps_mode vfr -q
 
 func GetFrame(src string, f Frame) error {
 	//cmd := `ffmpeg -i ` + src + ` -vf "select=eq(pict_type\,` + f.String() + `)" -vsync vfr -qscale:v 2 -f image2 ` + dst + `/%03d.jpg`
-	dst := path.GetDirName(src) + f.String() + "Frame"
+	dst := path.CleanDir(src) + f.String() + "Frame"
 	fs.Mkdir(dst)
 	cmd := fmt.Sprintf(GetFrameCmd, src, f.String(), dst)
 	_, err := osi.ContainQuotedCMD(cmd)

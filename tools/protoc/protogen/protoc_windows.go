@@ -5,14 +5,21 @@ import (
 	"strings"
 )
 
-func protoc(plugins []string, file string) {
+func protoc(plugins []string, file, mod, modDir string) {
 	cmd := "protoc " + config.include + " " + file
 	var args string
+
 	for _, plugin := range plugins {
-		args += " --" + plugin + ":" + config.genpath
-		if strings.HasPrefix(plugin, "openapiv2_out") || strings.HasPrefix(plugin, "gql_out") {
-			args += "/api"
+		genpath := config.genpath
+		if strings.HasPrefix(plugin, "openapiv2_out") {
+			plugin += mod
+			genpath += "/api/" + modDir
 		}
+
+		if strings.HasPrefix(plugin, "gql_out") {
+			genpath += "/api/"
+		}
+		args += " --" + plugin + ":" + genpath
 
 	}
 	execi.Run(cmd + args)

@@ -6,14 +6,13 @@ import (
 )
 
 func TestDir(t *testing.T) {
-	dir, _ := Split("F:\\a\\video")
-	t.Log(dir)
+	t.Log(Split("F:\\a\\video"))
 }
 
 func TestClean(t *testing.T) {
 	s := `......`
 	fmt.Println(len(s))
-	r := FileNameClean(s)
+	r := FileClean(s)
 	fmt.Println(r)
 	fmt.Println(len(r))
 }
@@ -25,5 +24,5 @@ func TestRune(t *testing.T) {
 
 func TestGetDirName(t *testing.T) {
 
-	t.Log(GetDirName(""))
+	t.Log(CleanDir(""))
 }

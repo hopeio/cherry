@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/hopeio/cherry/utils/io/fs"
+	pathi "github.com/hopeio/cherry/utils/io/fs/path"
 	osi "github.com/hopeio/cherry/utils/os"
 	execi "github.com/hopeio/cherry/utils/os/exec"
 	_go "github.com/hopeio/cherry/utils/sdk/go"
@@ -24,7 +24,7 @@ const (
 	grpcOut         = "go-patch_out=plugin=go-grpc,paths=source_relative"
 	enumOut         = "enum_out=paths=source_relative"
 	gatewayOut      = "grpc-gin_out=paths=source_relative"
-	openapiv2Out    = "openapiv2_out=logtostderr=true"
+	openapiv2Out    = "openapiv2_out=allow_merge=true,merge_file_name="
 	govalidatorsOut = "validator_out=paths=source_relative"
 	gqlOut          = "gql_out=svc=true,merge=true,paths=source_relative"
 	gogqlOut        = "gogql_out=svc=true,merge=true,paths=source_relative"
@@ -93,9 +93,7 @@ func init() {
 var rootCmd = &cobra.Command{
 	Use: "protogen",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		if fs.IsNotExist(config.genpath) {
-			os.MkdirAll(config.genpath, os.ModePerm)
-		}
+		os.MkdirAll(config.genpath, os.ModePerm)
 		if config.useEnumPlugin {
 			plugin = append(plugin, enumPlugin)
 		}
@@ -128,7 +126,7 @@ func run(dir string) {
 	for i := range fileInfos {
 		if !exec && strings.HasSuffix(fileInfos[i].Name(), ".proto") {
 			exec = true
-			protoc(plugin, dir+"/*.proto")
+			protoc(plugin, dir+"/*.proto", pathi.Base(dir), dir[len(config.proto)+1:])
 		}
 		if fileInfos[i].IsDir() {
 			run(dir + "/" + fileInfos[i].Name())

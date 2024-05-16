@@ -104,7 +104,7 @@ func CreatFileFromReaderByMode(filepath string, reader io.Reader, c mode) error 
 
 func DownloadFile(filepath string, reader io.Reader) error {
 	tmpFilepath := filepath + DownloadKey
-	err := CreatFileFromReader(filepath, reader)
+	err := CreatFileFromReader(tmpFilepath, reader)
 	if err != nil {
 		return err
 	}
