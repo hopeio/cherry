@@ -1,4 +1,4 @@
-package export
+package excel
 
 import (
 	"log"

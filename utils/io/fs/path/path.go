@@ -16,8 +16,8 @@ func FileRewrite(filename string) string {
 	return filename
 }
 
-// 仅仅针对文件名
-func FileClean(filename string) string {
+// 仅仅针对文件名,Removed unsupported characters
+func FileCleanse(filename string) string {
 
 	filename = strings.Trim(filename, ".")
 	filename = strings.TrimPrefix(filename, "-")
@@ -33,8 +33,8 @@ func FileClean(filename string) string {
 	return filename
 }
 
-// 仅仅针对目录名
-func DirClean(dir string) string { // will be used when save the dir or the part
+// 仅仅针对目录名,Removed unsupported characters
+func DirCleanse(dir string) string { // will be used when save the dir or the part
 	// remove special symbol
 	// :unix允许存在，windows需要
 	// windows path
@@ -44,21 +44,20 @@ func DirClean(dir string) string { // will be used when save the dir or the part
 	return stringsi.ReplaceRunesEmpty(dir, ':', '*', '?', '"', '<', '>', '|', ',', ' ', '\t', '\n')
 }
 
-// 针对带目录的完整文件名
-func Clean(path string) string { // will be used when save the dir or the part
+// 针对带目录的完整文件名,Removed unsupported characters
+func Cleanse(path string) string { // will be used when save the dir or the part
 	dir, file := Split(path)
 	if dir == "" {
-		return DirClean(dir)
+		return DirCleanse(dir)
 	}
 	if file == "" {
-		return FileClean(file)
+		return FileCleanse(file)
 	}
 	// remove special symbol
-	return DirClean(dir) + string(path[len(dir)-1-len(file)]) + FileClean(file)
+	return DirCleanse(dir) + string(path[len(dir)-1-len(file)]) + FileCleanse(file)
 }
 
-// 获取url的目录部分
-func CleanedDir(path string) string {
+func CleanDir(path string) string {
 	dir, _ := Split(path)
 	return sdpath.Clean(dir)
 }
@@ -76,12 +75,12 @@ func Split(path string) (dir, file string) {
 }
 
 // 获取文件名除去扩展名
-func FileExcludeExt(filepath string) string {
+func FileNoExt(filepath string) string {
 	base := sdpath.Base(filepath)
 	return base[:len(base)-len(sdpath.Ext(base))]
 }
 
 func Dir(path string) string {
 	i := lastSlash(path)
-	return path[:i+1]
+	return path[:i]
 }

@@ -2,27 +2,25 @@ package path
 
 import (
 	"fmt"
+	"path/filepath"
 	"testing"
 )
 
 func TestDir(t *testing.T) {
-	t.Log(Split("F:\\a\\video"))
+	dir := "F:/a\\video"
+	t.Log(Split(dir))
+	t.Log(filepath.Split(dir))
+	t.Log(filepath.Dir(dir), filepath.Base(dir))
 }
 
 func TestClean(t *testing.T) {
 	s := `......`
 	fmt.Println(len(s))
-	r := FileClean(s)
+	r := FileCleanse(s)
 	fmt.Println(r)
 	fmt.Println(len(r))
 }
 
 func TestRune(t *testing.T) {
 	t.Log('，')
-	t.Log('、' == '、')
-}
-
-func TestGetDirName(t *testing.T) {
-
-	t.Log(CleanDir(""))
 }

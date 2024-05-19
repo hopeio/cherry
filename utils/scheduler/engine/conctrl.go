@@ -33,6 +33,7 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 
 	if !e.isRunning {
 		e.isRunning = true
+		e.wg.Add(1)
 		go func() {
 			timer := time.NewTimer(5 * time.Second)
 			defer timer.Stop()
@@ -77,7 +78,7 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 							if counter == 1 {
 								emptyTimes++
 								if emptyTimes > 2 {
-									log.Debug("任务即将结束")
+									log.Debug("the task is about to end.")
 									e.wg.Done()
 									e.isRunning = false
 									e.lock.Unlock()
@@ -97,7 +98,7 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 			}
 		}()
 	}
-	e.wg.Add(1)
+
 	e.lock.Unlock()
 	if len(tasks) > 0 {
 		e.AddTasks(0, tasks...)

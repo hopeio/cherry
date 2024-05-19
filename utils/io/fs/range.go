@@ -15,10 +15,35 @@ func Range(dir string, callback FileRangeCallback) error {
 	if err != nil {
 		return err
 	}
-	errs := &multierr.MultiError{}
+	errs := multierr.New()
 	for _, entry := range entries {
 		if entry.IsDir() {
 			err = RangeFile(dir+PathSeparator+entry.Name(), callback)
+			if err != nil {
+				errs.Append(err)
+			}
+		}
+		err = callback(dir, entry)
+		if err != nil {
+			errs.Append(err)
+		}
+	}
+	if errs.HasErrors() {
+		return errs
+	}
+	return nil
+}
+
+// 指定遍历深度,0为只遍历一层,-1为无限遍历
+func RangeDeep(dir string, callback FileRangeCallback, deep int) error {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return err
+	}
+	errs := multierr.New()
+	for _, entry := range entries {
+		if entry.IsDir() && deep != 0 {
+			err = RangeDeep(dir+PathSeparator+entry.Name(), callback, deep-1)
 			if err != nil {
 				errs.Append(err)
 			}
@@ -40,7 +65,7 @@ func RangeFile(dir string, callback FileRangeCallback) error {
 	if err != nil {
 		return err
 	}
-	errs := &multierr.MultiError{}
+	errs := multierr.New()
 	for _, entry := range entries {
 		if entry.IsDir() {
 			err = RangeFile(dir+PathSeparator+entry.Name(), callback)
@@ -60,23 +85,21 @@ func RangeFile(dir string, callback FileRangeCallback) error {
 	return nil
 }
 
-// RangeDir 遍历根目录中的每个文件夹，为文件夹调用callback
-// callback 返回值为需要递归遍历的目录和error
-// 几乎每个文件夹下的文件夹都会被循环两次！
-func RangeDir(dir string, callback func(dir string, entries []os.DirEntry) ([]os.DirEntry, error)) error {
+// 指定遍历深度,0为只遍历一层,-1为无限遍历
+func RangeFileDeep(dir string, callback FileRangeCallback, deep int) error {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return err
 	}
-	errs := &multierr.MultiError{}
-
-	dirs, err := callback(dir, entries)
-	if err != nil {
-		errs.Append(err)
-	}
-	for _, e := range dirs {
-		if e.IsDir() {
-			err = RangeDir(dir+PathSeparator+e.Name(), callback)
+	errs := multierr.New()
+	for _, entry := range entries {
+		if entry.IsDir() && deep != 0 {
+			err = RangeFileDeep(dir+PathSeparator+entry.Name(), callback, deep-1)
+			if err != nil {
+				errs.Append(err)
+			}
+		} else {
+			err = callback(dir, entry)
 			if err != nil {
 				errs.Append(err)
 			}
@@ -88,7 +111,35 @@ func RangeDir(dir string, callback func(dir string, entries []os.DirEntry) ([]os
 	return nil
 }
 
-func WalkDirWithFS(fsys fs.FS, root string, fn fs.WalkDirFunc) error {
+// RangeDir 遍历根目录中的每个文件夹，为文件夹中所有文件和目录的切片(os.ReadDir的返回)调用callback
+// callback 需要处理每个文件夹下的所有文件和目录,返回值为需要递归遍历的目录和error
+// 几乎每个文件夹下的文件夹都会被循环两次！
+func RangeDir(dir string, callback func(dir string, entries []os.DirEntry) ([]os.DirEntry, error)) error {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return err
+	}
+	errs := multierr.New()
+
+	dirs, err := callback(dir, entries)
+	if err != nil {
+		errs.Append(err)
+	}
+	for _, entry := range dirs {
+		if entry.IsDir() {
+			err = RangeDir(dir+PathSeparator+entry.Name(), callback)
+			if err != nil {
+				errs.Append(err)
+			}
+		}
+	}
+	if errs.HasErrors() {
+		return errs
+	}
+	return nil
+}
+
+func WalkDirFS(fsys fs.FS, root string, fn fs.WalkDirFunc) error {
 	return fs.WalkDir(fsys, root, fn)
 }
 

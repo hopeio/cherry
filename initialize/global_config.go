@@ -88,11 +88,14 @@ func Start(conf Config, dao Dao, configCenter ...conf_center.ConfigCenter) func(
 func (gc *globalConfig) setConfDao(conf Config, dao Dao) {
 	gc.conf = conf
 	gc.dao = dao
-
-	gc.deferFuncs = []func(){
-		func() { closeDao(dao) },
-		func() { log.Sync() },
+	if dao != nil {
+		gc.deferFuncs = append(gc.deferFuncs, func() {
+			closeDao(dao)
+		})
 	}
+	gc.deferFuncs = append(gc.deferFuncs, func() {
+		log.Sync()
+	})
 }
 
 func (gc *globalConfig) loadConfig() {

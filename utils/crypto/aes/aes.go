@@ -6,7 +6,7 @@ import (
 	"crypto/cipher"
 )
 
-func AESCBCEncrypt(origData, key, iv []byte) ([]byte, error) {
+func CBCEncrypt(origData, key, iv []byte) ([]byte, error) {
 	if len(iv) == 0 {
 		iv = key
 	}
@@ -22,7 +22,7 @@ func AESCBCEncrypt(origData, key, iv []byte) ([]byte, error) {
 	return crypted, nil
 }
 
-func AESCBCDecrypt(crypted, key, iv []byte) ([]byte, error) {
+func CBCDecrypt(crypted, key, iv []byte) ([]byte, error) {
 	if len(iv) == 0 {
 		iv = key
 	}
@@ -60,7 +60,7 @@ func Pkcs5Padding(cipherText []byte, blockSize int) []byte {
 	return Pkcs7Padding(cipherText, 8)
 }
 
-func AesECBEncrypt(data, key []byte) ([]byte, error) {
+func ECBEncrypt(data, key []byte) ([]byte, error) {
 	cipher, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func AesECBEncrypt(data, key []byte) ([]byte, error) {
 	return crypted, nil
 }
 
-func AesECBDecrypt(crypted, key []byte) ([]byte, error) {
+func ECBDecrypt(crypted, key []byte) ([]byte, error) {
 	cipher, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err

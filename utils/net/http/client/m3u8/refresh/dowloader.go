@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/hopeio/cherry/utils/console"
 	fs2 "github.com/hopeio/cherry/utils/io/fs"
-	"github.com/hopeio/cherry/utils/io/fs/path"
+	filepath2 "github.com/hopeio/cherry/utils/io/fs/path"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -43,7 +43,7 @@ func NewTask(filePath, tsFolder string, url string) (*Downloader, error) {
 		}
 		filePath = pwd + fs2.PathSeparator + filePath
 	} else {
-		if err := os.MkdirAll(path.CleanedDir(filePath), os.ModePerm); err != nil {
+		if err := os.MkdirAll(filepath2.CleanDir(filePath), os.ModePerm); err != nil {
 			return nil, fmt.Errorf("create storage folder failed: %s", err.Error())
 		}
 	}
@@ -145,7 +145,7 @@ func (d *Downloader) Downloadts(segIndex int) error {
 	// Maybe it will be safer in this way...
 	atomic.AddInt32(&d.finish, 1)
 	//tool.DrawProgressBar("Downloading", float32(d.finish)/float32(d.SegLen), progressWidth)
-	fmt.Printf("[download %6.2f%%] %s\n", float32(d.finish)/float32(d.SegLen)*100, d.url)
+	fmt.Printf("[download %6.2f%%] %s\r", float32(d.finish)/float32(d.SegLen)*100, d.url)
 	return nil
 }
 

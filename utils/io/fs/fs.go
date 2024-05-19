@@ -5,7 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/hopeio/cherry/utils/io/fs/path"
+	filepath2 "github.com/hopeio/cherry/utils/io/fs/path"
 	"github.com/hopeio/cherry/utils/log"
 	"github.com/hopeio/cherry/utils/scheduler/monitor"
 	"os"
@@ -279,7 +279,7 @@ func Open(filepath string) (*os.File, error) {
 func OpenFile(filepath string, flag int, perm os.FileMode) (*os.File, error) {
 	_, err := os.Stat(filepath)
 	if os.IsNotExist(err) {
-		dir := path.CleanDir(filepath)
+		dir := filepath2.CleanDir(filepath)
 		err = os.MkdirAll(dir, os.ModePerm)
 		if err != nil {
 			return nil, err
@@ -307,7 +307,7 @@ func LastFile(dir string) (os.FileInfo, map[string]os.FileInfo, error) {
 }
 
 func Move(src, dst string) error {
-	dir := path.CleanDir(dst)
+	dir := filepath2.CleanDir(dst)
 	err := os.MkdirAll(dir, os.ModePerm)
 	if err != nil {
 		return err

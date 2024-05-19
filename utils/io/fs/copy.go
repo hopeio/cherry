@@ -30,7 +30,7 @@ func (c mode) handle(dst string, src io.Reader) (newname string, skip bool, err 
 			if err != nil {
 				return "", false, err
 			}
-			md52, err := md5.EncodeReaderMD5String(src)
+			md52, err := md5.EncodeReaderString(src)
 			if err != nil {
 				return "", false, err
 			}

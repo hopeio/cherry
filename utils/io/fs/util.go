@@ -56,7 +56,7 @@ func Md5Equal(path1, path2 string) (bool, error) {
 func GetMd5Name(name string) string {
 	ext := stdpath.Ext(name)
 	fileName := strings.TrimSuffix(name, ext)
-	fileName = md52.EncodeMD5String(fileName)
+	fileName = md52.EncodeString(fileName)
 	return fileName + ext
 }
 

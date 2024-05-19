@@ -80,7 +80,7 @@ func (gc *globalConfig) newStruct() any {
 		if confValue.Field(i).Type() == EmbeddedPresetsType {
 			continue
 		}
-		if fieldType.Kind() == reflect.Struct {
+		if fieldType.Kind() != reflect.Ptr && fieldType.Kind() != reflect.Map {
 			field = field.Addr()
 		}
 

@@ -5,9 +5,14 @@ import (
 	"gorm.io/gorm"
 )
 
-func Delete(db *gorm.DB, tableName string, id uint64) error {
+func DeleteById(db *gorm.DB, tableName string, id uint64) error {
 	sql := dbi.DeleteSQL(tableName, "id")
 	return db.Exec(sql, id).Error
+}
+
+func Delete(db *gorm.DB, tableName string, column string, value any) error {
+	sql := dbi.DeleteSQL(tableName, column)
+	return db.Exec(sql, value).Error
 }
 
 func ExistsByIdWithDeletedAt(db *gorm.DB, tableName string, id uint64) (bool, error) {

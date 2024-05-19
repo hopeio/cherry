@@ -8,7 +8,7 @@ import (
 	"regexp"
 )
 
-func GetIP() string {
+func ExternalIPString() string {
 	ip, _ := ExternalIP()
 	return ip.String()
 }
@@ -30,7 +30,7 @@ func ExternalIP() (net.IP, error) {
 			return nil, err
 		}
 		for _, addr := range addrs {
-			ip := getIpFromAddr(addr)
+			ip := ipFromAddr(addr)
 			if ip == nil {
 				continue
 			}
@@ -40,7 +40,7 @@ func ExternalIP() (net.IP, error) {
 	return nil, errors.New("network error")
 }
 
-func getIpFromAddr(addr net.Addr) net.IP {
+func ipFromAddr(addr net.Addr) net.IP {
 	var ip net.IP
 	switch v := addr.(type) {
 	case *net.IPNet:
@@ -59,7 +59,7 @@ func getIpFromAddr(addr net.Addr) net.IP {
 	return ip
 }
 
-func GetCommonIP() (string, error) {
+func CommonIP() (string, error) {
 	res, err := http.Get("http://txt.go.sohu.com/ip/soip")
 	if err != nil {
 		return "", errors.New("network error")
@@ -70,7 +70,7 @@ func GetCommonIP() (string, error) {
 }
 
 // 获取本机ip地址
-func GetLocalIPv4Address() (string, error) {
+func LocalIPv4Address() (string, error) {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
 		return "", err

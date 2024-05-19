@@ -205,7 +205,7 @@ func (lc *Config) NewLogger(cores ...zapcore.Core) *Logger {
 		hostname, _ := os.Hostname()
 		logger = logger.With(
 			zap.String(FieldHostname, hostname),
-			zap.String(FieldIP, neti.GetIP()),
+			zap.String(FieldIP, neti.ExternalIPString()),
 		)
 	}
 

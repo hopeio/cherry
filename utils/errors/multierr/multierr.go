@@ -227,6 +227,10 @@ type MultiError struct {
 	errors     []error
 }
 
+func New() *MultiError {
+	return &MultiError{}
+}
+
 var _ errorGroup = (*MultiError)(nil)
 
 // Errors returns the list of underlying errors.

@@ -387,12 +387,12 @@ func ReverseCutPart(s, key string) string {
 CutPart("https://wx1.sinaimg.cn/orj360/6ebedee6ly1h566bbzyc6j20n00cuabd.jpg", "wx1")
 https://
 */
-func CutPart(s, key string) string {
-	keyLen := len(key)
+func CutPart(s, sep string) string {
+	sepLen := len(sep)
 	sEndIndex := len(s) - 1
 	for begin := 0; begin < sEndIndex; begin++ {
-		end := begin + keyLen
-		if begin <= sEndIndex && s[begin:end] == key {
+		end := begin + sepLen
+		if begin <= sEndIndex && s[begin:end] == sep {
 			return s[:begin]
 		}
 	}
@@ -404,13 +404,13 @@ func CutPart(s, key string) string {
 CutPartContain("https://f.video.weibocdn.com/o0/F9Nmm1ZJlx080UxqxlJK010412004rJS0E010.mp4?label=mp4_hd&template=540x960.24.0&ori=0&ps=1CwnkDw1GXwCQx&Expires=1670569613&ssig=fAQcBh4HGt&KID=unistore,video", "mp4")
 https://f.video.weibocdn.com/o0/F9Nmm1ZJlx080UxqxlJK010412004rJS0E010.mp4
 */
-func CutPartContain(s, key string) string {
-	keyLen := len(key)
+func CutPartContain(s, sep string) string {
+	sepLen := len(sep)
 	sEndIndex := len(s) - 1
 	for begin := 0; begin < sEndIndex; begin++ {
-		end := begin + keyLen
-		if begin <= sEndIndex && s[begin:end] == key {
-			return s[:begin] + key
+		end := begin + sepLen
+		if begin <= sEndIndex && s[begin:end] == sep {
+			return s[:begin] + sep
 		}
 	}
 	return s
