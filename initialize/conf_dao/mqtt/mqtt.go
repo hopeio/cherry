@@ -10,8 +10,8 @@ import (
 
 type Config struct {
 	*mqtt.ClientOptions
-	CertFile string `json:"cert_file,omitempty"`
-	KeyFile  string `json:"key_file,omitempty"`
+	Brokers []string
+	CAFile  string `json:"ca_file,omitempty"`
 }
 
 func (c *Config) InitBeforeInject() {
@@ -19,11 +19,14 @@ func (c *Config) InitBeforeInject() {
 }
 
 func (c *Config) Init() {
-	tlsConfig, err := tls.Certificate(c.CertFile, c.KeyFile)
+	tlsConfig, err := tls.NewClientTLSConfig(c.CAFile)
 	if err != nil {
 		log.Fatal(err)
 	}
 	c.TLSConfig = tlsConfig
+	for _, broker := range c.Brokers {
+		c.ClientOptions.AddBroker(broker)
+	}
 
 	configor.DurationNotify("PingTimeout", c.PingTimeout, time.Second)
 	configor.DurationNotify("ConnectTimeout", c.ConnectTimeout, time.Second)
@@ -33,11 +36,12 @@ func (c *Config) Init() {
 }
 
 func (c *Config) Build() mqtt.Client {
+	c.Init()
 	client := mqtt.NewClient(c.ClientOptions)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		log.Fatal(token.Error())
 	}
-	return nil
+	return client
 }
 
 type Client struct {

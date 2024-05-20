@@ -9,7 +9,7 @@ import (
 	"unsafe"
 )
 
-func (gc *globalConfig) genConfigTemplate(singleFileConfig bool) {
+func (gc *globalConfig) genConfigTemplate(singleTemplateFileConfig bool) {
 	dir := gc.InitConfig.ConfigTemplateDir
 	if dir == "" {
 		return
@@ -22,7 +22,7 @@ func (gc *globalConfig) genConfigTemplate(singleFileConfig bool) {
 	filename := prefixLocalTemplate + string(format)
 
 	confMap := make(map[string]any)
-	if singleFileConfig {
+	if singleTemplateFileConfig {
 		filename = prefixConfigTemplate + string(format)
 		struct2Map(reflect.ValueOf(&gc.InitConfig.BasicConfig).Elem(), confMap)
 		struct2Map(reflect.ValueOf(&gc.InitConfig.EnvConfig).Elem(), confMap)

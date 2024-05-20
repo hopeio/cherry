@@ -18,7 +18,7 @@ type Config struct {
 	// 配置格式
 	Format encoding.Format `flag:"name:format;default:toml;usage:配置格式" comment:"toml,json,yaml,yml"`
 	// 配置类型
-	ConfigType string `flag:"name:conf_type;default:local;usage:配置类型"`
+	Type string `flag:"name:conf_type;default:local;usage:配置类型"`
 	// config字段顺序不能变,ConfigCenter 保持在最后
 	ConfigCenter ConfigCenter
 }

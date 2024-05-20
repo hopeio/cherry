@@ -86,7 +86,10 @@ func injectFlagConfig(commandLine *pflag.FlagSet, viper *viper.Viper, fcValue re
 			if !fieldValue.IsValid() || fieldValue.IsNil() {
 				fieldValue.Set(reflect.New(fieldValue.Type().Elem()))
 			}
-			injectFlagConfig(commandLine, viper, fieldValue.Elem())
+			fieldValue = fieldValue.Elem()
+			if fieldValue.Kind() == reflect.Struct {
+				injectFlagConfig(commandLine, viper, fieldValue)
+			}
 		case reflect.Struct:
 			injectFlagConfig(commandLine, viper, fieldValue)
 		}

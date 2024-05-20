@@ -130,9 +130,11 @@ func (gc *globalConfig) loadConfig() {
 		gc.InitConfig.NoInject[i] = strings.ToUpper(gc.InitConfig.NoInject[i])
 	}
 
-	var singleFileConfig bool
+	var singleTemplateFileConfig bool
 	if gc.InitConfig.EnvConfig.ConfigCenter.ConfigCenter == nil {
-		singleFileConfig = true
+		if gc.InitConfig.Env == "" {
+			singleTemplateFileConfig = true
+		}
 		// 单配置文件
 		gc.InitConfig.ConfigCenter.ConfigCenter = &local.Local{
 			ConfigPath: gc.InitConfig.ConfUrl,
@@ -152,7 +154,7 @@ func (gc *globalConfig) loadConfig() {
 		}
 	}
 
-	gc.genConfigTemplate(singleFileConfig)
+	gc.genConfigTemplate(singleTemplateFileConfig)
 
 	cfgcenter := gc.InitConfig.ConfigCenter.ConfigCenter
 	err = cfgcenter.HandleConfig(gc.UnmarshalAndSet)

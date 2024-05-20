@@ -32,46 +32,20 @@ const (
 )
 
 func (gc *globalConfig) setEnvConfig() {
+	if gc.InitConfig.Env == "" {
+		log.Warn("lack of env configuration, try single config file")
+		return
+	}
 	format := gc.InitConfig.ConfigCenter.Format
-	envConfig, ok := gc.Viper.Get(gc.InitConfig.Env).(map[string]any)
-	if !ok {
-		log.Warn("lack of environment configuration, try single config file")
-		return
-	}
-	err := mtos.Unmarshal(&gc.InitConfig.EnvConfig, envConfig)
-	if err != nil {
-		log.Fatal(err)
-	}
-	applyFlagConfig(nil, &gc.InitConfig.EnvConfig)
-	if gc.InitConfig.EnvConfig.ConfigCenter.ConfigType == "" {
-		log.Warn("lack of configCenter configType, try single config file")
-		return
-	}
 
-	cc, ok := conf_center.GetRegisteredConfigCenter()[strings.ToLower(gc.InitConfig.EnvConfig.ConfigCenter.ConfigType)]
-	if !ok {
-		log.Warn("lack of registered configCenter, try single config file")
-		return
-	}
-
-	ccConfig, ok := gc.Viper.Get(gc.InitConfig.Env + ".ConfigCenter." + gc.InitConfig.EnvConfig.ConfigCenter.ConfigType).(map[string]any)
-	if !ok {
-		log.Warn("lack of configCenter config, try single config file")
-		return
-	}
-	err = mtos.Unmarshal(cc, ccConfig)
-	if err != nil {
-		log.Fatal(err)
-	}
-	applyFlagConfig(gc.Viper, cc)
-	gc.InitConfig.EnvConfig.ConfigCenter.ConfigCenter = cc
 	// template
 	confMap := make(map[string]any)
 	struct2Map(reflect.ValueOf(&gc.InitConfig.BasicConfig).Elem(), confMap)
 	envMap := make(map[string]any)
 	struct2Map(reflect.ValueOf(&gc.InitConfig.EnvConfig).Elem(), envMap)
 	confMap[gc.InitConfig.Env] = envMap
-	ccMap := envMap[fixedFieldNameConfigCenter].(map[string]any)
+	ccMap := make(map[string]any)
+	envMap[fixedFieldNameConfigCenter] = ccMap
 	for name, v := range conf_center.GetRegisteredConfigCenter() {
 		cc := make(map[string]any)
 		struct2Map(reflect.ValueOf(v).Elem(), cc)
@@ -91,5 +65,39 @@ func (gc *globalConfig) setEnvConfig() {
 		if err != nil {
 			log.Fatal(err)
 		}
+	}
+
+	envConfig, ok := gc.Viper.Get(gc.InitConfig.Env).(map[string]any)
+	if !ok {
+		log.Warn("lack of environment configuration, try single config file")
+		return
+	}
+	err = mtos.Unmarshal(&gc.InitConfig.EnvConfig, envConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+	applyFlagConfig(nil, &gc.InitConfig.EnvConfig)
+	if gc.InitConfig.EnvConfig.ConfigCenter.Type == "" {
+		log.Warn("lack of configCenter type, try single config file")
+		return
+	}
+
+	configCenter, ok := conf_center.GetRegisteredConfigCenter()[strings.ToLower(gc.InitConfig.EnvConfig.ConfigCenter.Type)]
+	if !ok {
+		log.Warn("lack of registered configCenter, try single config file")
+		return
+	}
+
+	applyFlagConfig(gc.Viper, configCenter)
+	gc.InitConfig.EnvConfig.ConfigCenter.ConfigCenter = configCenter
+
+	configCenterConfig, ok := gc.Viper.Get(gc.InitConfig.Env + ".configCenter." + gc.InitConfig.EnvConfig.ConfigCenter.Type).(map[string]any)
+	if !ok {
+		log.Warn("lack of configCenter config, try single config file")
+		return
+	}
+	err = mtos.Unmarshal(configCenter, configCenterConfig)
+	if err != nil {
+		log.Fatal(err)
 	}
 }

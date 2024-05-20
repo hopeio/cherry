@@ -1,8 +1,14 @@
 package tls
 
-import "crypto/tls"
+import (
+	"crypto/tls"
+	"crypto/x509"
+	"fmt"
+	"github.com/hopeio/cherry/utils/log"
+	"os"
+)
 
-func Certificate(certFile, keyFile string) (*tls.Config, error) {
+func NewServerTLSConfig(certFile, keyFile string, clients ...string) (*tls.Config, error) {
 	if certFile == "" || keyFile == "" {
 		return nil, nil
 	}
@@ -12,7 +18,35 @@ func Certificate(certFile, keyFile string) (*tls.Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	var certPool *x509.CertPool
+	if len(clients) > 0 {
+		certPool = x509.NewCertPool()
+		for _, client := range clients {
+			ca, err := os.ReadFile(client)
+			if err != nil {
+				log.Fatalf("ioutil.ReadFile err: %v", err)
+			}
+			if ok := certPool.AppendCertsFromPEM(ca); !ok {
+				log.Fatalf("certPool.AppendCertsFromPEM err")
+			}
+		}
+	}
+
 	return &tls.Config{
 		Certificates: certs,
+		ClientAuth:   tls.RequireAndVerifyClientCert,
+		ClientCAs:    certPool,
 	}, nil
+}
+
+func NewClientTLSConfig(certFile string) (*tls.Config, error) {
+	b, err := os.ReadFile(certFile)
+	if err != nil {
+		return nil, err
+	}
+	cp := x509.NewCertPool()
+	if !cp.AppendCertsFromPEM(b) {
+		return nil, fmt.Errorf("credentials: failed to append certificates")
+	}
+	return &tls.Config{RootCAs: cp}, nil
 }

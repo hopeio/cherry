@@ -1,6 +1,7 @@
 package local
 
 import (
+	"errors"
 	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"github.com/hopeio/cherry/utils/configor/local"
@@ -30,7 +31,9 @@ func (cc *Local) Type() string {
 
 // 本地配置
 func (cc *Local) HandleConfig(handle func([]byte)) error {
-
+	if cc.ConfigPath == "" {
+		return errors.New("empty local config path")
+	}
 	_, err := os.Stat(cc.ConfigPath)
 	if os.IsNotExist(err) {
 		return fmt.Errorf("找不到配置: %v", err)

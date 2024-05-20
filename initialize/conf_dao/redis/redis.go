@@ -20,7 +20,7 @@ func (c *Config) InitBeforeInject() {
 }
 
 func (c *Config) Init() {
-	tlsConfig, err := tls.Certificate(c.CertFile, c.KeyFile)
+	tlsConfig, err := tls.NewServerTLSConfig(c.CertFile, c.KeyFile)
 	if err != nil {
 		log.Fatal(err)
 	}

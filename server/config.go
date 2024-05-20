@@ -85,14 +85,14 @@ func (c *Config) Init() {
 	}
 	configor.DurationNotify("StopTimeout", c.StopTimeout, time.Second)
 	if c.Http.CertFile != "" && c.Http.KeyFile != "" {
-		tlsConfig, err := tls.Certificate(c.Http.CertFile, c.Http.KeyFile)
+		tlsConfig, err := tls.NewServerTLSConfig(c.Http.CertFile, c.Http.KeyFile)
 		if err != nil {
 			log.Fatal(err)
 		}
 		c.Http.TLSConfig = tlsConfig
 	}
 	if c.Http3 != nil && c.Http3.CertFile != "" && c.Http3.KeyFile != "" {
-		tlsConfig, err := tls.Certificate(c.Http3.CertFile, c.Http3.KeyFile)
+		tlsConfig, err := tls.NewServerTLSConfig(c.Http3.CertFile, c.Http3.KeyFile)
 		if err != nil {
 			log.Fatal(err)
 		}
