@@ -1,4 +1,4 @@
-package client_generic
+package client
 
 import (
 	"context"
@@ -148,4 +148,4 @@ func (req *Request[RES]) Proxy(url string) *Request[RES] {
 	return req
 }
 
-type Option[RES any] func(req *Request[RES]) *Request[RES]
+type Option[RES any] func(req *Request[RES])

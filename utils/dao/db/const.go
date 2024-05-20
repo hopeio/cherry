@@ -40,3 +40,8 @@ const (
 	NotDeleted     = ColumnDeletedAt + " IS " + NullStr
 	WithNotDeleted = ` AND ` + NotDeleted
 )
+
+const (
+	IdEqual   = ColumnId + ExprEqual
+	NameEqual = ColumnName + ExprEqual
+)

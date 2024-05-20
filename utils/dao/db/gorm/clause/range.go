@@ -10,7 +10,7 @@ type RangeReq[T request.Ordered] request.RangeReq[T]
 
 func (req *RangeReq[T]) Clause() clause.Expression {
 	if req == nil || req.RangeField == "" {
-		return new(EmptyClause)
+		return nil
 	}
 	// 泛型还很不好用，这种方式代替原来的interface{}
 	zero := *new(T)
@@ -36,5 +36,5 @@ func (req *RangeReq[T]) Clause() clause.Expression {
 			return clause.Where{Exprs: []clause.Expression{NewWhereClause(req.RangeField, dbi.Greater, req.RangeBegin), NewWhereClause(req.RangeField, dbi.Less, req.RangeBegin)}}
 		}
 	}
-	return new(EmptyClause)
+	return nil
 }

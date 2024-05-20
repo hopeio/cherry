@@ -9,9 +9,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func StartPprof() {
-}
-
 func Debug() http.Handler {
 	http.Handle("/debug/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write(debug.Stack())

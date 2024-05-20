@@ -9,8 +9,8 @@ type SortType int
 
 const (
 	_ SortType = iota
-	SortTypeASC
-	SortTypeDESC
+	SortTypeAsc
+	SortTypeDesc
 )
 
 type PageSortReq struct {

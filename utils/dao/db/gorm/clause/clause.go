@@ -94,7 +94,7 @@ func DateBetween(column, dateStart, dateEnd string) clause.Expression {
 
 func Sort(column string, typ request.SortType) clause.Expression {
 	var desc bool
-	if typ == request.SortTypeDESC {
+	if typ == request.SortTypeDesc {
 		desc = true
 	}
 	return clause.OrderBy{Columns: []clause.OrderByColumn{{Column: clause.Column{Name: column, Raw: true}, Desc: desc}}}
@@ -104,4 +104,20 @@ func TableName(tx *gorm.DB, name string) *gorm.DB {
 	tx.Statement.TableExpr = &clause.Expr{SQL: tx.Statement.Quote(name)}
 	tx.Statement.Table = name
 	return tx
+}
+
+type Expression dbi.FilterExpr
+
+func (e *Expression) Clause() func(*gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where(e.Field+(*dbi.FilterExpr)(e).Operation.SQL(), e.Value...)
+	}
+}
+
+func ByValidEqual[T comparable](column string, v T) clause.Expression {
+	var zero T
+	if v != zero {
+		return clause.Eq{Column: column, Value: v}
+	}
+	return nil
 }

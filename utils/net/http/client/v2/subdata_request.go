@@ -1,4 +1,4 @@
-package client_generic
+package client
 
 import "github.com/hopeio/cherry/utils/net/http/client"
 
