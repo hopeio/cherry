@@ -39,7 +39,7 @@ func NewServerTLSConfig(certFile, keyFile string, clients ...string) (*tls.Confi
 	}, nil
 }
 
-func NewClientTLSConfig(certFile string) (*tls.Config, error) {
+func NewClientTLSConfig(certFile, serverName string) (*tls.Config, error) {
 	b, err := os.ReadFile(certFile)
 	if err != nil {
 		return nil, err
@@ -48,5 +48,8 @@ func NewClientTLSConfig(certFile string) (*tls.Config, error) {
 	if !cp.AppendCertsFromPEM(b) {
 		return nil, fmt.Errorf("credentials: failed to append certificates")
 	}
-	return &tls.Config{RootCAs: cp}, nil
+	if serverName == "" {
+		return &tls.Config{InsecureSkipVerify: true, RootCAs: cp}, nil
+	}
+	return &tls.Config{ServerName: serverName, RootCAs: cp}, nil
 }

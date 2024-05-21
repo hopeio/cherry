@@ -60,6 +60,9 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 						readyTask = nil
 					case <-e.ctx.Done():
 						break loop
+					case <-timer.C:
+						log.Debugf("[Running] total:%d,done:%d,failed:%d\r", e.taskTotalCount, e.taskDoneCount, e.taskFailedCount)
+						timer.Reset(e.monitorInterval)
 					}
 				} else {
 					select {
@@ -87,6 +90,7 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 							}
 							e.lock.Unlock()
 						}
+						log.Debugf("[Running] total:%d,done:%d,failed:%d\r", e.taskTotalCount, e.taskDoneCount, e.taskFailedCount)
 						timer.Reset(e.monitorInterval)
 					case <-e.ctx.Done():
 						if err := e.ctx.Err(); err != nil {
