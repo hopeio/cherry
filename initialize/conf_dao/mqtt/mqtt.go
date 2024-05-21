@@ -19,7 +19,7 @@ func (c *Config) InitBeforeInject() {
 }
 
 func (c *Config) Init() {
-	tlsConfig, err := tls.NewClientTLSConfig(c.CAFile)
+	tlsConfig, err := tls.NewClientTLSConfig(c.CAFile, "")
 	if err != nil {
 		log.Fatal(err)
 	}

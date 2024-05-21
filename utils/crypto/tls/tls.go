@@ -49,7 +49,7 @@ func NewClientTLSConfig(certFile, serverName string) (*tls.Config, error) {
 		return nil, fmt.Errorf("credentials: failed to append certificates")
 	}
 	if serverName == "" {
-		return &tls.Config{InsecureSkipVerify: true, RootCAs: cp}, nil
+		return &tls.Config{RootCAs: cp}, nil
 	}
 	return &tls.Config{ServerName: serverName, RootCAs: cp}, nil
 }
