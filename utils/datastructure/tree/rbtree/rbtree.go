@@ -57,11 +57,11 @@ func (n *rbnode[K, V]) maximumNode() *rbnode[K, V] {
 type RBTree[K, V any] struct {
 	root *rbnode[K, V]
 	len  int
-	less cmp.SortFunc[K]
+	less cmp.LessFunc[K]
 }
 
 // NewRBTree creates a red-black tree
-func NewRBTree[K, V any](less cmp.SortFunc[K]) *RBTree[K, V] {
+func NewRBTree[K, V any](less cmp.LessFunc[K]) *RBTree[K, V] {
 	return &RBTree[K, V]{less: less}
 }
 

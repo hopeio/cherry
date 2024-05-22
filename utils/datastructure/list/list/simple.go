@@ -8,6 +8,7 @@ type Node[T any] struct {
 type List[T any] struct {
 	head, tail *Node[T]
 	size       uint
+	zero       T
 }
 
 func New[T any]() List[T] {
@@ -36,26 +37,23 @@ func (l *List[T]) Tail() *Node[T] {
 	return l.tail
 }
 
-func (l *List[T]) First() T {
+func (l *List[T]) First() (T, bool) {
 	if l.size == 0 {
-		panic("list is empty")
-		return *new(T)
+		return l.zero, false
 	}
-	return l.head.Value
+	return l.head.Value, true
 }
 
-func (l *List[T]) Last() T {
+func (l *List[T]) Last() (T, bool) {
 	if l.size == 0 {
-		panic("list is empty")
-		return *new(T)
+		return l.zero, false
 	}
-	return l.tail.Value
+	return l.tail.Value, true
 }
 
-func (l *List[T]) Pop() T {
+func (l *List[T]) Pop() (T, bool) {
 	if l.size == 0 {
-		panic("list is empty")
-		return *new(T)
+		return l.zero, false
 	}
 
 	p := l.head
@@ -64,7 +62,7 @@ func (l *List[T]) Pop() T {
 		l.tail = nil
 	}
 	l.size--
-	return p.Value
+	return p.Value, true
 }
 
 func (l *List[T]) Push(v T) {

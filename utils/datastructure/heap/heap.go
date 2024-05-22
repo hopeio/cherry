@@ -29,6 +29,23 @@ func (heap *Heap[T, V]) Push(x T) {
 	heap.up(len(h))
 }
 
+func (heap *Heap[T, V]) Put(val T) {
+	h := *heap
+	if len(h) < cap(h) {
+		*heap = append(h, val)
+		for i := 1; i < len(h); i++ {
+			heap.up(i)
+		}
+		return
+	}
+	temp := V{h[0], val}
+	if temp.Less(1, 0) {
+		return
+	}
+	h[0] = val
+	heap.down(0, len(h))
+}
+
 func (heap *Heap[T, V]) Pop() T {
 	h := *heap
 	n := len(h) - 1

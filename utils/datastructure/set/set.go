@@ -10,7 +10,7 @@ func (s Set[Key]) Add(key Key) {
 	s[key] = struct{}{}
 }
 
-func (s Set[Key]) ToArray() []Key {
+func (s Set[Key]) ToSlice() []Key {
 	arr := make([]Key, 0, len(s))
 	for k := range s {
 		arr = append(arr, k)

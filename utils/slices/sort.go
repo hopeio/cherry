@@ -10,7 +10,7 @@ func Sort[T constraints.Ordered](s []T) {
 	slices.Sort(s)
 }
 
-func SortByKey[K constraints.Ordered, T cmpi.SortKey[K]](s []T) {
+func SortByKey[K constraints.Ordered, T cmpi.CompareKey[K]](s []T) {
 	slices.SortFunc(s, cmpi.CompareByKey[K, T])
 }
 

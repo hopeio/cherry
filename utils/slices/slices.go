@@ -39,11 +39,11 @@ func (slice Slice[T]) Some(fn func(T) bool) bool {
 }
 
 func (slice Slice[T]) Zip(s []T) [][2]T {
-	var newSlices [][2]T
+	var newSlice [][2]T
 	for i := range slice {
-		newSlices = append(newSlices, [2]T{slice[i], s[i]})
+		newSlice = append(newSlice, [2]T{slice[i], s[i]})
 	}
-	return newSlices
+	return newSlice
 }
 
 func (slice Slice[T]) Reduce(fn func(T, T) T) T {
@@ -54,11 +54,11 @@ func (slice Slice[T]) Reduce(fn func(T, T) T) T {
 	return ret
 }
 
-type MapSlices[T, V any] Slice[T]
+type MapSlice[T, V any] Slice[T]
 
-func (slices MapSlices[T, V]) Map(fn func(T) V) []V {
-	ret := make([]V, 0, len(slices))
-	for _, s := range slices {
+func (slice MapSlice[T, V]) Map(fn func(T) V) []V {
+	ret := make([]V, 0, len(slice))
+	for _, s := range slice {
 		ret = append(ret, fn(s))
 	}
 	return ret
@@ -77,12 +77,12 @@ func (a Array[S, T]) Map(fn func(S) T) []T {
 	return ret
 }
 
-type ComparableSlices[T comparable] []T
+type ComparableSlice[T comparable] []T
 
 // 去重
-func (slices ComparableSlices[T]) Deduplicate() ComparableSlices[T] {
+func (slices ComparableSlice[T]) Deduplicate() ComparableSlice[T] {
 	if len(slices) < SmallArrayLen {
-		newslices := make(ComparableSlices[T], 0, 2)
+		newslices := make(ComparableSlice[T], 0, 2)
 		for i := 0; i < len(slices); i++ {
 			if !In(slices[i], newslices) {
 				newslices = append(newslices, slices[i])
@@ -94,7 +94,7 @@ func (slices ComparableSlices[T]) Deduplicate() ComparableSlices[T] {
 	for i := 0; i < len(slices); i++ {
 		set[slices[i]] = struct{}{}
 	}
-	newslices := make(ComparableSlices[T], 0, len(slices))
+	newslices := make(ComparableSlice[T], 0, len(slices))
 	for k := range set {
 		newslices = append(newslices, k)
 	}
@@ -102,23 +102,23 @@ func (slices ComparableSlices[T]) Deduplicate() ComparableSlices[T] {
 }
 
 // 去重
-func Deduplicate[S ~[]T, T comparable](slices S) S {
-	if len(slices) < SmallArrayLen {
-		newslices := make(S, 0, 2)
-		for i := 0; i < len(slices); i++ {
-			if !In(slices[i], newslices) {
-				newslices = append(newslices, slices[i])
+func Deduplicate[S ~[]T, T comparable](slice S) S {
+	if len(slice) < SmallArrayLen {
+		newslice := make(S, 0, 2)
+		for i := 0; i < len(slice); i++ {
+			if !In(slice[i], newslice) {
+				newslice = append(newslice, slice[i])
 			}
 		}
-		return newslices
+		return newslice
 	}
 	set := make(map[T]struct{})
-	for i := 0; i < len(slices); i++ {
-		set[slices[i]] = struct{}{}
+	for i := 0; i < len(slice); i++ {
+		set[slice[i]] = struct{}{}
 	}
-	newslices := make(S, 0, len(slices))
+	newslice := make(S, 0, len(slice))
 	for k := range set {
-		newslices = append(newslices, k)
+		newslice = append(newslice, k)
 	}
-	return newslices
+	return newslice
 }

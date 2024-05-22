@@ -14,11 +14,11 @@ type SkipList[K constraints.Ordered, V any] struct {
 	header   *skiplistitem[K, V]
 	len      int
 	MaxLevel int
-	compare  cmp.SortFunc[K]
+	compare  cmp.LessFunc[K]
 }
 
 // New returns a skiplist.
-func New[K constraints.Ordered, V any](compare cmp.SortFunc[K]) *SkipList[K, V] {
+func New[K constraints.Ordered, V any](compare cmp.LessFunc[K]) *SkipList[K, V] {
 	return &SkipList[K, V]{
 		header:   &skiplistitem[K, V]{forward: []*skiplistitem[K, V]{nil}},
 		MaxLevel: 32,

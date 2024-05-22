@@ -19,6 +19,7 @@ type RingQueue[T any] struct {
 	head, tail int
 	len        int
 	buf        []T
+	zero       T
 }
 
 func NewRingQueue[T any](capacity int) *RingQueue[T] {
@@ -38,20 +39,20 @@ func (q *RingQueue[T]) Capacity() int {
 	return len(q.buf)
 }
 
-func (q *RingQueue[T]) Front() T {
+func (q *RingQueue[T]) Front() (T, bool) {
 	if q.len == 0 {
-		return *new(T)
+		return q.zero, false
 	}
 
-	return q.buf[q.head]
+	return q.buf[q.head], true
 }
 
-func (q *RingQueue[T]) Tail() T {
+func (q *RingQueue[T]) Tail() (T, bool) {
 	if q.len == 0 {
-		return *new(T)
+		return q.zero, false
 	}
 
-	return q.buf[q.tail]
+	return q.buf[q.tail], true
 }
 
 func (q *RingQueue[T]) Enqueue(value T) bool {
@@ -73,20 +74,20 @@ func (q *RingQueue[T]) Enqueue(value T) bool {
 	return true
 }
 
-func (q *RingQueue[T]) Dequeue() T {
+func (q *RingQueue[T]) Dequeue() (T, bool) {
 	if q.len == 0 {
-		return *new(T)
+		return q.zero, false
 	}
 
 	result := q.buf[q.head]
-	q.buf[q.head] = *new(T)
+	q.buf[q.head] = q.zero
 	q.head++
 	q.len--
 	if q.head == len(q.buf) {
 		q.head = 0
 	}
 
-	return result
+	return result, true
 }
 
 // IsFull checks if the ring buffer is full
@@ -96,8 +97,8 @@ func (q *RingQueue[T]) IsFull() bool {
 
 // LookAll reads all elements from ring buffer
 // this method doesn't consume all elements
-func (q *RingQueue[T]) LookAll() []interface{} {
-	all := make([]interface{}, q.len)
+func (q *RingQueue[T]) LookAll() []T {
+	all := make([]T, q.len)
 	if q.len == 0 {
 		return all
 	}

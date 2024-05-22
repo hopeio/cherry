@@ -1,18 +1,20 @@
 package heap
 
-import "testing"
+import (
+	"testing"
+)
 
 type Foo struct {
 	A int
 	B string
 }
 
-func (f *Foo) SortKey() int {
+func (f *Foo) CompareKey() int {
 	return f.A
 }
 
 func TestHeap(t *testing.T) {
-	heap := MaxHeap[*Foo, int]{}
+	heap := Heap[*Foo, int]{}
 	heap.Init()
 	heap.Push(&Foo{10, "10"})
 	heap.Push(&Foo{5, "5"})
@@ -24,11 +26,11 @@ func TestHeap(t *testing.T) {
 	heap.Push(&Foo{9, "9"})
 	heap.Push(&Foo{5, "52"})
 	heap.Push(&Foo{1, "1"})
-	for _, foo := range heap.entry {
+	for _, foo := range heap {
 		t.Log(foo)
 	}
 	t.Log("------------------")
-	n := len(heap.entry)
+	n := len(heap)
 	for i := 0; i < n; i++ {
 		t.Log(heap.Pop())
 	}

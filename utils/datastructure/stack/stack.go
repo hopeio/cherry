@@ -1,23 +1,25 @@
 package stack
 
 // Stack is a FILO stack
-type Stack struct {
-	v []interface{}
-}
+type Stack[T any] []T
 
-// NewStack returns a new stack
-func NewStack() *Stack {
-	return &Stack{v: make([]interface{}, 0)}
+// New returns a new stack
+func New[T any]() Stack[T] {
+	return make([]T, 0)
 }
 
 // Push pushes a value to the stack
-func (s *Stack) Push(v interface{}) {
-	s.v = append(s.v, v)
+func (s *Stack[T]) Push(v T) {
+	*s = append(*s, v)
 }
 
 // Pop pops the top value out of the stack
-func (s *Stack) Pop() interface{} {
-	v := s.v[len(s.v)]
-	s.v = s.v[:len(s.v)-1]
-	return v
+func (s *Stack[T]) Pop() (T, bool) {
+	h := *s
+	if len(h) == 0 {
+		return *new(T), false
+	}
+	v := h[len(h)]
+	*s = h[:len(h)-1]
+	return v, true
 }

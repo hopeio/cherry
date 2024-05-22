@@ -5,31 +5,34 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-type EqualKey[T comparable] interface {
-	EqualKey() T
+// 包含了CompareLess和IsEqual,尽量统一使用Comparable
+type Comparable[T any] interface {
+	Compare(T) int
+}
+
+type CompareLess[T any] interface {
+	Less(T) bool
 }
 
 type IsEqual[T any] interface {
 	Equal(T) bool
 }
 
-type CompareKey[T constraintsi.Number] interface {
+type EqualKey[T comparable] interface {
+	EqualKey() T
+}
+
+// 下面不推荐使用
+// 合理使用,如int, 正序 return v,倒序return -v,并适当考虑边界值问题
+type CompareKey[T constraints.Ordered] interface {
 	CompareKey() T
 }
 
-type compareKey[K any, T Comparable[K]] interface {
-	CompareKey() T
-}
-
-type Comparable[T any] interface {
+type ComparableKey[T CompareKey[V], V constraints.Ordered] interface {
 	Compare(T) int
 }
 
-// comparable 只能比较是否相等,不能比较大小
-type SortKey[T constraints.Ordered] interface {
-	SortKey() T
-}
-
-type Sort[T any] interface {
-	Less(T) bool
+// 可以直接用-号
+type CompareNumKey[T constraintsi.Number] interface {
+	CompareKey() T
 }

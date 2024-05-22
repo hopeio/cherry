@@ -48,7 +48,7 @@ func (j *Json) Scan(value interface{}) error {
 		*j = map[string]any{}
 		return json.Unmarshal([]byte(bytes), j)
 	default:
-		return errors.New(fmt.Sprint("failed to scan Json value:", value))
+		return errors.New(fmt.Sprint("failed to scan Data value:", value))
 	}
 }
 
@@ -124,26 +124,26 @@ func (*JsonStr) GormDataType() string {
 }
 
 type JsonT[T any] struct {
-	Json *T
+	Data *T
 }
 
 // 实现 sql.Scanner 接口，Scan 将 value 扫描至 Json
 func (j *JsonT[T]) Scan(value interface{}) error {
 	switch bytes := value.(type) {
 	case []byte:
-		j.Json = new(T)
+		j.Data = new(T)
 		return json.Unmarshal(bytes, j)
 	case string:
-		j.Json = new(T)
+		j.Data = new(T)
 		return json.Unmarshal([]byte(bytes), j)
 	default:
-		return errors.New(fmt.Sprint("failed to scan Json value:", value))
+		return errors.New(fmt.Sprint("failed to scan Data value:", value))
 	}
 }
 
 // 实现 driver.Valuer 接口，Value 返回 json value
 func (j JsonT[T]) Value() (driver.Value, error) {
-	if j.Json == nil {
+	if j.Data == nil {
 		return []byte("null"), nil
 	}
 	return json.Marshal(j)
@@ -153,30 +153,30 @@ func (*JsonT[T]) GormDataType() string {
 	return "jsonb"
 }
 
-type JsonArrayT[T any] []T
+type JsonTArray[T any] []T
 
 // 实现 sql.Scanner 接口，Scan 将 value 扫描至 Json
-func (j *JsonArrayT[T]) Scan(value interface{}) error {
+func (j *JsonTArray[T]) Scan(value interface{}) error {
 	switch bytes := value.(type) {
 	case []byte:
-		*j = make(JsonArrayT[T], 0)
+		*j = make(JsonTArray[T], 0)
 		return json.Unmarshal(bytes, j)
 	case string:
-		*j = make(JsonArrayT[T], 0)
+		*j = make(JsonTArray[T], 0)
 		return json.Unmarshal([]byte(bytes), j)
 	default:
-		return errors.New(fmt.Sprint("failed to scan Json value:", value))
+		return errors.New(fmt.Sprint("failed to scan Data value:", value))
 	}
 }
 
 // 实现 driver.Valuer 接口，Value 返回 json value
-func (j JsonArrayT[T]) Value() (driver.Value, error) {
+func (j JsonTArray[T]) Value() (driver.Value, error) {
 	if j == nil {
 		return []byte("null"), nil
 	}
 	return json.Marshal(j)
 }
 
-func (*JsonArrayT[T]) GormDataType() string {
+func (*JsonTArray[T]) GormDataType() string {
 	return "jsonb"
 }

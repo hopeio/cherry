@@ -1,4 +1,4 @@
-package stack
+package minstack
 
 import "container/list"
 

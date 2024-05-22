@@ -23,15 +23,19 @@ func (f *Foo) CompareKey() uint64 {
 	return f.ID
 }
 
+func (f *Foo) EqualKey() uint64 {
+	return f.ID
+}
+
 var _ cmp.CompareKey[uint64] = &Foo{}
 
 func TestHasCoincide(t *testing.T) {
-	s1 := []cmp.CompareKey[uint64]{
+	s1 := []*Foo{
 		&Foo{1, "1"},
 		&Foo{2, "2"},
 		&Foo{5, "3"},
 	}
-	s2 := []cmp.CompareKey[uint64]{
+	s2 := []*Foo{
 		&Foo{4, "1"},
 		&Foo{5, "1"},
 		&Foo{6, "1"},

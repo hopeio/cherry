@@ -6,13 +6,13 @@ import (
 )
 
 // BinarySearch 二分查找
-func BinarySearch[V constraints.Ordered](arr []constraints2.SortKey[V], x constraints2.SortKey[V]) int {
+func BinarySearch[V constraints.Ordered](arr []constraints2.CompareKey[V], x constraints2.CompareKey[V]) int {
 	l, r := 0, len(arr)-1
 	for l <= r {
 		mid := (l + r) / 2
-		if arr[mid].SortKey() == x.SortKey() {
+		if arr[mid].CompareKey() == x.CompareKey() {
 			return mid
-		} else if x.SortKey() > arr[mid].SortKey() {
+		} else if x.CompareKey() > arr[mid].CompareKey() {
 			r = mid - 1
 		} else {
 			l = mid + 1

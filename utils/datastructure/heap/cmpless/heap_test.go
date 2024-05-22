@@ -19,7 +19,9 @@ func TestNewHeap2(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		arr = append(arr, Foo2{P: rand.Intn(10000)})
 	}
-	heap := NewHeap2(arr)
+	heap := NewFromArr(arr)
 	fmt.Println(heap)
-
+	for i := 0; i < 10; i++ {
+		fmt.Println(heap.Pop())
+	}
 }

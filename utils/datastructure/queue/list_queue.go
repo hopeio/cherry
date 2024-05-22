@@ -1,7 +1,7 @@
 package queue
 
 type Node[T any] struct {
-	data     interface{}
+	data     T
 	previous *Node[T]
 	next     *Node[T]
 }
@@ -26,10 +26,12 @@ type ListQueue[T any] struct {
 	head *Node[T]
 	end  *Node[T]
 	size int
+	zero T
 }
 
 func NewListQueue[T any](size int) *ListQueue[T] {
-	q := &ListQueue[T]{nil, nil, size}
+	q := &ListQueue[T]{}
+	q.size = size
 	return q
 }
 
@@ -49,7 +51,7 @@ func (q *ListQueue[T]) push(data T) {
 
 func (q *ListQueue[T]) pop() (T, bool) {
 	if q.head == nil {
-		return *new(T), false
+		return q.zero, false
 	}
 
 	data := q.head.data

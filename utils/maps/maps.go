@@ -8,7 +8,7 @@ func Map[M ~map[K]V, K comparable, V, T any](m M, subValue func(K, V) T) []T {
 	return r
 }
 
-func MapKey[M ~map[K]V, K comparable, V, T any](m M, subValue func(K) T) []T {
+func Keys[M ~map[K]V, K comparable, V, T any](m M, subValue func(K) T) []T {
 	r := make([]T, 0, len(m))
 	for k, _ := range m {
 		r = append(r, subValue(k))
@@ -16,7 +16,7 @@ func MapKey[M ~map[K]V, K comparable, V, T any](m M, subValue func(K) T) []T {
 	return r
 }
 
-func MapValue[M ~map[K]V, K comparable, V, T any](m M, subValue func(V) T) []T {
+func Values[M ~map[K]V, K comparable, V, T any](m M, subValue func(V) T) []T {
 	r := make([]T, 0, len(m))
 	for _, v := range m {
 		r = append(r, subValue(v))
@@ -42,7 +42,7 @@ func ForEachKey[M ~map[K]V, K comparable, V any](m M, handle func(v K)) {
 	}
 }
 
-func Keys[M ~map[K]V, K comparable, V any](maps ...M) []K {
+func MultiKeys[M ~map[K]V, K comparable, V any](maps ...M) []K {
 	r := make([]K, 0, len(maps))
 	for _, m := range maps {
 		for k := range m {
@@ -52,7 +52,7 @@ func Keys[M ~map[K]V, K comparable, V any](maps ...M) []K {
 	return r
 }
 
-func Values[M ~map[K]V, K comparable, V any](maps ...M) []V {
+func MultiValues[M ~map[K]V, K comparable, V any](maps ...M) []V {
 	r := make([]V, 0, len(maps))
 	for _, m := range maps {
 		for _, v := range m {

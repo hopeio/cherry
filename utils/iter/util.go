@@ -81,7 +81,7 @@ func Max[T constraints.Ordered](it Iterator[T]) (T, bool) {
 }
 
 // Return the maximum value of all elements of the iterator.
-func MaxBy[T any](it Iterator[T], greater cmp.SortFunc[T]) (T, bool) {
+func MaxBy[T any](it Iterator[T], greater cmp.LessFunc[T]) (T, bool) {
 	return Reduce(it, func(a T, b T) T {
 		if greater(a, b) {
 			return a
@@ -103,7 +103,7 @@ func Min[T constraints.Ordered](it Iterator[T]) (T, bool) {
 }
 
 // Return the minimum value of all elements of the iterator.
-func MinBy[T any](it Iterator[T], less cmp.SortFunc[T]) (T, bool) {
+func MinBy[T any](it Iterator[T], less cmp.LessFunc[T]) (T, bool) {
 	return Reduce(it, func(a T, b T) T {
 		if less(a, b) {
 			return a

@@ -37,7 +37,7 @@ func In[S ~[]T, T comparable](v T, s S) bool {
 	return false
 }
 
-func InByKey[S ~[]cmp.EqualKey[K], K comparable](key K, s S) bool {
+func InByKey[S ~[]E, E cmp.EqualKey[K], K comparable](key K, s S) bool {
 	for _, x := range s {
 		if x.EqualKey() == key {
 			return true
@@ -89,7 +89,7 @@ func Min[S ~[]T, T constraints.Number](s S) T {
 }
 
 // 将切片转换为map
-func SliceToMap[S ~[]T, T any, K comparable, V any](s S, getKV func(T) (K, V)) map[K]V {
+func ToMap[S ~[]T, T any, K comparable, V any](s S, getKV func(T) (K, V)) map[K]V {
 	m := make(map[K]V)
 	for _, s := range s {
 		k, v := getKV(s)
@@ -99,7 +99,7 @@ func SliceToMap[S ~[]T, T any, K comparable, V any](s S, getKV func(T) (K, V)) m
 }
 
 // 将切片按照某个key分类
-func SliceClassify[S ~[]T, T any, K comparable, V any](s S, getKV func(T) (K, V)) map[K][]V {
+func Classify[S ~[]T, T any, K comparable, V any](s S, getKV func(T) (K, V)) map[K][]V {
 	m := make(map[K][]V)
 	for _, s := range s {
 		k, v := getKV(s)

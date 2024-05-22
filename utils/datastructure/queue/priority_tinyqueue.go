@@ -1,16 +1,15 @@
 package queue
 
-type TinyQueue struct {
+import "github.com/hopeio/cherry/utils/cmp"
+
+type TinyQueue[T cmp.CompareLess[T]] struct {
 	length int
-	data   []Item
+	data   []T
+	zero   T
 }
 
-type Item interface {
-	Less(Item) bool
-}
-
-func New(data []Item) *TinyQueue {
-	q := &TinyQueue{}
+func New[T cmp.CompareLess[T]](data []T) *TinyQueue[T] {
+	q := &TinyQueue[T]{}
 	q.data = data
 	q.length = len(data)
 	if q.length > 0 {
@@ -22,14 +21,14 @@ func New(data []Item) *TinyQueue {
 	return q
 }
 
-func (q *TinyQueue) Push(item Item) {
+func (q *TinyQueue[T]) Push(item T) {
 	q.data = append(q.data, item)
 	q.length++
 	q.up(q.length - 1)
 }
-func (q *TinyQueue) Pop() Item {
+func (q *TinyQueue[T]) Pop() (T, bool) {
 	if q.length == 0 {
-		return nil
+		return q.zero, false
 	}
 	top := q.data[0]
 	q.length--
@@ -38,18 +37,18 @@ func (q *TinyQueue) Pop() Item {
 		q.down(0)
 	}
 	q.data = q.data[:len(q.data)-1]
-	return top
+	return top, true
 }
-func (q *TinyQueue) Peek() Item {
+func (q *TinyQueue[T]) Peek() (T, bool) {
 	if q.length == 0 {
-		return nil
+		return q.zero, false
 	}
-	return q.data[0]
+	return q.data[0], true
 }
-func (q *TinyQueue) Len() int {
+func (q *TinyQueue[T]) Len() int {
 	return q.length
 }
-func (q *TinyQueue) down(pos int) {
+func (q *TinyQueue[T]) down(pos int) {
 	data := q.data
 	halfLength := q.length >> 1
 	item := data[pos]
@@ -70,7 +69,7 @@ func (q *TinyQueue) down(pos int) {
 	data[pos] = item
 }
 
-func (q *TinyQueue) up(pos int) {
+func (q *TinyQueue[T]) up(pos int) {
 	data := q.data
 	item := data[pos]
 	for pos > 0 {

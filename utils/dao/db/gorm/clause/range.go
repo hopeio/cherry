@@ -12,8 +12,8 @@ func (req *RangeReq[T]) Clause() clause.Expression {
 	if req == nil || req.RangeField == "" {
 		return nil
 	}
-	// 泛型还很不好用，这种方式代替原来的interface{}
-	zero := *new(T)
+
+	var zero T
 	operation := dbi.Between
 	if req.RangeEnd == zero && req.RangeBegin != zero {
 		operation = dbi.Greater
