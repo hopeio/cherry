@@ -35,24 +35,46 @@ var (
 
 // DereferenceValue dereference and unpack interface,
 // get the underlying non-pointer and non-interface value.
-func DereferenceValue(v reflect.Value) reflect.Value {
-	for v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
-		v = v.Elem()
+func DerefValue(v reflect.Value) reflect.Value {
+	for {
+		kind := v.Kind()
+		if kind == reflect.Ptr || kind == reflect.Interface {
+			if ev := v.Elem(); ev.IsValid() {
+				v = ev
+			} else {
+				return v
+			}
+		} else {
+			return v
+		}
 	}
-	return v
 }
 
-// DereferencePtrValue returns the underlying non-pointer type value.
-func DereferencePtrValue(v reflect.Value) reflect.Value {
+// DerefPtrValue returns the underlying non-pointer type value.
+func DerefPtrValue(v reflect.Value) reflect.Value {
 	for v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
 	return v
 }
 
-// DereferenceInterfaceValue returns the value of the underlying type that implements the interface v.
-func DereferenceInterfaceValue(v reflect.Value) reflect.Value {
+// DerefInterfaceValue returns the value of the underlying type that implements the interface v.
+func DerefInterfaceValue(v reflect.Value) reflect.Value {
 	for v.Kind() == reflect.Interface {
+		if ev := v.Elem(); ev.IsValid() {
+			v = ev
+		} else {
+			return v
+		}
+	}
+	return v
+}
+
+func InitPtr(v reflect.Value) reflect.Value {
+	for v.Kind() == reflect.Pointer {
+		if !v.IsValid() || v.IsNil() {
+			v.Set(reflect.New(v.Type().Elem()))
+		}
 		v = v.Elem()
 	}
 	return v
@@ -107,4 +129,9 @@ func (v Value) Kind() reflect.Kind {
 //go:nocheckptr
 func uintptrElem(ptr uintptr) uintptr {
 	return *(*uintptr)(unsafe.Pointer(ptr))
+}
+
+// todo
+func rangeValue(v reflect.Value, callbacks [reflect.UnsafePointer]func(reflect.Value) reflect.Value) {
+	callbacks[v.Kind()](v)
 }

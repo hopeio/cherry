@@ -1,14 +1,16 @@
 package reflect
 
 import (
+	"reflect"
 	"testing"
-
-	"github.com/hopeio/cherry/utils/log"
 )
 
 type Foo struct {
 	A int
 	B string
+	C *int
+	D *map[int]any
+	E *[]int
 }
 type Bar struct {
 	Foo Foo
@@ -20,6 +22,17 @@ func TestGetExpectTypeValue(t *testing.T) {
 	b := Foo{}
 	v := CopyFieldValueByType(&a, &b)
 	if v {
-		log.Info(b)
+		t.Log(b)
 	}
+}
+
+func TestInitStruct(t *testing.T) {
+	var f *Foo
+	v := reflect.ValueOf(&f)
+	InitStruct(v)
+	t.Log(*f)
+	t.Log(*f.C)
+	t.Log(*f.D)
+	t.Log(*f.E)
+	t.Log(v.Elem().Interface())
 }

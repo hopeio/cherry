@@ -5,7 +5,8 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/hopeio/cherry/utils/log"
-	reflecti "github.com/hopeio/cherry/utils/reflect/converter"
+	reflecti "github.com/hopeio/cherry/utils/reflect"
+	"github.com/hopeio/cherry/utils/reflect/converter"
 	"github.com/spf13/pflag"
 	"net/http"
 	"net/url"
@@ -56,7 +57,7 @@ func init() {
 type anyValue reflect.Value
 
 func (a anyValue) String() string {
-	return reflecti.String(reflect.Value(a))
+	return converter.String(reflect.Value(a))
 }
 
 func (a anyValue) Type() string {
@@ -64,10 +65,11 @@ func (a anyValue) Type() string {
 }
 
 func (a anyValue) Set(v string) error {
-	return reflecti.SetValueByString(reflect.Value(a), v)
+	return converter.SetValueByString(reflect.Value(a), v)
 }
 
 func injectFlagConfig(commandLine *pflag.FlagSet, viper *viper.Viper, fcValue reflect.Value) {
+	fcValue = reflecti.DerefValue(fcValue)
 	if !fcValue.IsValid() || fcValue.IsZero() {
 		return
 	}
@@ -81,19 +83,10 @@ func injectFlagConfig(commandLine *pflag.FlagSet, viper *viper.Viper, fcValue re
 		flagTag := fieldType.Tag.Get(flagTagName)
 		fieldValue := fcValue.Field(i)
 		kind := fieldValue.Kind()
-		switch kind {
-		case reflect.Pointer:
-			if !fieldValue.IsValid() || fieldValue.IsNil() {
-				fieldValue.Set(reflect.New(fieldValue.Type().Elem()))
-			}
-			fieldValue = fieldValue.Elem()
-			if fieldValue.Kind() == reflect.Struct {
-				injectFlagConfig(commandLine, viper, fieldValue)
-			}
-		case reflect.Struct:
-			injectFlagConfig(commandLine, viper, fieldValue)
+		if kind == reflect.Pointer {
+			fieldValue = reflecti.InitPtr(fieldValue)
+			kind = fieldValue.Kind()
 		}
-
 		if flagTag != "" {
 			var flagTagSettings FlagTagSettings
 			ParseTagSetting(flagTag, ";", &flagTagSettings)
@@ -107,7 +100,7 @@ func injectFlagConfig(commandLine *pflag.FlagSet, viper *viper.Viper, fcValue re
 				}
 
 				if value, ok := os.LookupEnv(flagTagSettings.Env); ok {
-					err := reflecti.SetValueByString(fcValue.Field(i), value)
+					err := converter.SetValueByString(fcValue.Field(i), value)
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -118,6 +111,8 @@ func injectFlagConfig(commandLine *pflag.FlagSet, viper *viper.Viper, fcValue re
 			if kind == reflect.Bool {
 				flag.NoOptDefVal = "true"
 			}
+		} else if kind == reflect.Struct {
+			injectFlagConfig(commandLine, viper, fieldValue)
 		}
 	}
 }
@@ -148,4 +143,14 @@ func parseFlag(commandLine *pflag.FlagSet) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func deref(v reflect.Value) reflect.Value {
+	for v.Kind() == reflect.Pointer {
+		if !v.IsValid() || v.IsNil() {
+			v.Set(reflect.New(v.Type()))
+		}
+		v = v.Elem()
+	}
+	return v
 }

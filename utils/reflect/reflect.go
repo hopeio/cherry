@@ -6,17 +6,8 @@ import (
 	"reflect"
 )
 
-// 获取引用类型的原始类型
-func OriginalType(typ reflect.Type) reflect.Type {
-	switch typ.Kind() {
-	case reflect.Array, reflect.Chan, reflect.Map, reflect.Ptr, reflect.Slice:
-		return OriginalType(typ.Elem())
-	}
-	return typ
-}
-
 // TODO:
-func ContainType() {
+func containType() {
 
 }
 
@@ -153,4 +144,28 @@ func CanCast(t1, t2 reflect.Type, strict bool) bool {
 		return t1 == t2
 	}
 	return true
+}
+
+func InitStruct(v reflect.Value) {
+	v = InitPtr(v)
+	switch v.Kind() {
+	case reflect.Struct:
+		for i := 0; i < v.NumField(); i++ {
+			field := v.Field(i)
+			InitStruct(field)
+		}
+	case reflect.Slice, reflect.Array:
+		for i := 0; i < v.Len(); i++ {
+			InitStruct(v.Index(i))
+		}
+	case reflect.Map:
+		for _, key := range v.MapKeys() {
+			InitStruct(v.MapIndex(key))
+		}
+	case reflect.Interface:
+		v = v.Elem()
+		if v.IsValid() {
+			InitStruct(v)
+		}
+	}
 }

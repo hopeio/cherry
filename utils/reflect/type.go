@@ -218,7 +218,29 @@ func RuntimeTypeID(t reflect.Type) uintptr {
 	return uintptrElem(uintptr(unsafe.Pointer(&t)) + PtrOffset)
 }
 
-func DereferenceType(t reflect.Type) reflect.Type {
+// 获取引用类型的原始类型
+func DerefType(typ reflect.Type) reflect.Type {
+	for {
+		kind := typ.Kind()
+		if kind == reflect.Ptr || kind == reflect.Slice || kind == reflect.Map || kind == reflect.Chan || kind == reflect.Array {
+			typ = typ.Elem()
+		} else {
+			return typ
+		}
+	}
+}
+
+// 获取引用类型的底层类型
+// Deprecated: Use DerefType instead
+func UnderlyingType(typ reflect.Type) reflect.Type {
+	switch typ.Kind() {
+	case reflect.Array, reflect.Chan, reflect.Map, reflect.Ptr, reflect.Slice:
+		return UnderlyingType(typ.Elem())
+	}
+	return typ
+}
+
+func DerefPtrType(t reflect.Type) reflect.Type {
 	for t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}

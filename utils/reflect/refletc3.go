@@ -23,7 +23,7 @@ func TypeInfo(v interface{}) {
 	}
 }
 
-func SetField2(o interface{}, field string, v interface{}) {
+func SetField2(o any, field string, v any) {
 	t := reflect2.TypeOf(o)
 	if field == "" {
 		t.Set(o, v)
