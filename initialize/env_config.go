@@ -51,28 +51,30 @@ func (gc *globalConfig) setEnvConfig() {
 		struct2Map(reflect.ValueOf(v).Elem(), cc)
 		ccMap[name] = cc
 	}
-	// unsafe
-	encoderRegistry := reflect.ValueOf(gc.Viper).Elem().FieldByName(fixedFieldNameEncoderRegistry).Elem()
-	fieldValue := reflect.NewAt(encoderRegistry.Type(), unsafe.Pointer(encoderRegistry.UnsafeAddr()))
-	data, err := fieldValue.Interface().(Encoder).Encode(string(format), confMap)
+	defer func() {
+		if gc.InitConfig.EnvConfig.ConfigTemplateDir != "" {
+			// unsafe
+			encoderRegistry := reflect.ValueOf(gc.Viper).Elem().FieldByName(fixedFieldNameEncoderRegistry).Elem()
+			fieldValue := reflect.NewAt(encoderRegistry.Type(), unsafe.Pointer(encoderRegistry.UnsafeAddr()))
+			data, err := fieldValue.Interface().(Encoder).Encode(string(format), confMap)
 
-	if gc.InitConfig.EnvConfig.ConfigTemplateDir != "" {
-		dir := gc.InitConfig.EnvConfig.ConfigTemplateDir
-		if dir[len(dir)-1] != '/' {
-			dir += "/"
+			dir := gc.InitConfig.EnvConfig.ConfigTemplateDir
+			if dir[len(dir)-1] != '/' {
+				dir += "/"
+			}
+			err = os.WriteFile(dir+prefixConfigTemplate+string(format), data, 0644)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
-		err = os.WriteFile(dir+prefixConfigTemplate+string(format), data, 0644)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
+	}()
 
 	envConfig, ok := gc.Viper.Get(gc.InitConfig.Env).(map[string]any)
 	if !ok {
 		log.Warn("lack of environment configuration, try single config file")
 		return
 	}
-	err = mtos.Unmarshal(&gc.InitConfig.EnvConfig, envConfig)
+	err := mtos.Unmarshal(&gc.InitConfig.EnvConfig, envConfig)
 	if err != nil {
 		log.Fatal(err)
 	}

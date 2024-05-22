@@ -6,34 +6,34 @@ Env = "dev"
 debug = true
 ConfigTemplateDir = "."
 
-[dev.configCenter]
+[dev.ConfigCenter]
 Format = "toml"
-configType = "local"
+Type = "local"
 NoInject = ["Apollo","Etcd", "Es"]
 
-[dev.configCenter.local]
+[dev.ConfigCenter.local]
 ConfigPath = "D:/local.toml"
 ReloadType = "fsnotify"
 
 [test]
 Debug = false
-[test.configCenter]
+[test.ConfigCenter]
 Format = "json"
 configType = "nacos"
 Watch  = true
 NoInject = ["Apollo","Etcd", "Es"]
 
-[test.configCenter.nacos]
+[test.ConfigCenter.nacos]
 DataId = "pro"
 Group = "DEFAULT_GROUP"
 
-[[test.configCenter.nacos.ServerConfigs]]
+[[test.ConfigCenter.nacos.ServerConfigs]]
 Scheme = "http"
 IpAddr = "localhost"
 Port = 9000
 GrpcPort = 10000
 
-[test.configCenter.nacos.ClientConfig]
+[test.ConfigCenter.nacos.ClientConfig]
 NamespaceId = ""
 username = "nacos"
 password = "123456"
@@ -41,6 +41,6 @@ LogLevel = "debug"
 
 [prod]
 Debug = false
-[prod.configCenter.http]
+[prod.ConfigCenter.http]
 Interval = 100
 Url = "http://localhost:6666/local.toml"
