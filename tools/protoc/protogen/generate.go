@@ -20,15 +20,15 @@ import (
 //go:generate mockgen -destination ../protobuf/user/user.mock.go -package user -source ../protobuf/user/user.service_grpc.pb.go UserServiceServer
 
 const (
-	goOut           = "go-patch_out=plugin=go,paths=source_relative"
-	grpcOut         = "go-patch_out=plugin=go-grpc,paths=source_relative"
-	enumOut         = "enum_out=paths=source_relative"
-	gatewayOut      = "grpc-gin_out=paths=source_relative"
-	openapiv2Out    = "openapiv2_out=allow_merge=true,merge_file_name="
-	govalidatorsOut = "validator_out=paths=source_relative"
-	gqlOut          = "gql_out=svc=true,merge=true,paths=source_relative"
-	gogqlOut        = "gogql_out=svc=true,merge=true,paths=source_relative"
-	dartOut         = "dart_out=grpc"
+	goOut         = "go-patch_out=plugin=go,paths=source_relative"
+	grpcOut       = "go-patch_out=plugin=go-grpc,paths=source_relative"
+	enumOut       = "enum_out=paths=source_relative"
+	gatewayOut    = "grpc-gin_out=paths=source_relative"
+	openapiv2Out  = "openapiv2_out=allow_merge=true,merge_file_name="
+	validatorsOut = "validator_out=paths=source_relative"
+	gqlOut        = "gql_out=svc=true,merge=true,paths=source_relative"
+	gogqlOut      = "gogql_out=svc=true,merge=true,paths=source_relative"
+	dartOut       = "dart_out=grpc"
 )
 
 const (
@@ -46,7 +46,7 @@ var plugin = []string{goOut, grpcOut}
 
 var enumPlugin = enumOut
 var gatewayPlugin = []string{gatewayOut, openapiv2Out}
-var validatorOutPlugin = govalidatorsOut
+var validatorOutPlugin = validatorsOut
 var gqlPlugin = []string{gqlOut, gogqlOut}
 
 func init() {

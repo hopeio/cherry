@@ -34,7 +34,7 @@ cp $gopath/bin/protoc-gen-enum $dockerTmpDir/
 cp $gopath/bin/protoc-gen-go $dockerTmpDir/
 cp $gopath/bin/protoc-gen-go-grpc $dockerTmpDir/
 cp $gopath/bin/protoc-gen-go-patch $dockerTmpDir/
-cp $gopath/bin/protoc-gen-govalidators $dockerTmpDir/
+cp $gopath/bin/protoc-gen-validator $dockerTmpDir/
 cp $gopath/bin/protoc-gen-grpc-gateway $dockerTmpDir/
 cp $gopath/bin/protoc-gen-grpc-gin $dockerTmpDir/
 cp $gopath/bin/protoc-gen-openapiv2 $dockerTmpDir/
