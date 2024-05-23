@@ -1,4 +1,4 @@
-package number
+package math
 
 import (
 	"github.com/hopeio/cherry/utils/constraints"

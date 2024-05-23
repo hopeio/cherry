@@ -1,11 +1,15 @@
 syntax = "proto3";
 package deletedAt;
 
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "github.com/hopeio/cherry/protobuf/time/deletedAt";
 option java_multiple_files = true;
 
 message DeletedAt {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    example: '"2006-01-02T15:04:05.999999999Z07:00"'
+  };
   // Represents seconds of UTC time since Unix epoch
   // 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
   // 9999-12-31T23:59:59Z inclusive.

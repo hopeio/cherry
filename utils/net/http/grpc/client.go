@@ -39,24 +39,26 @@ func (cs clientConns) Close() error {
 	return nil
 }
 
-func GetDefaultClient(addr string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
+func NewClient(addr string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
 	if conn, ok := ClientConns[addr]; ok {
 		return conn, nil
 	}
 
 	// Set up a connection to the server.
-	conn, err := grpc.Dial(addr, append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithStatsHandler(&stats.InternalClientHandler{}))...)
+	conn, err := grpc.NewClient(addr, append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithStatsHandler(&stats.InternalClientHandler{}))...)
 	if err != nil {
 		return nil, err
 	}
-
+	if oldConn, ok := ClientConns[addr]; ok {
+		oldConn.Close()
+	}
 	ClientConns[addr] = conn
 	return conn, nil
 }
 
-func GetTlsClient(addr string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
+func NewTLSClient(addr string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
 	// Set up a connection to the server.
-	conn, err := grpc.Dial(addr, append(opts, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{ServerName: strings.Split(addr, ":")[0], InsecureSkipVerify: true})), grpc.WithStatsHandler(&stats.InternalClientHandler{}))...)
+	conn, err := grpc.NewClient(addr, append(opts, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{ServerName: strings.Split(addr, ":")[0], InsecureSkipVerify: true})), grpc.WithStatsHandler(&stats.InternalClientHandler{}))...)
 	if err != nil {
 		return nil, err
 	}

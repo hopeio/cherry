@@ -20,6 +20,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// js不选择支持纳秒级时间戳,都是浮点数,最大53位
 type NanoTime struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -114,6 +115,53 @@ func (x *MilliTime) GetMillis() int64 {
 	return 0
 }
 
+type MacroTime struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Macros int64 `protobuf:"varint,1,opt,name=macros,proto3" json:"macros,omitempty"`
+}
+
+func (x *MacroTime) Reset() {
+	*x = MacroTime{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cherry_protobuf_time_time_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MacroTime) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MacroTime) ProtoMessage() {}
+
+func (x *MacroTime) ProtoReflect() protoreflect.Message {
+	mi := &file_cherry_protobuf_time_time_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MacroTime.ProtoReflect.Descriptor instead.
+func (*MacroTime) Descriptor() ([]byte, []int) {
+	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *MacroTime) GetMacros() int64 {
+	if x != nil {
+		return x.Macros
+	}
+	return 0
+}
+
 type SecondTime struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -125,7 +173,7 @@ type SecondTime struct {
 func (x *SecondTime) Reset() {
 	*x = SecondTime{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cherry_protobuf_time_time_proto_msgTypes[2]
+		mi := &file_cherry_protobuf_time_time_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -138,7 +186,7 @@ func (x *SecondTime) String() string {
 func (*SecondTime) ProtoMessage() {}
 
 func (x *SecondTime) ProtoReflect() protoreflect.Message {
-	mi := &file_cherry_protobuf_time_time_proto_msgTypes[2]
+	mi := &file_cherry_protobuf_time_time_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -151,7 +199,7 @@ func (x *SecondTime) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SecondTime.ProtoReflect.Descriptor instead.
 func (*SecondTime) Descriptor() ([]byte, []int) {
-	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{2}
+	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SecondTime) GetSeconds() int64 {
@@ -172,7 +220,7 @@ type Date struct {
 func (x *Date) Reset() {
 	*x = Date{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cherry_protobuf_time_time_proto_msgTypes[3]
+		mi := &file_cherry_protobuf_time_time_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -185,7 +233,7 @@ func (x *Date) String() string {
 func (*Date) ProtoMessage() {}
 
 func (x *Date) ProtoReflect() protoreflect.Message {
-	mi := &file_cherry_protobuf_time_time_proto_msgTypes[3]
+	mi := &file_cherry_protobuf_time_time_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -198,7 +246,7 @@ func (x *Date) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Date.ProtoReflect.Descriptor instead.
 func (*Date) Descriptor() ([]byte, []int) {
-	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{3}
+	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Date) GetSeconds() int64 {
@@ -219,7 +267,7 @@ type Duration struct {
 func (x *Duration) Reset() {
 	*x = Duration{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cherry_protobuf_time_time_proto_msgTypes[4]
+		mi := &file_cherry_protobuf_time_time_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -232,7 +280,7 @@ func (x *Duration) String() string {
 func (*Duration) ProtoMessage() {}
 
 func (x *Duration) ProtoReflect() protoreflect.Message {
-	mi := &file_cherry_protobuf_time_time_proto_msgTypes[4]
+	mi := &file_cherry_protobuf_time_time_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -245,7 +293,7 @@ func (x *Duration) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Duration.ProtoReflect.Descriptor instead.
 func (*Duration) Descriptor() ([]byte, []int) {
-	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{4}
+	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Duration) GetDuration() int64 {
@@ -266,7 +314,7 @@ type Timestamp struct {
 func (x *Timestamp) Reset() {
 	*x = Timestamp{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cherry_protobuf_time_time_proto_msgTypes[5]
+		mi := &file_cherry_protobuf_time_time_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -279,7 +327,7 @@ func (x *Timestamp) String() string {
 func (*Timestamp) ProtoMessage() {}
 
 func (x *Timestamp) ProtoReflect() protoreflect.Message {
-	mi := &file_cherry_protobuf_time_time_proto_msgTypes[5]
+	mi := &file_cherry_protobuf_time_time_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -292,7 +340,7 @@ func (x *Timestamp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Timestamp.ProtoReflect.Descriptor instead.
 func (*Timestamp) Descriptor() ([]byte, []int) {
-	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{5}
+	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Timestamp) GetMillis() int64 {
@@ -321,7 +369,7 @@ type Time struct {
 func (x *Time) Reset() {
 	*x = Time{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cherry_protobuf_time_time_proto_msgTypes[6]
+		mi := &file_cherry_protobuf_time_time_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -334,7 +382,7 @@ func (x *Time) String() string {
 func (*Time) ProtoMessage() {}
 
 func (x *Time) ProtoReflect() protoreflect.Message {
-	mi := &file_cherry_protobuf_time_time_proto_msgTypes[6]
+	mi := &file_cherry_protobuf_time_time_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -347,7 +395,7 @@ func (x *Time) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Time.ProtoReflect.Descriptor instead.
 func (*Time) Descriptor() ([]byte, []int) {
-	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{6}
+	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *Time) GetSeconds() int64 {
@@ -373,24 +421,26 @@ var file_cherry_protobuf_time_time_proto_rawDesc = []byte{
 	0x69, 0x6d, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x6e, 0x61, 0x6e, 0x6f, 0x73, 0x18, 0x01, 0x20, 0x01,
 	0x28, 0x03, 0x52, 0x05, 0x6e, 0x61, 0x6e, 0x6f, 0x73, 0x22, 0x23, 0x0a, 0x09, 0x4d, 0x69, 0x6c,
 	0x6c, 0x69, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x6d, 0x69, 0x6c, 0x6c, 0x69, 0x73,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x06, 0x6d, 0x69, 0x6c, 0x6c, 0x69, 0x73, 0x22, 0x26,
-	0x0a, 0x0a, 0x53, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x18, 0x0a, 0x07,
-	0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x07, 0x73,
-	0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x22, 0x20, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x65, 0x12, 0x18,
-	0x0a, 0x07, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52,
-	0x07, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x22, 0x26, 0x0a, 0x08, 0x44, 0x75, 0x72, 0x61,
-	0x74, 0x69, 0x6f, 0x6e, 0x12, 0x1a, 0x0a, 0x08, 0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x08, 0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e,
-	0x22, 0x23, 0x0a, 0x09, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x12, 0x16, 0x0a,
-	0x06, 0x6d, 0x69, 0x6c, 0x6c, 0x69, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x06, 0x6d,
-	0x69, 0x6c, 0x6c, 0x69, 0x73, 0x22, 0x36, 0x0a, 0x04, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x18, 0x0a,
-	0x07, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x07,
-	0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x12, 0x14, 0x0a, 0x05, 0x6e, 0x61, 0x6e, 0x6f, 0x73,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x05, 0x6e, 0x61, 0x6e, 0x6f, 0x73, 0x42, 0x2a, 0x50,
-	0x01, 0x5a, 0x26, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x68, 0x6f,
-	0x70, 0x65, 0x69, 0x6f, 0x2f, 0x63, 0x68, 0x65, 0x72, 0x72, 0x79, 0x2f, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x62, 0x75, 0x66, 0x2f, 0x74, 0x69, 0x6d, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x33,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x06, 0x6d, 0x69, 0x6c, 0x6c, 0x69, 0x73, 0x22, 0x23,
+	0x0a, 0x09, 0x4d, 0x61, 0x63, 0x72, 0x6f, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x6d,
+	0x61, 0x63, 0x72, 0x6f, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x06, 0x6d, 0x61, 0x63,
+	0x72, 0x6f, 0x73, 0x22, 0x26, 0x0a, 0x0a, 0x53, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x54, 0x69, 0x6d,
+	0x65, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x03, 0x52, 0x07, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x22, 0x20, 0x0a, 0x04, 0x44,
+	0x61, 0x74, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x03, 0x52, 0x07, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x22, 0x26, 0x0a,
+	0x08, 0x44, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x1a, 0x0a, 0x08, 0x64, 0x75, 0x72,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x08, 0x64, 0x75, 0x72,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x23, 0x0a, 0x09, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61,
+	0x6d, 0x70, 0x12, 0x16, 0x0a, 0x06, 0x6d, 0x69, 0x6c, 0x6c, 0x69, 0x73, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x03, 0x52, 0x06, 0x6d, 0x69, 0x6c, 0x6c, 0x69, 0x73, 0x22, 0x36, 0x0a, 0x04, 0x54, 0x69,
+	0x6d, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x03, 0x52, 0x07, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x12, 0x14, 0x0a, 0x05,
+	0x6e, 0x61, 0x6e, 0x6f, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x05, 0x6e, 0x61, 0x6e,
+	0x6f, 0x73, 0x42, 0x2a, 0x50, 0x01, 0x5a, 0x26, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63,
+	0x6f, 0x6d, 0x2f, 0x68, 0x6f, 0x70, 0x65, 0x69, 0x6f, 0x2f, 0x63, 0x68, 0x65, 0x72, 0x72, 0x79,
+	0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x74, 0x69, 0x6d, 0x65, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -405,15 +455,16 @@ func file_cherry_protobuf_time_time_proto_rawDescGZIP() []byte {
 	return file_cherry_protobuf_time_time_proto_rawDescData
 }
 
-var file_cherry_protobuf_time_time_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_cherry_protobuf_time_time_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_cherry_protobuf_time_time_proto_goTypes = []interface{}{
 	(*NanoTime)(nil),   // 0: time.NanoTime
 	(*MilliTime)(nil),  // 1: time.MilliTime
-	(*SecondTime)(nil), // 2: time.SecondTime
-	(*Date)(nil),       // 3: time.Date
-	(*Duration)(nil),   // 4: time.Duration
-	(*Timestamp)(nil),  // 5: time.Timestamp
-	(*Time)(nil),       // 6: time.Time
+	(*MacroTime)(nil),  // 2: time.MacroTime
+	(*SecondTime)(nil), // 3: time.SecondTime
+	(*Date)(nil),       // 4: time.Date
+	(*Duration)(nil),   // 5: time.Duration
+	(*Timestamp)(nil),  // 6: time.Timestamp
+	(*Time)(nil),       // 7: time.Time
 }
 var file_cherry_protobuf_time_time_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -454,7 +505,7 @@ func file_cherry_protobuf_time_time_proto_init() {
 			}
 		}
 		file_cherry_protobuf_time_time_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SecondTime); i {
+			switch v := v.(*MacroTime); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -466,7 +517,7 @@ func file_cherry_protobuf_time_time_proto_init() {
 			}
 		}
 		file_cherry_protobuf_time_time_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Date); i {
+			switch v := v.(*SecondTime); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -478,7 +529,7 @@ func file_cherry_protobuf_time_time_proto_init() {
 			}
 		}
 		file_cherry_protobuf_time_time_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Duration); i {
+			switch v := v.(*Date); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -490,7 +541,7 @@ func file_cherry_protobuf_time_time_proto_init() {
 			}
 		}
 		file_cherry_protobuf_time_time_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Timestamp); i {
+			switch v := v.(*Duration); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -502,6 +553,18 @@ func file_cherry_protobuf_time_time_proto_init() {
 			}
 		}
 		file_cherry_protobuf_time_time_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Timestamp); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cherry_protobuf_time_time_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Time); i {
 			case 0:
 				return &v.state
@@ -520,7 +583,7 @@ func file_cherry_protobuf_time_time_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_cherry_protobuf_time_time_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

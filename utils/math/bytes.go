@@ -1,7 +1,8 @@
-package number
+package math
 
 import (
 	"fmt"
+	reflect2 "github.com/hopeio/cherry/utils/reflect"
 	"reflect"
 	"strconv"
 	"strings"
@@ -17,7 +18,7 @@ import (
 在16位系统中，1字（word）=2字节（byte）=16位（bit）
 在32位系统中，1字（word）=4字节（byte）=32位（bit）
 在64位系统中，1字（word）=8字节（byte）=64位（bit）*/
-func ViewBin(v interface{}) {
+func ViewBin(v any) {
 	vv := reflect.ValueOf(v)
 	var binary string
 	switch v.(type) {
@@ -40,4 +41,19 @@ func ViewBin(v interface{}) {
 		out = append(out, binary[i*8:(i+1)*8])
 	}
 	fmt.Println(strings.Join(out, " "), " ", v)
+}
+
+//go:nosplit
+func Int16FromBytes(v []byte) int16 {
+	return *(*int16)((*reflect2.Slice)(unsafe.Pointer(&v)).Ptr)
+}
+
+//go:nosplit
+func Int32FromBytes(v []byte) int32 {
+	return *(*int32)((*reflect2.Slice)(unsafe.Pointer(&v)).Ptr)
+}
+
+//go:nosplit
+func Int64FromBytes(v []byte) int64 {
+	return *(*int64)((*reflect2.Slice)(unsafe.Pointer(&v)).Ptr)
 }

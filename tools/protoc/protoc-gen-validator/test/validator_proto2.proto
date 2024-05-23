@@ -46,7 +46,7 @@ message ValidatorMessage {
 	repeated EmbeddedMessage embeddedRepNonNullable = 13 ;
 
 	// Custom error tests.
-	optional int32 CustomErrorInt = 16 [(validator.field) = {int_gt: 10, human_error: "My Custom Error"}];
+	optional int32 CustomErrorInt = 16 [(validator.field) = {int_gt: 10, custom_error: "My Custom Error"}];
 
 	// Strict floating-point inequality constraint tests.
 	// With this epsilon value, the limits become

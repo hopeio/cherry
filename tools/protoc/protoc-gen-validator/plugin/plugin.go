@@ -515,10 +515,10 @@ func (p *plugin) generateRepeatedCountValidator(variableName string, fieldName s
 }
 
 func (p *plugin) generateErrorString(variableName string, fieldName string, specificError string, fv *validator.FieldValidator, g *protogen.GeneratedFile) {
-	if fv.GetHumanError() == "" {
+	if fv.GetCustomError() == "" {
 		g.P(`return `, p.validatorPkg.Ident("FieldError"), `("`, fieldName, `",`, p.fmtPkg.Ident("Errorf"), "(`value '%v' must ", specificError, "`", `, `, variableName, `))`)
 	} else {
-		g.P(`return `, p.errorsPkg.Ident("New"), "(`", fv.GetHumanError(), "`)")
+		g.P(`return `, p.errorsPkg.Ident("New"), "(`", fv.GetCustomError(), "`)")
 	}
 }
 

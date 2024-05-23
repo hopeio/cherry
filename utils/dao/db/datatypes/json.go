@@ -48,7 +48,7 @@ func (j *Json) Scan(value interface{}) error {
 		*j = map[string]any{}
 		return json.Unmarshal([]byte(bytes), j)
 	default:
-		return errors.New(fmt.Sprint("failed to scan Data value:", value))
+		return errors.New(fmt.Sprint("failed to scan Value value:", value))
 	}
 }
 
@@ -137,7 +137,7 @@ func (j *JsonT[T]) Scan(value interface{}) error {
 		j.Data = new(T)
 		return json.Unmarshal([]byte(bytes), j)
 	default:
-		return errors.New(fmt.Sprint("failed to scan Data value:", value))
+		return errors.New(fmt.Sprint("failed to scan Value value:", value))
 	}
 }
 
@@ -165,7 +165,7 @@ func (j *JsonTArray[T]) Scan(value interface{}) error {
 		*j = make(JsonTArray[T], 0)
 		return json.Unmarshal([]byte(bytes), j)
 	default:
-		return errors.New(fmt.Sprint("failed to scan Data value:", value))
+		return errors.New(fmt.Sprint("failed to scan Value value:", value))
 	}
 }
 

@@ -44,7 +44,7 @@ message SignupReq {
   // 密码
   string password = 4 [(go.field) = {tags:'validate:"required,gte=6,lte=15" comment:"密码"'}, (validator.field) = {
     length_gt: 5,
-    human_error: "密码最短6位"
+    custom_error: "密码最短6位"
   }, (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "密码",
     min_length: 6}];
   string name = 1 [(go.field) = {tags:'validate:"required,gte=3,lte=10" comment:"昵称"'}];

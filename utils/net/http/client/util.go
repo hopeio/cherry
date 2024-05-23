@@ -2,7 +2,7 @@ package client
 
 import (
 	"github.com/hopeio/cherry/utils/log"
-	"github.com/hopeio/cherry/utils/number"
+	"github.com/hopeio/cherry/utils/math"
 	stringsi "github.com/hopeio/cherry/utils/strings"
 	"net/http"
 	"net/url"
@@ -63,7 +63,7 @@ func getFieldValue(v reflect.Value) string {
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 		return strconv.Itoa(int(v.Int()))
 	case reflect.Float32, reflect.Float64:
-		return number.FormatFloat(v.Float())
+		return math.FormatFloat(v.Float())
 	case reflect.String:
 		return v.String()
 	case reflect.Interface, reflect.Ptr, reflect.Struct:

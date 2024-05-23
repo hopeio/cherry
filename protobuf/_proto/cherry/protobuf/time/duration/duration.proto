@@ -32,6 +32,8 @@ syntax = "proto3";
 
 package duration;
 
+import "protoc-gen-openapiv2/options/annotations.proto";
+
 option cc_enable_arenas = true;
 option go_package = "github.com/hopeio/cherry/protobuf/time/timestamp";
 option java_package = "com.google.protobuf";
@@ -100,6 +102,9 @@ option csharp_namespace = "Google.Protobuf.WellKnownTypes";
 // microsecond should be expressed in JSON format as "3.000001s".
 //
 message Duration {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    example: "100"
+  };
   // Signed seconds of the span of time. Must be from -315,576,000,000
   // to +315,576,000,000 inclusive. Note: these bounds are computed from:
   // 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years

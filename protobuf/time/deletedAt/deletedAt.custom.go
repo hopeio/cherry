@@ -283,4 +283,17 @@ func (x *DeletedAt) UnmarshalGQL(v interface{}) error {
 	return errors.New("enum need integer type")
 }
 
+func (t *DeletedAt) MarshalJSON() ([]byte, error) {
+	return timei.MarshalJSON(t.Time())
+}
+
+func (t *DeletedAt) UnmarshalJSON(data []byte) error {
+	var st time.Time
+	if err := timei.UnmarshalJSON(&st, data); err != nil {
+		return err
+	}
+	*t = DeletedAt{Seconds: st.Unix(), Nanos: int32(st.Nanosecond())}
+	return nil
+}
+
 type DeletedAtInput = DeletedAt

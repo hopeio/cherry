@@ -269,3 +269,27 @@ func Cast[T1, T2 any, T1S ~[]T1](s T1S) []T2 {
 func Cast2[T1, T2 any, T1S ~[]T1, T2S ~[]T2](s T1S) T2S {
 	return (T2S)(Cast[T1, T2](s))
 }
+
+func GuardSlice(buf *[]byte, n int) {
+	c := cap(*buf)
+	l := len(*buf)
+	if c-l < n {
+		c = c>>1 + n + l
+		if c < 32 {
+			c = 32
+		}
+		tmp := make([]byte, l, c)
+		copy(tmp, *buf)
+		*buf = tmp
+	}
+}
+
+//go:nosplit
+func Ptr2SlicePtr(s unsafe.Pointer, l int, c int) unsafe.Pointer {
+	slice := &reflecti.Slice{
+		Ptr: s,
+		Len: l,
+		Cap: c,
+	}
+	return unsafe.Pointer(slice)
+}

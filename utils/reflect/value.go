@@ -18,13 +18,11 @@ const (
 )
 
 var (
-	e         = EmptyInterface{Typ: new(Rtype)}
+	e         = Eface{Type: new(Type)}
 	PtrOffset = func() uintptr {
-		return unsafe.Offsetof(e.Word)
+		return unsafe.Offsetof(e.Value)
 	}()
-	KindOffset = func() uintptr {
-		return unsafe.Offsetof(e.Typ.Kind)
-	}()
+	KindOffset = func() uintptr { return unsafe.Offsetof(e.Type.KindFlags) }()
 	ElemOffset = func() uintptr {
 		return unsafe.Offsetof(new(PtrType).Elem)
 	}()
