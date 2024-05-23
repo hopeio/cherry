@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT
 // license that can be found in the LICENSE file.
 
-package sync
+package queue
 
 import (
 	"fmt"
@@ -13,14 +13,14 @@ import (
 )
 
 func TestQueueDequeueEmpty(t *testing.T) {
-	q := NewQueue()
+	q := New()
 	if q.Dequeue() != nil {
 		t.Fatalf("dequeue empty queue returns non-nil")
 	}
 }
 
 func TestQueue_Length(t *testing.T) {
-	q := NewQueue()
+	q := New()
 	if q.Length() != 0 {
 		t.Fatalf("empty queue has non-zero length")
 	}
@@ -37,7 +37,7 @@ func TestQueue_Length(t *testing.T) {
 }
 
 func ExampleQueue() {
-	q := NewQueue()
+	q := New()
 
 	q.Enqueue("1st item")
 	q.Enqueue("2nd item")
@@ -91,7 +91,7 @@ func BenchmarkQueue(b *testing.B) {
 	for i := 0; i < length; i++ {
 		inputs = append(inputs, rand.Int())
 	}
-	q, mq := NewQueue(), newMutexQueue()
+	q, mq := New(), newMutexQueue()
 	b.ResetTimer()
 
 	for _, q := range [...]queueInterface{q, mq} {

@@ -1,21 +1,21 @@
-package queue
+package listqueue
 
 type Node[T any] struct {
-	data     T
-	previous *Node[T]
-	next     *Node[T]
+	data T
+	prev *Node[T]
+	next *Node[T]
 }
 
-func (n *Node[T]) Value() interface{} {
+func (n *Node[T]) Value() T {
 	return n.data
 }
 
-func (n *Node[T]) Set(value interface{}) {
+func (n *Node[T]) Set(value T) {
 	n.data = value
 }
 
 func (n *Node[T]) Previous() *Node[T] {
-	return n.previous
+	return n.prev
 }
 
 func (n *Node[T]) Next() *Node[T] {
@@ -29,13 +29,13 @@ type ListQueue[T any] struct {
 	zero T
 }
 
-func NewListQueue[T any](size int) *ListQueue[T] {
+func New[T any](size int) *ListQueue[T] {
 	q := &ListQueue[T]{}
 	q.size = size
 	return q
 }
 
-func (q *ListQueue[T]) push(data T) {
+func (q *ListQueue[T]) Push(data T) {
 	n := &Node[T]{data: data, next: nil}
 
 	if q.end == nil {
@@ -49,7 +49,7 @@ func (q *ListQueue[T]) push(data T) {
 	return
 }
 
-func (q *ListQueue[T]) pop() (T, bool) {
+func (q *ListQueue[T]) Pop() (T, bool) {
 	if q.head == nil {
 		return q.zero, false
 	}

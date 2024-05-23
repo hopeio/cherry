@@ -7,5 +7,5 @@ type Foo struct {
 }
 
 func TestNilValue(t *testing.T) {
-	t.Log(nilValue[Foo]())
+	t.Log(Nil[Foo]())
 }

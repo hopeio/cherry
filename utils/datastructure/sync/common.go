@@ -9,14 +9,14 @@ import (
 	"unsafe"
 )
 
-type directItem struct {
-	next unsafe.Pointer
-	v    interface{}
+type DirectItem struct {
+	Next unsafe.Pointer
+	V    interface{}
 }
 
-func loaditem(p *unsafe.Pointer) *directItem {
-	return (*directItem)(atomic.LoadPointer(p))
+func LoadItem(p *unsafe.Pointer) *DirectItem {
+	return (*DirectItem)(atomic.LoadPointer(p))
 }
-func casitem(p *unsafe.Pointer, old, new *directItem) bool {
+func CasItem(p *unsafe.Pointer, old, new *DirectItem) bool {
 	return atomic.CompareAndSwapPointer(p, unsafe.Pointer(old), unsafe.Pointer(new))
 }

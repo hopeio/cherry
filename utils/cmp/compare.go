@@ -3,6 +3,7 @@ package cmp
 import (
 	constraintsi "github.com/hopeio/cherry/utils/constraints"
 	"golang.org/x/exp/constraints"
+	"unsafe"
 )
 
 func Less[T constraints.Ordered](a T, b T) bool {
@@ -63,6 +64,24 @@ func (a LTValue[T]) Compare(b GTValue[T]) bool {
 	return a.Value < b.Value
 }
 
-func ValueFlip[T constraintsi.Number](i T) T {
+func SignedFlip[T constraints.Signed](i T) T {
+	if i < 0 && i == T(-1<<(unsafe.Sizeof(i)-1)) {
+		return 1<<unsafe.Sizeof(i) - 1
+	}
 	return -i
+}
+
+func UnSignedFlip[T constraints.Unsigned](i T) T {
+	return 1<<unsafe.Sizeof(i) - 1 - i
+}
+
+func FloatFlip[T constraints.Float](i T) T {
+	if isNaN(i) {
+		return i
+	}
+	return -i
+}
+
+func isNaN[T constraints.Ordered](x T) bool {
+	return x != x
 }

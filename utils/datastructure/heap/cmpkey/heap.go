@@ -52,18 +52,24 @@ func (heap *Heap[T, V]) Put(val T) {
 	*heap = h
 }
 
-func (heap *Heap[T, V]) Pop() T {
+func (heap *Heap[T, V]) Pop() (T, bool) {
 	h := *heap
+	if len(h) == 0 {
+		return *new(T), false
+	}
 	n := len(h) - 1
 	item := h[0]
 	h[0], h[n] = h[n], h[0]
 	Down(h, 0, n)
 	*heap = h[:n]
-	return item
+	return item, true
 }
 
-func (heap *Heap[T, V]) Remove(i int) T {
+func (heap *Heap[T, V]) Remove(i int) (T, bool) {
 	h := *heap
+	if len(h) == 0 {
+		return *new(T), false
+	}
 	n := len(h) - 1
 	item := h[i]
 	if n != i {
@@ -73,5 +79,19 @@ func (heap *Heap[T, V]) Remove(i int) T {
 		}
 	}
 	*heap = h[:n]
-	return item
+	return item, true
+}
+
+func (heap Heap[T, V]) First() (T, bool) {
+	if len(heap) == 0 {
+		return *new(T), false
+	}
+	return heap[0], true
+}
+
+func (heap Heap[T, V]) Last() (T, bool) {
+	if len(heap) == 0 {
+		return *new(T), false
+	}
+	return heap[len(heap)-1], false
 }

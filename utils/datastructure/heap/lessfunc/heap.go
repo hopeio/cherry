@@ -7,6 +7,7 @@ import (
 type Heap[T any] struct {
 	arr  []T
 	less cmp.LessFunc[T]
+	zero T
 }
 
 func New[T any](l int, less cmp.LessFunc[T]) *Heap[T] {
@@ -57,17 +58,22 @@ func (h *Heap[T]) Put(val T) {
 	h.down(0, len(h.arr))
 }
 
-func (h *Heap[T]) Pop() T {
-	hh := *h
-	n := len(hh.arr) - 1
-	item := hh.arr[0]
-	hh.arr[0], hh.arr[n] = hh.arr[n], h.arr[0]
+func (h *Heap[T]) Pop() (T, bool) {
+	if len(h.arr) == 0 {
+		return h.zero, false
+	}
+	n := len(h.arr) - 1
+	item := h.arr[0]
+	h.arr[0], h.arr[n] = h.arr[n], h.arr[0]
 	h.down(0, n)
 	h.arr = h.arr[:n]
-	return item
+	return item, true
 }
 
-func (h *Heap[T]) Remove(i int) T {
+func (h *Heap[T]) Remove(i int) (T, bool) {
+	if len(h.arr) == 0 {
+		return h.zero, false
+	}
 	n := len(h.arr) - 1
 	item := h.arr[i]
 	if n != i {
@@ -77,7 +83,7 @@ func (h *Heap[T]) Remove(i int) T {
 		}
 	}
 	h.arr = h.arr[:n]
-	return item
+	return item, true
 }
 
 func (h *Heap[T]) down(i0, n int) bool {
@@ -90,4 +96,18 @@ func (h *Heap[T]) up(j int) {
 
 func (h *Heap[T]) fix(i int) {
 	Fix(h.arr, i, h.less)
+}
+
+func (h *Heap[T]) First() (T, bool) {
+	if len(h.arr) == 0 {
+		return *new(T), false
+	}
+	return h.arr[0], true
+}
+
+func (h Heap[T]) Last() (T, bool) {
+	if len(h.arr) == 0 {
+		return *new(T), false
+	}
+	return h.arr[len(h.arr)-1], false
 }

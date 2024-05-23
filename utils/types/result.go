@@ -2,17 +2,17 @@ package types
 
 import "encoding/json"
 
+type Result[T any] struct {
+	value T
+	err   error
+}
+
 func Ok[T any](a T) Result[T] {
 	return Result[T]{value: a}
 }
 
 func Err[T any](a error) Result[T] {
 	return Result[T]{err: a}
-}
-
-type Result[T any] struct {
-	value T
-	err   error
 }
 
 func (a Result[T]) Val() (value T, err error) {

@@ -3,7 +3,7 @@ package engine
 import (
 	"fmt"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/hopeio/cherry/utils/datastructure/idgenerator/id"
+	id2 "github.com/hopeio/cherry/utils/idgenerator/id"
 	"github.com/hopeio/cherry/utils/log"
 	synci "github.com/hopeio/cherry/utils/sync"
 	"runtime/debug"
@@ -44,10 +44,11 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 			for {
 				if e.workerReadyList.Len() > 0 && len(e.taskReadyHeap) > 0 {
 					if readyTaskCh == nil {
-						readyTaskCh = e.workerReadyList.Pop().taskCh
+						readyWorker, _ := e.workerReadyList.Pop()
+						readyTaskCh = readyWorker.taskCh
 					}
 					if readyTask == nil {
-						readyTask = e.taskReadyHeap.Pop()
+						readyTask, _ = e.taskReadyHeap.Pop()
 					}
 				}
 
@@ -183,7 +184,7 @@ func (e *Engine[KEY]) AddTasks(generation int, tasks ...*Task[KEY]) {
 			continue
 		}
 		task.Priority += generation
-		task.id = id.GenOrderID()
+		task.id = id2.GenOrderID()
 		e.taskChan <- task
 	}
 }
@@ -249,7 +250,7 @@ func (e *Engine[KEY]) AddFixedTasks(workerId int, generation int, tasks ...*Task
 			continue
 		}
 		task.Priority += generation
-		task.id = id.GenOrderID()
+		task.id = id2.GenOrderID()
 		worker.taskCh <- task
 	}
 	return nil

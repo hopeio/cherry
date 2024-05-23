@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT
 // license that can be found in the LICENSE file.
 
-package sync
+package stack
 
 import (
 	"fmt"
@@ -13,14 +13,14 @@ import (
 )
 
 func TestStackPopEmpty(t *testing.T) {
-	s := NewStack()
+	s := New()
 	if s.Pop() != nil {
 		t.Fatal("pop empty stack returns non-nil")
 	}
 }
 
 func ExampleStack() {
-	s := NewStack()
+	s := New()
 
 	s.Push(1)
 	s.Push(2)
@@ -70,7 +70,7 @@ func BenchmarkStack(b *testing.B) {
 	for i := 0; i < length; i++ {
 		inputs = append(inputs, rand.Int())
 	}
-	s, ms := NewStack(), newMutexStack()
+	s, ms := New(), newMutexStack()
 	b.ResetTimer()
 	for _, s := range [...]stackInterface{s, ms} {
 		b.Run(fmt.Sprintf("%T", s), func(b *testing.B) {

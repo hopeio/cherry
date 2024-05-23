@@ -1,19 +1,4 @@
-package queue
-
-type Queue[T any] interface {
-	// 获取当前链表长度。
-	Len() int
-	// 获取当前链表容量。
-	Capacity() int
-	// 获取当前链表头结点。
-	Front() *Node[T]
-	// 获取当前链表尾结点。
-	Rear() *Node[T]
-	// 入列。
-	Enqueue(value T) bool
-	// 出列。
-	Dequeue() T
-}
+package ringqueue
 
 type RingQueue[T any] struct {
 	head, tail int
@@ -22,7 +7,7 @@ type RingQueue[T any] struct {
 	zero       T
 }
 
-func NewRingQueue[T any](capacity int) *RingQueue[T] {
+func New[T any](capacity int) *RingQueue[T] {
 	nodes := make([]T, capacity)
 	return &RingQueue[T]{
 		head: -1,

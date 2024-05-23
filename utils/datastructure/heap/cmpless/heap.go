@@ -27,26 +27,38 @@ func (heap *Heap[T]) Push(x T) {
 	*heap = h
 }
 
-func (heap *Heap[T]) Pop() T {
+func (heap *Heap[T]) Pop() (T, bool) {
 	h := *heap
+	if len(h) == 0 {
+		return *new(T), false
+	}
 	n := len(h) - 1
 	item := h[0]
 	h[0], h[n] = h[n], h[0]
 	Down(h, 0, n)
 	*heap = h[:n]
-	return item
+	return item, true
 }
 
-func (heap Heap[T]) First() T {
-	return heap[0]
+func (heap Heap[T]) First() (T, bool) {
+	if len(heap) == 0 {
+		return *new(T), false
+	}
+	return heap[0], true
 }
 
-func (heap Heap[T]) Last() T {
-	return heap[len(heap)-1]
+func (heap Heap[T]) Last() (T, bool) {
+	if len(heap) == 0 {
+		return *new(T), false
+	}
+	return heap[len(heap)-1], true
 }
 
-func (heap *Heap[T]) Remove(i int) T {
+func (heap *Heap[T]) Remove(i int) (T, bool) {
 	h := *heap
+	if len(h) == 0 {
+		return *new(T), false
+	}
 	n := len(h) - 1
 	item := h[i]
 	if n != i {
@@ -56,5 +68,5 @@ func (heap *Heap[T]) Remove(i int) T {
 		}
 	}
 	*heap = h[:n]
-	return item
+	return item, true
 }

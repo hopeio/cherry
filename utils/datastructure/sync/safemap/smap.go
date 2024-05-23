@@ -1,4 +1,4 @@
-package sync
+package safemap
 
 import "sync"
 
@@ -19,6 +19,6 @@ func (s *safeMap) Get(key string) string {
 	return s.m[key]
 }
 
-func NewSafeMap() *safeMap {
+func New() *safeMap {
 	return &safeMap{l: new(sync.RWMutex), m: make(map[string]string)}
 }
