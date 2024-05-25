@@ -79,8 +79,9 @@ func Start(conf Config, dao Dao, configCenter ...conf_center.ConfigCenter) func(
 	gConfig.loadConfig()
 	gConfig.initialized = true
 	return func() {
-		for _, f := range gConfig.deferFuncs {
-			f()
+		// 倒序调用defer
+		for i := len(gConfig.deferFuncs) - 1; i > 0; i-- {
+			gConfig.deferFuncs[i]()
 		}
 	}
 }
@@ -88,14 +89,15 @@ func Start(conf Config, dao Dao, configCenter ...conf_center.ConfigCenter) func(
 func (gc *globalConfig) setConfDao(conf Config, dao Dao) {
 	gc.conf = conf
 	gc.dao = dao
+	gc.deferFuncs = append(gc.deferFuncs, func() {
+		log.Sync()
+	})
 	if dao != nil {
 		gc.deferFuncs = append(gc.deferFuncs, func() {
 			closeDao(dao)
 		})
 	}
-	gc.deferFuncs = append(gc.deferFuncs, func() {
-		log.Sync()
-	})
+
 }
 
 func (gc *globalConfig) loadConfig() {
@@ -162,6 +164,12 @@ func (gc *globalConfig) loadConfig() {
 		log.Fatalf("配置错误: %v", err)
 	}
 
+}
+
+func (gc *globalConfig) DeferFunc(deferf ...func()) {
+	gc.lock.Lock()
+	defer gc.lock.Unlock()
+	gc.deferFuncs = append(gc.deferFuncs, deferf...)
 }
 
 func RegisterDeferFunc(deferf ...func()) {
