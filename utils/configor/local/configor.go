@@ -1,10 +1,8 @@
 package local
 
 import (
-	"fmt"
-	"os"
-	"reflect"
-	"regexp"
+	"github.com/fsnotify/fsnotify"
+	"github.com/hopeio/cherry/utils/log"
 	"time"
 )
 
@@ -13,20 +11,18 @@ type Configor struct {
 	configModTimes map[string]time.Time
 }
 
+type ReloadType string
+
+const (
+	ReloadTypeFsNotify = "fsnotify"
+	ReloadTypeTimer    = "timer"
+)
+
 type Config struct {
-	Environment        string
-	ENVPrefix          string
-	Debug              bool
-	Verbose            bool
-	Silent             bool
 	AutoReload         bool
+	AutoReloadType     ReloadType `json:"autoReloadType" comment:"fsnotify,timer"` // 本地分为Watch和AutoReload，Watch采用系统调用通知，AutoReload定时器去查文件是否变更
 	AutoReloadInterval time.Duration
 	AutoReloadCallback func(config interface{})
-
-	// In case of json files, this field will be used only when compiled with
-	// go 1.10 or later.
-	// This field will be ignored when compiled with go versions lower than 1.10.
-	ErrorOnUnmatchedKeys bool
 }
 
 // New initialize a Configor
@@ -34,102 +30,76 @@ func New(config *Config) *Configor {
 	if config == nil {
 		config = &Config{}
 	}
-
-	if os.Getenv("CONFIGOR_DEBUG_MODE") != "" {
-		config.Debug = true
+	if config.AutoReload && config.AutoReloadType == ReloadTypeTimer && config.AutoReloadInterval < time.Second {
+		config.AutoReloadInterval = config.AutoReloadInterval * time.Second
 	}
-
-	if os.Getenv("CONFIGOR_VERBOSE_MODE") != "" {
-		config.Verbose = true
-	}
-
-	if os.Getenv("CONFIGOR_SILENT_MODE") != "" {
-		config.Silent = true
-	}
-
-	if config.AutoReload && config.AutoReloadInterval == 0 {
-		config.AutoReloadInterval = time.Second
-	}
-
 	return &Configor{Config: config}
-}
-
-var testRegexp = regexp.MustCompile("_test|(\\.test$)")
-
-// GetEnvironment get environment
-func (configor *Configor) GetEnvironment() string {
-	if configor.Environment == "" {
-		if env := os.Getenv("CONFIGOR_ENV"); env != "" {
-			return env
-		}
-
-		if testRegexp.MatchString(os.Args[0]) {
-			return "test"
-		}
-
-		return "development"
-	}
-	return configor.Environment
-}
-
-// Load will unmarshal configurations to struct from files that you provide
-func (configor *Configor) Load(config interface{}, files ...string) (err error) {
-	defaultValue := reflect.Indirect(reflect.ValueOf(config))
-	if !defaultValue.CanAddr() {
-		return fmt.Errorf("config %v should be addressable", config)
-	}
-	err, _ = configor.load(config, false, files...)
-
-	if configor.Config.AutoReload {
-		go func() {
-			timer := time.NewTimer(configor.Config.AutoReloadInterval)
-			for range timer.C {
-				reflectPtr := reflect.New(reflect.ValueOf(config).Elem().Type())
-				reflectPtr.Elem().Set(defaultValue)
-
-				var changed bool
-				if err, changed = configor.load(reflectPtr.Interface(), true, files...); err == nil && changed {
-					reflect.ValueOf(config).Elem().Set(reflectPtr.Elem())
-					if configor.Config.AutoReloadCallback != nil {
-						configor.Config.AutoReloadCallback(config)
-					}
-				} else if err != nil {
-					fmt.Printf("Failed to reload configuration from %v, got error %v\n", files, err)
-				}
-				timer.Reset(configor.Config.AutoReloadInterval)
-			}
-		}()
-	}
-	return
-}
-
-// ENV return environment
-func ENV() string {
-	return New(nil).GetEnvironment()
-}
-
-// Load will unmarshal configurations to struct from files that you provide
-func Load(config interface{}, files ...string) error {
-	return New(nil).Load(config, files...)
 }
 
 // Load will unmarshal configurations to struct from files that you provide
 func (configor *Configor) Handle(handle func([]byte), files ...string) (err error) {
 
 	err, _ = configor.handle(handle, false, files...)
-
-	if configor.Config.AutoReload {
-		go func() {
-			timer := time.NewTimer(configor.Config.AutoReloadInterval)
-			for range timer.C {
-				var changed bool
-				if err, changed = configor.handle(handle, true, files...); err == nil && changed {
-				} else if err != nil {
-					fmt.Printf("Failed to reload configuration from %v, got error %v\n", files, err)
+	if configor.AutoReload {
+		if configor.AutoReloadType == ReloadTypeTimer {
+			go func() {
+				timer := time.NewTimer(configor.Config.AutoReloadInterval)
+				for range timer.C {
+					var changed bool
+					if err, changed = configor.handle(handle, true, files...); err == nil && changed {
+					} else if err != nil {
+						log.Error("Failed to reload configuration from %v, got error %v\n", files, err)
+					}
+					timer.Reset(configor.Config.AutoReloadInterval)
 				}
-				timer.Reset(configor.Config.AutoReloadInterval)
-			}
-		}()
+			}()
+		} else {
+			go configor.watch(handle)
+		}
 	}
+
 	return
+}
+
+func (cc *Configor) watch(handle func([]byte), files ...string) {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Error(err)
+	}
+	defer watcher.Close()
+	for _, file := range files {
+		err = watcher.Add(file)
+		if err != nil {
+			log.Error(err)
+		}
+	}
+
+	interval := make(map[string]time.Time)
+
+	for {
+		select {
+		case event, ok := <-watcher.Events:
+			if !ok {
+				return
+			}
+			now := time.Now()
+			if now.Sub(interval[event.Name]) < time.Second {
+				continue
+			}
+			interval[event.Name] = now
+			//log.Info("event:", event)
+			if event.Op&fsnotify.Write == fsnotify.Write {
+				log.Info("modified file:", event.Name)
+				if err, changed := cc.handle(handle, true, event.Name); err == nil && changed {
+				} else if err != nil {
+					log.Error("Failed to reload configuration from %v, got error %v\n", files, err)
+				}
+			}
+		case err, ok := <-watcher.Errors:
+			if !ok {
+				return
+			}
+			log.Error("error:", err)
+		}
+	}
 }
