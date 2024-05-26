@@ -85,7 +85,7 @@ func NewEngineWithContext[KEY Key](workerCount uint, ctx context.Context) *Engin
 		taskChan:           make(chan *Task[KEY]),
 		workerReadyList:    list.New[*Worker[KEY]](),
 		taskReadyHeap:      heap.Heap[*Task[KEY], Tasks[KEY]]{},
-		monitorInterval:    time.Second,
+		monitorInterval:    5 * time.Second,
 		done:               cache,
 		errHandler: func(task *Task[KEY]) {
 			log.Error(task.errs)
@@ -120,6 +120,11 @@ func (e *Engine[KEY]) SkipKind(kinds ...Kind) *Engine[KEY] {
 }
 
 func (e *Engine[KEY]) MonitorInterval(interval time.Duration) {
+	if interval < time.Second {
+		log.Warn("monitor interval min one second")
+		interval = time.Second
+	}
+
 	e.monitorInterval = interval
 }
 
