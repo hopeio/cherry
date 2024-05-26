@@ -98,7 +98,6 @@ func injectFlagConfig(commandLine *pflag.FlagSet, viper *viper.Viper, fcValue re
 						log.Fatal(err)
 					}
 				}
-
 				if value, ok := os.LookupEnv(flagTagSettings.Env); ok {
 					err := converter.SetValueByString(fcValue.Field(i), value)
 					if err != nil {
@@ -106,10 +105,12 @@ func injectFlagConfig(commandLine *pflag.FlagSet, viper *viper.Viper, fcValue re
 					}
 				}
 			}
-			// flag设置
-			flag := commandLine.VarPF(anyValue(fieldValue), flagTagSettings.Name, flagTagSettings.Short, flagTagSettings.Usage)
-			if kind == reflect.Bool {
-				flag.NoOptDefVal = "true"
+			if flagTagSettings.Name != "" {
+				// flag设置
+				flag := commandLine.VarPF(anyValue(fieldValue), flagTagSettings.Name, flagTagSettings.Short, flagTagSettings.Usage)
+				if kind == reflect.Bool {
+					flag.NoOptDefVal = "true"
+				}
 			}
 		} else if kind == reflect.Struct {
 			injectFlagConfig(commandLine, viper, fieldValue)

@@ -18,7 +18,7 @@ import (
 type FileConfig struct {
 	// 模块名
 	initconf.BasicConfig
-	EnvConfig *initconf.EnvConfig `init:"fixed"` // field name can be dev,test,prod ... and anything you like
+	EnvConfig *initconf.EnvConfig // field name can be dev,test,prod ... and anything you like
 }
 
 const (

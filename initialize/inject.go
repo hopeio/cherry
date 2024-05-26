@@ -26,12 +26,12 @@ func (gc *globalConfig) UnmarshalAndSet(data []byte) {
 		}*/
 	//gc.ConfigCenter.Format = format
 
-	applyFlagConfig(gc.Viper, tmpConfig)
-
 	err = gc.Viper.Unmarshal(tmpConfig, decoderConfigOptions...)
 	if err != nil {
 		log.Fatal(err)
 	}
+	applyFlagConfig(gc.Viper, tmpConfig)
+
 	gc.inject(tmpConfig)
 	gc.lock.Unlock()
 	log.Debugf("Configuration:  %+v", tmpConfig)
