@@ -38,21 +38,22 @@ func (gc *globalConfig) setEnvConfig() {
 	}
 	format := gc.InitConfig.ConfigCenter.Format
 
-	// template
-	confMap := make(map[string]any)
-	struct2Map(reflect.ValueOf(&gc.InitConfig.BasicConfig).Elem(), confMap)
-	envMap := make(map[string]any)
-	struct2Map(reflect.ValueOf(&gc.InitConfig.EnvConfig).Elem(), envMap)
-	confMap[gc.InitConfig.Env] = envMap
-	ccMap := make(map[string]any)
-	envMap[fixedFieldNameConfigCenter] = ccMap
-	for name, v := range conf_center.GetRegisteredConfigCenter() {
-		cc := make(map[string]any)
-		struct2Map(reflect.ValueOf(v).Elem(), cc)
-		ccMap[name] = cc
-	}
 	defer func() {
 		if gc.InitConfig.EnvConfig.ConfigTemplateDir != "" {
+			// template
+			confMap := make(map[string]any)
+			struct2Map(reflect.ValueOf(&gc.InitConfig.BasicConfig).Elem(), confMap)
+			envMap := make(map[string]any)
+			struct2Map(reflect.ValueOf(&gc.InitConfig.EnvConfig).Elem(), envMap)
+			confMap[gc.InitConfig.Env] = envMap
+			ccMap := make(map[string]any)
+			struct2Map(reflect.ValueOf(&gc.InitConfig.EnvConfig.ConfigCenter).Elem(), ccMap)
+			envMap[fixedFieldNameConfigCenter] = ccMap
+			for name, v := range conf_center.GetRegisteredConfigCenter() {
+				cc := make(map[string]any)
+				struct2Map(reflect.ValueOf(v).Elem(), cc)
+				ccMap[name] = cc
+			}
 			// unsafe
 			encoderRegistry := reflect.ValueOf(gc.Viper).Elem().FieldByName(fixedFieldNameEncoderRegistry).Elem()
 			fieldValue := reflect.NewAt(encoderRegistry.Type(), unsafe.Pointer(encoderRegistry.UnsafeAddr()))

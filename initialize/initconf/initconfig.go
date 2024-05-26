@@ -25,5 +25,5 @@ type EnvConfig struct {
 	Proxy    string `flag:"name:proxy;short:p;default:'socks5://localhost:1080';usage:代理;env:HTTP_PROXY" json:"proxy"`
 	NoInject []string
 	// config字段顺序不能变,ConfigCenter 保持在最后
-	ConfigCenter conf_center.Config `init:"fixed"`
+	ConfigCenter conf_center.Config
 }
