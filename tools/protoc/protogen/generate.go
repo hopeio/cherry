@@ -49,6 +49,26 @@ var gatewayPlugin = []string{gatewayOut, openapiv2Out}
 var validatorOutPlugin = validatorsOut
 var gqlPlugin = []string{gqlOut, gogqlOut}
 
+var rootCmd = &cobra.Command{
+	Use: "protogen",
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		os.MkdirAll(config.genpath, os.ModePerm)
+		if config.useEnumPlugin {
+			plugin = append(plugin, enumPlugin)
+		}
+		if config.useGateWayPlugin {
+			plugin = append(plugin, gatewayPlugin...)
+		}
+		if config.useValidatorOutPlugin {
+			plugin = append(plugin, validatorOutPlugin)
+		}
+		if config.useGqlPlugin {
+			plugin = append(plugin, gqlPlugin...)
+		}
+		getInclude()
+	},
+}
+
 func init() {
 	protodef, _ := filepath.Abs("/proto")
 	pwd, _ := os.Getwd()
@@ -88,26 +108,6 @@ func init() {
 		},
 	})
 
-}
-
-var rootCmd = &cobra.Command{
-	Use: "protogen",
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		os.MkdirAll(config.genpath, os.ModePerm)
-		if config.useEnumPlugin {
-			plugin = append(plugin, enumPlugin)
-		}
-		if config.useGateWayPlugin {
-			plugin = append(plugin, gatewayPlugin...)
-		}
-		if config.useValidatorOutPlugin {
-			plugin = append(plugin, validatorOutPlugin)
-		}
-		if config.useGqlPlugin {
-			plugin = append(plugin, gqlPlugin...)
-		}
-		getInclude()
-	},
 }
 
 func main() {
