@@ -2,9 +2,9 @@ package gormdb
 
 import (
 	"github.com/hopeio/cherry/initialize/initconf"
-	dbi "github.com/hopeio/cherry/utils/dao/db"
-	gormi "github.com/hopeio/cherry/utils/dao/db/gorm"
-	loggeri "github.com/hopeio/cherry/utils/dao/db/gorm/logger"
+	dbi "github.com/hopeio/cherry/utils/dao/database"
+	gormi "github.com/hopeio/cherry/utils/dao/database/gorm"
+	loggeri "github.com/hopeio/cherry/utils/dao/database/gorm/logger"
 	"github.com/hopeio/cherry/utils/log"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"

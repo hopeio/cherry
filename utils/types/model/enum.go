@@ -1,6 +1,6 @@
 package model
 
-import "github.com/hopeio/cherry/utils/dao/db/datatypes"
+import "github.com/hopeio/cherry/utils/dao/database/datatypes"
 
 type Enum struct {
 	ID      int    `gorm:"primaryKey"`

@@ -6,24 +6,25 @@ import (
 	"net/url"
 )
 
-type TalkHook dingding.DingRobotConfig
+type DingDing dingding.RobotConfig
 
-func (th *TalkHook) Write(b []byte) (n int, err error) {
+// TODO
+func (th *DingDing) Write(b []byte) (n int, err error) {
 	return
 }
 
-func (th *TalkHook) Sync() error {
+func (th *DingDing) Sync() error {
 	return nil
 }
 
-func (th *TalkHook) Close() error {
+func (th *DingDing) Close() error {
 	return nil
 }
 
 // dingding://${token}?sercret=${sercret}
 func RegisterSink() {
 	_ = zap.RegisterSink("dingding", func(url *url.URL) (sink zap.Sink, e error) {
-		th := new(TalkHook)
+		th := new(DingDing)
 		return th, nil
 	})
 }

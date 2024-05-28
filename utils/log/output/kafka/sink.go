@@ -9,7 +9,7 @@ import (
 // kafka://${token}?sercret=${sercret}
 func RegisterSink() {
 	_ = zap.RegisterSink("kafka", func(url *url.URL) (sink zap.Sink, e error) {
-		kl := new(LogKafka)
+		kl := new(Kafka)
 		kl.Topic = url.Query().Get("topic")
 		// 设置日志输入到Kafka的配置
 		config := sarama.NewConfig()
@@ -25,12 +25,12 @@ func RegisterSink() {
 	})
 }
 
-type LogKafka struct {
+type Kafka struct {
 	Producer sarama.SyncProducer
 	Topic    string
 }
 
-func (lk *LogKafka) Write(b []byte) (n int, err error) {
+func (lk *Kafka) Write(b []byte) (n int, err error) {
 	msg := &sarama.ProducerMessage{}
 	msg.Topic = lk.Topic
 	msg.Value = sarama.ByteEncoder(b)
@@ -41,10 +41,10 @@ func (lk *LogKafka) Write(b []byte) (n int, err error) {
 	return
 }
 
-func (lk *LogKafka) Sync() error {
+func (lk *Kafka) Sync() error {
 	return nil
 }
 
-func (lk *LogKafka) Close() error {
+func (lk *Kafka) Close() error {
 	return lk.Producer.Close()
 }

@@ -87,3 +87,7 @@ func (a *Result[T]) UnmarshalJSON(data []byte) error {
 	}
 	return json.Unmarshal(data, &a.value)
 }
+
+func ResultVal[T any](v T, err error) T {
+	return v
+}

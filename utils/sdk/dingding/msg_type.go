@@ -8,7 +8,7 @@ const (
 	MsgTypeMarkdownAtTmpl = `{"msgtype":"markdown","markdown":{"title":"%s","text":"%s"},"at":{"isAtAll": false, "atMobiles":[]}}`
 )
 
-type DingRobotConfig struct {
+type RobotConfig struct {
 	Token  string
 	Secret string
 }

@@ -9,7 +9,7 @@ import (
 
 func NewCore(token, secret string, level zapcore.Level) zapcore.Core {
 	return &core{
-		DingRobotConfig: dingding.DingRobotConfig{
+		RobotConfig: dingding.RobotConfig{
 			Token:  token,
 			Secret: secret,
 		},
@@ -18,7 +18,7 @@ func NewCore(token, secret string, level zapcore.Level) zapcore.Core {
 }
 
 type core struct {
-	dingding.DingRobotConfig
+	dingding.RobotConfig
 	zapcore.Level
 	fields []zapcore.Field
 }

@@ -30,13 +30,8 @@ func RegisterSink() {
 	})
 	_ = zap.RegisterSink("http", func(url *url.URL) (sink zap.Sink, e error) {
 		s := new(httpSink)
-		s.req, _ = http.NewRequest(http.MethodPost, url.Host+url.Path, nil)
-		return s, nil
-	})
-	_ = zap.RegisterSink("https", func(url *url.URL) (sink zap.Sink, e error) {
-		s := new(httpSink)
-		s.req, _ = http.NewRequest(http.MethodPost, url.Host+url.Path, nil)
-		return s, nil
+		s.req, e = http.NewRequest(http.MethodPost, url.String(), nil)
+		return s, e
 	})
 	// TODO
 	_ = zap.RegisterSink("socket", func(url *url.URL) (sink zap.Sink, e error) {

@@ -10,7 +10,6 @@ func TestDingDing(t *testing.T) {
 
 	log.SetDefaultLogger(&log.Config{
 		Development: false,
-		Caller:      true,
 		Level:       zapcore.DebugLevel,
 		OutputPaths: log.OutPutPaths{},
 		Name:        "",
