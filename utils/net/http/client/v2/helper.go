@@ -2,7 +2,7 @@ package client
 
 import "github.com/hopeio/cherry/utils/net/http/client"
 
-func SimpleGet[RES any](url string) (*RES, error) {
+func DoGet[RES any](url string) (*RES, error) {
 	return NewGetRequest[RES](url).Do(nil)
 }
 

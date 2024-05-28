@@ -131,22 +131,6 @@ func DefaultHeaderRequest() *Request {
 	return req
 }
 
-func NewGetRequest(url string) *Request {
-	return newRequest(url, http.MethodGet)
-}
-
-func NewPostRequest(url string) *Request {
-	return newRequest(url, http.MethodPost)
-}
-
-func NewPutRequest(url string) *Request {
-	return newRequest(url, http.MethodPut)
-}
-
-func NewDeleteRequest(url string) *Request {
-	return newRequest(url, http.MethodDelete)
-}
-
 func (req *Request) Context(ctx context.Context) *Request {
 	req.ctx = ctx
 	return req

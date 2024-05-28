@@ -56,8 +56,8 @@ type globalConfig struct {
 
 	/*
 		cacheConf      any*/
-
-	deferFuncs  []func()
+	editTimes   uint32
+	defers      []func()
 	initialized bool
 	lock        sync.RWMutex
 }
@@ -80,8 +80,8 @@ func Start(conf Config, dao Dao, configCenter ...conf_center.ConfigCenter) func(
 	gConfig.initialized = true
 	return func() {
 		// 倒序调用defer
-		for i := len(gConfig.deferFuncs) - 1; i > 0; i-- {
-			gConfig.deferFuncs[i]()
+		for i := len(gConfig.defers) - 1; i > 0; i-- {
+			gConfig.defers[i]()
 		}
 	}
 }
@@ -89,11 +89,11 @@ func Start(conf Config, dao Dao, configCenter ...conf_center.ConfigCenter) func(
 func (gc *globalConfig) setConfDao(conf Config, dao Dao) {
 	gc.conf = conf
 	gc.dao = dao
-	gc.deferFuncs = append(gc.deferFuncs, func() {
+	gc.defers = append(gc.defers, func() {
 		log.Sync()
 	})
 	if dao != nil {
-		gc.deferFuncs = append(gc.deferFuncs, func() {
+		gc.defers = append(gc.defers, func() {
 			closeDao(dao)
 		})
 	}
@@ -169,13 +169,13 @@ func (gc *globalConfig) loadConfig() {
 func (gc *globalConfig) DeferFunc(deferf ...func()) {
 	gc.lock.Lock()
 	defer gc.lock.Unlock()
-	gc.deferFuncs = append(gc.deferFuncs, deferf...)
+	gc.defers = append(gc.defers, deferf...)
 }
 
 func RegisterDeferFunc(deferf ...func()) {
 	gConfig.lock.Lock()
 	defer gConfig.lock.Unlock()
-	gConfig.deferFuncs = append(gConfig.deferFuncs, deferf...)
+	gConfig.defers = append(gConfig.defers, deferf...)
 }
 
 func (gc *globalConfig) Config() Config {

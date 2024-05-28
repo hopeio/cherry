@@ -13,7 +13,12 @@ func (gc *globalConfig) UnmarshalAndSet(data []byte) {
 	gc.lock.Lock()
 	err := gc.Viper.MergeConfig(bytes.NewReader(data))
 	if err != nil {
-		log.Fatal(err)
+		if gc.editTimes == 0 {
+			log.Fatal(err)
+		} else {
+			log.Error(err)
+			return
+		}
 	}
 	/*	tmpConfig := gc.cacheConf
 		if tmpConfig == nil {
@@ -28,11 +33,17 @@ func (gc *globalConfig) UnmarshalAndSet(data []byte) {
 
 	err = gc.Viper.Unmarshal(tmpConfig, decoderConfigOptions...)
 	if err != nil {
-		log.Fatal(err)
+		if gc.editTimes == 0 {
+			log.Fatal(err)
+		} else {
+			log.Error(err)
+			return
+		}
 	}
 	applyFlagConfig(gc.Viper, tmpConfig)
 
 	gc.inject(tmpConfig)
+	gc.editTimes++
 	gc.lock.Unlock()
 	log.Debugf("Configuration:  %+v", tmpConfig)
 }
