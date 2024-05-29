@@ -1,5 +1,7 @@
 package postgres
 
+import "github.com/hopeio/cherry/utils/dao/database"
+
 const (
 	ZeroTimeUCT     = "0001-01-01 00:00:00"
 	ZeroTimeUCTZone = ZeroTimeUCT + "+00:00:00"
@@ -8,8 +10,8 @@ const (
 )
 
 const (
-	NotDeletedUCT = dbi.ColumnDeletedAt + " = '" + ZeroTimeUCT + "'"
-	NotDeletedCST = dbi.ColumnDeletedAt + " = '" + ZeroTimeCST + "'"
+	NotDeletedUCT = database.ColumnDeletedAt + " = '" + ZeroTimeUCT + "'"
+	NotDeletedCST = database.ColumnDeletedAt + " = '" + ZeroTimeCST + "'"
 )
 
 const (
