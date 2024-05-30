@@ -85,3 +85,9 @@ func Green(s string) string {
 func Yellow(s string) string {
 	return colorize(ColorYellow, s)
 }
+
+func Custom(begin, end any) func(text string) string {
+	return func(text string) string {
+		return fmt.Sprintf("\x1b[%vm%s\x1b[%vm", begin, text, end)
+	}
+}
