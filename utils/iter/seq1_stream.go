@@ -3,7 +3,7 @@
 package iter
 
 import (
-	iteri "github.com/hopeio/cherry/utils/iter"
+	iteri "github.com/hopeio/cherry/utils/iter/pull"
 	"iter"
 )
 

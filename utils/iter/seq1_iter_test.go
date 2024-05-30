@@ -8,16 +8,16 @@ import (
 
 func TestIter(t *testing.T) {
 	s := []int{1, 2, 3, 4, 5, 6}
-	seq := SliceSeqOf(s)
+	seq := SliceAll(s)
 	t.Log(First[int](iter.Seq[int](seq)))
 	for v := range seq {
 		t.Log(v)
 	}
-	assert.Equal(t, true, SliceSeqOf(s).IsSorted(func(i int, i2 int) bool {
+	assert.Equal(t, true, SliceAll(s).IsSorted(func(i int, i2 int) bool {
 		return i < i2
 	}))
 	var count int
-	SliceSeqOf(s).Filter(func(i int) bool {
+	SliceAll(s).Filter(func(i int) bool {
 		return i%2 == 0
 	}).Map(func(i int) int {
 		return i + 10
@@ -31,7 +31,7 @@ func TestIter(t *testing.T) {
 
 func TestDistinct(t *testing.T) {
 	s := []int{1, 2, 2, 5, 5, 6, 5}
-	seq := Distinct(iter.Seq[int](SliceSeqOf(s)), func(i int) int {
+	seq := Distinct(iter.Seq[int](SliceAll(s)), func(i int) int {
 		return i
 	})
 	var times int
@@ -44,7 +44,7 @@ func TestDistinct(t *testing.T) {
 		}
 		t.Log(v)
 	}
-	SliceSeqOf(s).Distinct(func(i int) int {
+	SliceAll(s).Distinct(func(i int) int {
 		return i
 	}).ForEach(func(i int) {
 		t.Log(i)
