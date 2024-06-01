@@ -65,10 +65,13 @@ type globalConfig struct {
 }
 
 func Start(conf Config, dao Dao, configCenter ...conf_center.ConfigCenter) func() {
+	if gConfig.initialized {
+		return func() {}
+	}
+
 	if reflect.ValueOf(conf).IsNil() {
 		log.Fatalf("初始化错误: 配置不能为空")
 	}
-	gConfig.initialized = false
 
 	// 为支持自定义配置中心,并且遵循依赖最小化原则,配置中心改为可插拔的,考虑将配置序列话也照此重做
 	// 注册配置中心,默认注册本地文件
@@ -85,18 +88,18 @@ func Start(conf Config, dao Dao, configCenter ...conf_center.ConfigCenter) func(
 		for i := len(gConfig.defers) - 1; i > 0; i-- {
 			gConfig.defers[i]()
 		}
+		log.Sync()
 	}
 }
 
 func (gc *globalConfig) setConfDao(conf Config, dao Dao) {
 	gc.conf = conf
 	gc.dao = dao
-	gc.defers = append(gc.defers, func() {
-		log.Sync()
-	})
 	if dao != nil {
 		gc.defers = append(gc.defers, func() {
-			closeDao(dao)
+			if err := closeDao(dao); err != nil {
+				log.Errorf("close dao error: %v", err)
+			}
 		})
 	}
 
@@ -167,7 +170,7 @@ func (gc *globalConfig) loadConfig() {
 	if c, ok := gc.conf.(InitBeforeInjectWithInitConfig); ok {
 		c.InitBeforeInjectWithInitConfig(&gc.InitConfig)
 	}
-	if !gc.initialized && gc.dao != nil {
+	if gc.dao != nil {
 		gc.dao.InitBeforeInject()
 		if c, ok := gc.dao.(InitBeforeInjectWithInitConfig); ok {
 			c.InitBeforeInjectWithInitConfig(&gc.InitConfig)
@@ -196,20 +199,6 @@ func RegisterDeferFunc(deferf ...func()) {
 	gConfig.defers = append(gConfig.defers, deferf...)
 }
 
-func (gc *globalConfig) Config() Config {
-	return gc.conf
-}
-
-func (gc *globalConfig) closeDao() {
-	if !gc.initialized || gc.dao == nil {
-		return
-	}
-	err := closeDao(gc.dao)
-	if err != nil {
-		log.Error(err)
-	}
-}
-
 func closeDao(dao Dao) error {
 	var errs multierr.MultiError
 	daoValue := reflect.ValueOf(dao).Elem()
@@ -234,36 +223,4 @@ func closeDao(dao Dao) error {
 		return &errs
 	}
 	return nil
-}
-
-func GetConfig[T any]() *T {
-	gConfig.lock.RLock()
-	defer gConfig.lock.RUnlock()
-	if gConfig.initialized == false {
-		log.Fatalf("配置未初始化")
-	}
-	conf := gConfig.conf
-	value := reflect.ValueOf(conf).Elem()
-	for i := 0; i < value.NumField(); i++ {
-		if conf, ok := value.Field(i).Interface().(T); ok {
-			return &conf
-		}
-	}
-	return new(T)
-}
-
-func GetDao[T any]() *T {
-	gConfig.lock.RLock()
-	defer gConfig.lock.RUnlock()
-	if gConfig.initialized == false {
-		log.Fatalf("配置未初始化")
-	}
-	dao := gConfig.dao
-	value := reflect.ValueOf(dao).Elem()
-	for i := 0; i < value.NumField(); i++ {
-		if dao, ok := value.Field(i).Interface().(T); ok {
-			return &dao
-		}
-	}
-	return new(T)
 }

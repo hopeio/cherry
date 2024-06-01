@@ -22,8 +22,12 @@ func formatDecoderConfigOption(format encoding.Format) []viper.DecoderConfigOpti
 	})
 }
 
+func struct2Map(v any, confMap map[string]any) {
+	structValue2Map(reflect.ValueOf(v).Elem(), confMap)
+}
+
 // 递归的根据反射将对象中的指针变量赋值
-func struct2Map(value reflect.Value, confMap map[string]any) {
+func structValue2Map(value reflect.Value, confMap map[string]any) {
 	typ := value.Type()
 	for i := 0; i < value.NumField(); i++ {
 		field := value.Field(i)
@@ -61,7 +65,7 @@ func struct2Map(value reflect.Value, confMap map[string]any) {
 					continue
 				}
 				if opt == "squash" || fieldType.Anonymous {
-					struct2Map(newValue, confMap)
+					structValue2Map(newValue, confMap)
 				} else {
 					tagSettings := ParseInitTagSettings(fieldType.Tag.Get(initTagName))
 					if tagSettings.ConfigName != "" {
@@ -69,7 +73,7 @@ func struct2Map(value reflect.Value, confMap map[string]any) {
 					}
 					newconfMap := make(map[string]any)
 					confMap[name] = newconfMap
-					struct2Map(newValue, newconfMap)
+					structValue2Map(newValue, newconfMap)
 					if len(newconfMap) == 0 {
 						delete(confMap, name)
 					}

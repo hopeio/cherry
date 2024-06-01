@@ -23,18 +23,19 @@ func (gc *globalConfig) genConfigTemplate(singleTemplateFileConfig bool) {
 	confMap := make(map[string]any)
 	if singleTemplateFileConfig {
 		filename = prefixConfigTemplate + string(format)
-		struct2Map(reflect.ValueOf(&gc.InitConfig.BasicConfig).Elem(), confMap)
-		struct2Map(reflect.ValueOf(&gc.InitConfig.EnvConfig).Elem(), confMap)
+		struct2Map(&gc.InitConfig.BasicConfig, confMap)
+		delete(confMap, fixedFieldNameEnv)
+		struct2Map(&gc.InitConfig.EnvConfig, confMap)
 		delete(confMap, fixedFieldNameConfigCenter)
 	}
-	struct2Map(reflect.ValueOf(gc.conf).Elem(), confMap)
+	struct2Map(gc.conf, confMap)
 	if gc.dao != nil {
-		daoConfigTemplateMap(format, reflect.ValueOf(gc.dao).Elem(), confMap)
+		daoConfig2Map(reflect.ValueOf(gc.dao).Elem(), confMap)
 	}
 
 	encoderRegistry := reflect.ValueOf(gc.Viper).Elem().FieldByName(fixedFieldNameEncoderRegistry).Elem()
 	fieldValue := reflect.NewAt(encoderRegistry.Type(), unsafe.Pointer(encoderRegistry.UnsafeAddr()))
-	data, err := fieldValue.Interface().(Encoder).Encode(string(format), confMap)
+	data, err := fieldValue.Interface().(Encoder).Encode(format, confMap)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -45,24 +46,21 @@ func (gc *globalConfig) genConfigTemplate(singleTemplateFileConfig bool) {
 	}
 }
 
-func daoConfigTemplateMap(format string, value reflect.Value, confMap map[string]any) {
+func daoConfig2Map(value reflect.Value, confMap map[string]any) {
 	typ := value.Type()
 	for i := 0; i < value.NumField(); i++ {
 		field := value.Field(i)
 		if field.Addr().Type().Implements(DaoFieldType) {
 			newconfMap := make(map[string]any)
 			fieldType := typ.Field(i)
-			name := fieldType.Tag.Get(format)
-			if name == "" {
-				name = fieldType.Name
-				tagSettings := ParseInitTagSettings(fieldType.Tag.Get(initTagName))
-				if tagSettings.ConfigName != "" {
-					name = stringsi.UpperCaseFirst(tagSettings.ConfigName)
-				}
+			name := fieldType.Name
+			tagSettings := ParseInitTagSettings(fieldType.Tag.Get(initTagName))
+			if tagSettings.ConfigName != "" {
+				name = stringsi.UpperCaseFirst(tagSettings.ConfigName)
 			}
 
 			confMap[name] = newconfMap
-			struct2Map(reflect.ValueOf(field.Addr().Interface().(DaoField).Config()).Elem(), newconfMap)
+			struct2Map(field.Addr().Interface().(DaoField).Config(), newconfMap)
 		}
 	}
 }

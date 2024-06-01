@@ -2,6 +2,7 @@ package initialize
 
 import (
 	"bytes"
+	"errors"
 	"github.com/hopeio/cherry/utils/log"
 	"github.com/hopeio/cherry/utils/slices"
 	stringsi "github.com/hopeio/cherry/utils/strings"
@@ -37,7 +38,7 @@ func (gc *globalConfig) UnmarshalAndSet(data []byte) {
 	gc.inject(tmpConfig)
 	gc.editTimes++
 	gc.lock.Unlock()
-	log.Debugf("Configuration:  %+v", tmpConfig)
+	log.Debugf("config:  %+v", tmpConfig)
 }
 
 func (gc *globalConfig) newStruct() any {
@@ -122,7 +123,7 @@ func (gc *globalConfig) newStruct() any {
 		nameValueMap[name] = field
 	}
 	// 不进行二次注入,无法确定业务中是否仍然使用,除非每次加锁,或者说每次业务中都交给一个零时变量?需要规范去控制
-	if !gc.initialized && gc.dao != nil {
+	if gc.dao != nil {
 
 		daoValue := reflect.ValueOf(gc.dao).Elem()
 		daoType := daoValue.Type()
@@ -200,7 +201,7 @@ func (gc *globalConfig) inject(tmpConfig any) {
 	if c, ok := gc.conf.(InitAfterInjectWithInitConfig); ok {
 		c.InitAfterInjectWithInitConfig(&gc.InitConfig)
 	}
-	if !gc.initialized && gc.dao != nil {
+	if gc.dao != nil {
 		gc.dao.InitAfterInjectConfig()
 		if c, ok := gc.conf.(InitAfterInjectConfigWithInitConfig); ok {
 			c.InitAfterInjectConfigWithInitConfig(&gc.InitConfig)
@@ -260,4 +261,24 @@ func (gc *globalConfig) injectDao() {
 	if c, ok := gc.dao.(InitAfterInjectWithInitConfig); ok {
 		c.InitAfterInjectWithInitConfig(&gc.InitConfig)
 	}
+}
+
+// 当初始化完成后,仍然有需要注入的config和dao
+func (gc *globalConfig) Inject(conf Config, dao Dao) error {
+	if !gc.initialized {
+		return errors.New("not initialize, please call Start")
+	}
+	gc.setConfDao(conf, dao)
+	gc.conf.InitBeforeInject()
+	if c, ok := gc.conf.(InitBeforeInjectWithInitConfig); ok {
+		c.InitBeforeInjectWithInitConfig(&gc.InitConfig)
+	}
+	if gc.dao != nil {
+		gc.dao.InitBeforeInject()
+		if c, ok := gc.dao.(InitBeforeInjectWithInitConfig); ok {
+			c.InitBeforeInjectWithInitConfig(&gc.InitConfig)
+		}
+	}
+	cfgcenter := gc.InitConfig.ConfigCenter.ConfigCenter
+	return cfgcenter.HandleConfig(gc.UnmarshalAndSet)
 }

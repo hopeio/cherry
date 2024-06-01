@@ -26,6 +26,7 @@ const (
 	fixedFieldNameEnvConfig       = "EnvConfig"
 	fixedFieldNameBasicConfig     = "BasicConfig"
 	fixedFieldNameConfigCenter    = "ConfigCenter"
+	fixedFieldNameEnv             = "Env"
 	fixedFieldNameEncoderRegistry = "encoderRegistry"
 	prefixConfigTemplate          = "config.template."
 	prefixLocalTemplate           = "local.template."
@@ -43,16 +44,16 @@ func (gc *globalConfig) setEnvConfig() {
 		if gc.InitConfig.EnvConfig.ConfigTemplateDir != "" {
 			// template
 			confMap := make(map[string]any)
-			struct2Map(reflect.ValueOf(&gc.InitConfig.BasicConfig).Elem(), confMap)
+			struct2Map(&gc.InitConfig.BasicConfig, confMap)
 			envMap := make(map[string]any)
-			struct2Map(reflect.ValueOf(&gc.InitConfig.EnvConfig).Elem(), envMap)
+			struct2Map(&gc.InitConfig.EnvConfig, envMap)
 			confMap[gc.InitConfig.Env] = envMap
 			ccMap := make(map[string]any)
-			struct2Map(reflect.ValueOf(&gc.InitConfig.EnvConfig.ConfigCenter).Elem(), ccMap)
+			struct2Map(&gc.InitConfig.EnvConfig.ConfigCenter, ccMap)
 			envMap[fixedFieldNameConfigCenter] = ccMap
 			for name, v := range conf_center.GetRegisteredConfigCenter() {
 				cc := make(map[string]any)
-				struct2Map(reflect.ValueOf(v).Elem(), cc)
+				struct2Map(v, cc)
 				ccMap[name] = cc
 			}
 			// unsafe

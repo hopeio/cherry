@@ -169,3 +169,13 @@ func InitStruct(v reflect.Value) {
 		}
 	}
 }
+
+func GetSubField[T any](v any) *T {
+	value := reflect.ValueOf(v).Elem()
+	for i := 0; i < value.NumField(); i++ {
+		if dao, ok := value.Field(i).Interface().(T); ok {
+			return &dao
+		}
+	}
+	return new(T)
+}
