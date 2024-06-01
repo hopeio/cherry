@@ -70,7 +70,7 @@ func (a anyValue) Set(v string) error {
 
 func injectFlagConfig(commandLine *pflag.FlagSet, viper *viper.Viper, fcValue reflect.Value) {
 	fcValue = reflecti.DerefValue(fcValue)
-	if !fcValue.IsValid() || fcValue.IsZero() {
+	if !fcValue.IsValid() {
 		return
 	}
 	fcTyp := fcValue.Type()

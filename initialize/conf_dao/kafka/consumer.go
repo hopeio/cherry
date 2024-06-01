@@ -34,7 +34,7 @@ func (c *Consumer) Config() any {
 	return &c.Conf
 }
 
-func (c *Consumer) SetEntity() {
+func (c *Consumer) Set() {
 	c.Consumer = c.Conf.Build()
 }
 

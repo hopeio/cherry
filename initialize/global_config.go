@@ -4,11 +4,13 @@ import (
 	"github.com/hopeio/cherry/initialize/conf_center"
 	"github.com/hopeio/cherry/initialize/conf_center/local"
 	"github.com/hopeio/cherry/initialize/initconf"
-	"github.com/hopeio/cherry/utils/encoding"
 	"github.com/hopeio/cherry/utils/errors/multierr"
+	"github.com/hopeio/cherry/utils/io/fs"
+	"github.com/hopeio/cherry/utils/slices"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 	"path"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"sync"
@@ -20,7 +22,7 @@ import (
 var (
 	gConfig = &globalConfig{
 		InitConfig: initconf.InitConfig{
-			ConfUrl:   "./config.toml",
+			ConfUrl:   "",
 			EnvConfig: initconf.EnvConfig{Debug: true},
 		},
 
@@ -100,32 +102,48 @@ func (gc *globalConfig) setConfDao(conf Config, dao Dao) {
 
 }
 
-func (gc *globalConfig) loadConfig() {
-	log.Infof("Load config from: %s\n", gc.InitConfig.ConfUrl)
-	/*	if _, err := os.Stat(gc.ConfUrl); os.IsNotExist(err) {
-		log.Fatalf("配置路径错误: 请确保可执行文件和配置文件在同一目录下或在config目录下或指定配置文件")
-	}*/
-	/*	data, err := os.ReadFile(gc.ConfUrl)
-		if err != nil {
-			log.Fatalf("读取配置错误: %v", err)
-		}*/
+const defaultConfigName = "config"
 
-	format := encoding.Format(path.Ext(gc.InitConfig.ConfUrl))
-	if format != "" {
-		// remove .
-		format = format[1:]
-		if format == encoding.Yml {
-			format = encoding.Yaml
+func (gc *globalConfig) loadConfig() {
+	gc.Viper.AutomaticEnv()
+	var format string
+	// find config
+	if gc.InitConfig.ConfUrl == "" {
+		log.Debug("searching for config in .")
+		for _, ext := range viper.SupportedExts {
+			filePath := filepath.Join(".", defaultConfigName+"."+ext)
+			if b := fs.Exist(filePath); b {
+				log.Debug("found file", "file", filePath)
+				gc.InitConfig.ConfUrl = filePath
+				format = ext
+				break
+			}
 		}
 	}
-	gc.Viper.SetConfigType(string(format))
-	gc.Viper.SetConfigFile(gc.InitConfig.ConfUrl)
-	gc.Viper.AutomaticEnv()
-	err := gc.Viper.ReadInConfig()
-	if err != nil {
-		log.Fatal(err)
+	if gc.InitConfig.ConfUrl != "" {
+		log.Infof("Load config from: %s\n", gc.InitConfig.ConfUrl)
+		if format == "" {
+			format = path.Ext(gc.InitConfig.ConfUrl)
+			if format != "" {
+				// remove .
+				format = format[1:]
+				if !slices.Contains(viper.SupportedExts, format) {
+					log.Fatalf("unsupport config format, support: %v", viper.SupportedExts)
+				}
+			} else {
+				log.Fatalf("config path need format ext, support: %v", viper.SupportedExts)
+			}
+		}
+
+		gc.InitConfig.ConfigCenter.Format = format
+		gc.Viper.SetConfigType(format)
+		gc.Viper.SetConfigFile(gc.InitConfig.ConfUrl)
+		err := gc.Viper.ReadInConfig()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
-	gc.InitConfig.ConfigCenter.Format = format
+
 	gc.setBasicConfig()
 	gc.setEnvConfig()
 	for i := range gc.InitConfig.NoInject {
@@ -159,7 +177,7 @@ func (gc *globalConfig) loadConfig() {
 	gc.genConfigTemplate(singleTemplateFileConfig)
 
 	cfgcenter := gc.InitConfig.ConfigCenter.ConfigCenter
-	err = cfgcenter.HandleConfig(gc.UnmarshalAndSet)
+	err := cfgcenter.HandleConfig(gc.UnmarshalAndSet)
 	if err != nil {
 		log.Fatalf("配置错误: %v", err)
 	}

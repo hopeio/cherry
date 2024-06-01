@@ -51,65 +51,65 @@ func (l *Logger) AddSkip(skip int) *Logger {
 	return &Logger{l.Logger.WithOptions(zap.AddCallerSkip(skip))}
 }
 
-func (l *Logger) Printf(template string, args ...interface{}) {
+func (l *Logger) Printf(template string, args ...any) {
 	if ce := l.Check(zap.InfoLevel, fmt.Sprintf(template, args...)); ce != nil {
 		ce.Write()
 	}
 }
 
 // 兼容gormv1
-func (l *Logger) Print(args ...interface{}) {
-	if ce := l.Check(zap.InfoLevel, fmt.Sprint(args...)); ce != nil {
+func (l *Logger) Print(args ...any) {
+	if ce := l.Check(zap.InfoLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
 		ce.Write()
 	}
 }
 
 // Debug uses fmt.Sprint to construct and log a message.
-func (l *Logger) Debug(args ...interface{}) {
-	if ce := l.Check(zap.DebugLevel, fmt.Sprint(args...)); ce != nil {
+func (l *Logger) Debug(args ...any) {
+	if ce := l.Check(zap.DebugLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
 		ce.Write()
 	}
 }
 
 // Info uses fmt.Sprint to construct and log a message.
-func (l *Logger) Info(args ...interface{}) {
-	if ce := l.Check(zap.InfoLevel, fmt.Sprint(args...)); ce != nil {
+func (l *Logger) Info(args ...any) {
+	if ce := l.Check(zap.InfoLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
 		ce.Write()
 	}
 }
 
 // Warn uses fmt.Sprint to construct and log a message.
-func (l *Logger) Warn(args ...interface{}) {
-	if ce := l.Check(zap.WarnLevel, fmt.Sprint(args...)); ce != nil {
+func (l *Logger) Warn(args ...any) {
+	if ce := l.Check(zap.WarnLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
 		ce.Write()
 	}
 }
 
 // Error uses fmt.Sprint to construct and log a message.
-func (l *Logger) Error(args ...interface{}) {
-	if ce := l.Check(zap.ErrorLevel, fmt.Sprint(args...)); ce != nil {
+func (l *Logger) Error(args ...any) {
+	if ce := l.Check(zap.ErrorLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
 		ce.Write()
 	}
 }
 
 // DPanic uses fmt.Sprint to construct and log a message. In development, the
 // logger then panics. (See DPanicLevel for details.)
-func (l *Logger) DPanic(args ...interface{}) {
-	if ce := l.Check(zap.DPanicLevel, fmt.Sprint(args...)); ce != nil {
+func (l *Logger) DPanic(args ...any) {
+	if ce := l.Check(zap.DPanicLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
 		ce.Write()
 	}
 }
 
 // Panic uses fmt.Sprint to construct and log a message, then panics.
-func (l *Logger) Panic(args ...interface{}) {
-	if ce := l.Check(zap.PanicLevel, fmt.Sprint(args...)); ce != nil {
+func (l *Logger) Panic(args ...any) {
+	if ce := l.Check(zap.PanicLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
 		ce.Write()
 	}
 }
 
 // Fatal uses fmt.Sprint to construct and log a message, then calls os.Exit.
-func (l *Logger) Fatal(args ...interface{}) {
-	if ce := l.Check(zap.FatalLevel, fmt.Sprint(args...)); ce != nil {
+func (l *Logger) Fatal(args ...any) {
+	if ce := l.Check(zap.FatalLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
 		ce.Write()
 	}
 }
@@ -180,28 +180,35 @@ func (l *Logger) Fatalw(msg string, fields ...zap.Field) {
 }
 
 // Debugf uses fmt.Sprintf to log a templated message.
-func (l *Logger) Debugf(template string, args ...interface{}) {
+func (l *Logger) Debugf(template string, args ...any) {
 	if ce := l.Check(zap.DebugLevel, fmt.Sprintf(template, args...)); ce != nil {
 		ce.Write()
 	}
 }
 
 // Infof uses fmt.Sprintf to log a templated message.
-func (l *Logger) Infof(template string, args ...interface{}) {
+func (l *Logger) Infof(template string, args ...any) {
 	if ce := l.Check(zap.InfoLevel, fmt.Sprintf(template, args...)); ce != nil {
 		ce.Write()
 	}
 }
 
 // Warnf uses fmt.Sprintf to log a templated message.
-func (l *Logger) Warnf(template string, args ...interface{}) {
+func (l *Logger) Warnf(template string, args ...any) {
+	if ce := l.Check(zap.WarnLevel, fmt.Sprintf(template, args...)); ce != nil {
+		ce.Write()
+	}
+}
+
+// grpclog
+func (l *Logger) Warningf(template string, args ...any) {
 	if ce := l.Check(zap.WarnLevel, fmt.Sprintf(template, args...)); ce != nil {
 		ce.Write()
 	}
 }
 
 // Errorf uses fmt.Sprintf to log a templated message.
-func (l *Logger) Errorf(template string, args ...interface{}) {
+func (l *Logger) Errorf(template string, args ...any) {
 	if ce := l.Check(zap.ErrorLevel, fmt.Sprintf(template, args...)); ce != nil {
 		ce.Write()
 	}
@@ -209,65 +216,53 @@ func (l *Logger) Errorf(template string, args ...interface{}) {
 
 // DPanicf uses fmt.Sprintf to log a templated message. In development, the
 // logger then panics. (See DPanicLevel for details.)
-func (l *Logger) DPanicf(template string, args ...interface{}) {
+func (l *Logger) DPanicf(template string, args ...any) {
 	if ce := l.Check(zap.DPanicLevel, fmt.Sprintf(template, args...)); ce != nil {
 		ce.Write()
 	}
 }
 
 // Panicf uses fmt.Sprintf to log a templated message, then panics.
-func (l *Logger) Panicf(template string, args ...interface{}) {
+func (l *Logger) Panicf(template string, args ...any) {
 	if ce := l.Check(zap.PanicLevel, fmt.Sprintf(template, args...)); ce != nil {
 		ce.Write()
 	}
 }
 
 // Fatalf uses fmt.Sprintf to log a templated message, then calls os.Exit.
-func (l *Logger) Fatalf(template string, args ...interface{}) {
+func (l *Logger) Fatalf(template string, args ...any) {
 	if ce := l.Check(zap.FatalLevel, fmt.Sprintf(template, args...)); ce != nil {
 		ce.Write()
 	}
 }
 
-// 兼容grpclog
-func (l *Logger) Infoln(args ...interface{}) {
+func (l *Logger) Println(args ...any) {
 	if ce := l.Check(zap.InfoLevel, fmt.Sprint(args...)); ce != nil {
 		ce.Write()
 	}
 }
 
-func (l *Logger) Warning(args ...interface{}) {
+// // 等同于xxxln,为了实现某些接口 如grpclog
+func (l *Logger) Infoln(args ...any) {
+	if ce := l.Check(zap.InfoLevel, fmt.Sprint(args...)); ce != nil {
+		ce.Write()
+	}
+}
+
+func (l *Logger) Warningln(args ...any) {
 	if ce := l.Check(zap.WarnLevel, fmt.Sprint(args...)); ce != nil {
 		ce.Write()
 	}
 }
 
-func (l *Logger) Warningln(args ...interface{}) {
-	if ce := l.Check(zap.WarnLevel, fmt.Sprint(args...)); ce != nil {
-		ce.Write()
-	}
-}
-
-func (l *Logger) Warningf(template string, args ...interface{}) {
-	if ce := l.Check(zap.WarnLevel, fmt.Sprintf(template, args...)); ce != nil {
-		ce.Write()
-	}
-}
-
-func (l *Logger) Errorln(args ...interface{}) {
+func (l *Logger) Errorln(args ...any) {
 	if ce := l.Check(zap.ErrorLevel, fmt.Sprint(args...)); ce != nil {
 		ce.Write()
 	}
 }
 
-func (l *Logger) Fatalln(args ...interface{}) {
+func (l *Logger) Fatalln(args ...any) {
 	if ce := l.Check(zap.FatalLevel, fmt.Sprint(args...)); ce != nil {
-		ce.Write()
-	}
-}
-
-func (l *Logger) Println(args ...interface{}) {
-	if ce := l.Check(zap.InfoLevel, fmt.Sprint(args...)); ce != nil {
 		ce.Write()
 	}
 }
@@ -278,33 +273,35 @@ func (l *Logger) V(level int) bool {
 	return l.Logger.Core().Enabled(zapcore.Level(level))
 }
 
+func (l *Logger) Debugfw(template string, args ...any) func(...zapcore.Field) {
+	return func(fields ...zapcore.Field) {
+		if ce := l.Check(zap.DebugLevel, fmt.Sprintf(template, args...)); ce != nil {
+			ce.Write(fields...)
+		}
+	}
+}
+
+func (l *Logger) Infofw(template string, args ...any) func(...zapcore.Field) {
+	return func(fields ...zapcore.Field) {
+		if ce := l.Check(zap.InfoLevel, fmt.Sprintf(template, args...)); ce != nil {
+			ce.Write(fields...)
+		}
+	}
+}
+
+func (l *Logger) Debugsw(msg string, args ...any) {
+	if ce := l.Check(zap.DebugLevel, msg); ce != nil {
+		ce.Write(l.sweetenFields(args)...)
+	}
+}
+
 // sugar
 const (
 	_oddNumberErrMsg    = "Ignored key without a value."
 	_nonStringKeyErrMsg = "Ignored key-value pairs with non-string keys."
 )
 
-func (l *Logger) log(lvl zapcore.Level, template string, fmtArgs []interface{}, context []interface{}) {
-	// If logging at this level is completely disabled, skip the overhead of
-	// string formatting.
-	if lvl < zap.DPanicLevel && !l.Core().Enabled(lvl) {
-		return
-	}
-
-	// Format with Sprint, Sprintf, or neither.
-	msg := template
-	if msg == "" && len(fmtArgs) > 0 {
-		msg = fmt.Sprint(fmtArgs...)
-	} else if msg != "" && len(fmtArgs) > 0 {
-		msg = fmt.Sprintf(template, fmtArgs...)
-	}
-
-	if ce := l.Check(lvl, msg); ce != nil {
-		ce.Write(l.sweetenFields(context)...)
-	}
-}
-
-func (l *Logger) sweetenFields(args []interface{}) []zap.Field {
+func (l *Logger) sweetenFields(args []any) []zap.Field {
 	if len(args) == 0 {
 		return nil
 	}
@@ -352,7 +349,7 @@ func (l *Logger) sweetenFields(args []interface{}) []zap.Field {
 
 type invalidPair struct {
 	position   int
-	key, value interface{}
+	key, value any
 }
 
 func (p invalidPair) MarshalLogObject(enc zapcore.ObjectEncoder) error {

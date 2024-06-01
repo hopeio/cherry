@@ -21,7 +21,6 @@ func (cc *Nacos) Type() string {
 	return "nacos"
 }
 
-// 由于库暴露的api可diy性太差，废弃
 func (cc *Nacos) HandleConfig(handle func([]byte)) error {
 	client, err := clients.NewConfigClient(cc.NacosClientParam)
 	if err != nil {

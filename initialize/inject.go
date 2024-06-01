@@ -20,16 +20,8 @@ func (gc *globalConfig) UnmarshalAndSet(data []byte) {
 			return
 		}
 	}
-	/*	tmpConfig := gc.cacheConf
-		if tmpConfig == nil {
-			gc.cacheConf = tmpConfig
-		}*/
+
 	tmpConfig := gc.newStruct()
-	/*	format, err := common.Unmarshal(gc.ConfigCenter.Format, data, tmpConfig)
-		if err != nil {
-			log.Fatal(err)
-		}*/
-	//gc.ConfigCenter.Format = format
 
 	err = gc.Viper.Unmarshal(tmpConfig, decoderConfigOptions...)
 	if err != nil {
@@ -260,7 +252,7 @@ func (gc *globalConfig) injectDao() {
 
 			// 根据DaoField接口实现获取配置和要注入的类型
 			if daofield, ok := inter.(DaoField); ok {
-				daofield.SetEntity()
+				daofield.Set()
 			}
 		}
 	}

@@ -2,14 +2,14 @@
 
 一个开箱即用，高度集成的微服务组件库,可以快速开发集grpc,http,graphql的云原生微服务
 ## quick start
-`go get github.com/hopeio/cherry@main`
-#### install env tools
+`go get github.com/hopeio/cherry`
+#### install tools
 - `install protoc`[https://github.com/protocolbuffers/protobuf/releases](https://github.com/protocolbuffers/protobuf/releases)
-- `go get github.com/hopeio/cherry/tools/protoc@main`
 - `go run $(go list -m -f {{.Dir}}  github.com/hopeio/cherry)/tools/protoc/install_tools.go`
 #### generate protobuf
-`protogen go -e -w (-q) (-v) -p $proto_path -g $proto_output_path`
-#### (use docker)
+`protogen go -e -w -v -p $proto_path -g $proto_output_path`
+ -e(enum扩展) -w(gin gateway) -q(graphql) -v(生成校验代码) -p proto目录 -g 输出pb.go目录
+#### use docker(可选的)
 `docker run --rm -v $project:/work jybl/protogen protogen go -e -w -p $proto_path -g $proto_output_path`
 
 ##
@@ -19,8 +19,19 @@
 
 #### 一个应用的启动，应该如此简单
 ##### config（配置）
-支持nacos,local file,http请求作为配置中心,可扩展支持etcd,apollo,viper(获取配置代理，底层是其他配置中心)，支持toml格式的配置文件，
+支持nacos,local file,http请求作为配置中心,可扩展支持etcd,apollo,viper(获取配置代理，底层是其他配置中心)，支持viper支持的所有格式("json", "toml", "yaml", "yml", "properties", "props", "prop", "hcl", "tfvars", "dotenv", "env", "ini")的配置文件，
 支持dev，test，prod环境本，启动命令区分
+
+##### 配置模板
+```toml
+# dev | test | stage | prod |...
+Env = "dev" # 将会选择与Env名字相同的环境配置
+[dev]
+ConfigTemplateDir = "." # 模板目录,将会生成配置模板
+```
+仅需以上最小配置,点击启动,即可生成配置模板
+如果还是麻烦,试试直接用 `-c ${配置路径} -e ${环境} -p ${模板路径}` 启动吧
+#### 启动配置
 仅需配置配置中心,后续配置均从配置中心拉取及自动更新
 ```toml
 Module = "hoper"
@@ -31,31 +42,31 @@ Env = "dev" # 将会选择与Env名字相同的环境配置
 debug = true
 ConfigTemplateDir = "." # 将会生成配置模板
 # 上方是一个个初始配置,如果不知道如何进行接下来的配置,可以先启动生成配置模板
-[dev.configCenter]
-configType = "local"
+[dev.ConfigCenter]
+Type = "local"
 Watch  = true
 NoInject = ["Apollo","Etcd", "Es"]
 
-[dev.configCenter.local]
+[dev.ConfigCenter.local]
 Debug = true
 ConfigPath = "local.toml"
 ReloadType = "fsnotify"
 
-[dev.configCenter.http]
+[dev.ConfigCenter.http]
 Interval = 10000000000
 Url = "http://localhost:6666/local.toml"
 
-[dev.configCenter.nacos]
+[dev.ConfigCenter.nacos]
 DataId = "pro"
 Group = "DEFAULT_GROUP"
 
-[[dev.configCenter.nacos.ServerConfigs]]
+[[dev.ConfigCenter.nacos.ServerConfigs]]
 Scheme = "http"
 IpAddr = "nacos"
 Port = 9000
 GrpcPort = 10000
 
-[dev.configCenter.nacos.ClientConfig]
+[dev.ConfigCenter.nacos.ClientConfig]
 NamespaceId = "xxx"
 username = "nacos"
 password = "nacos"

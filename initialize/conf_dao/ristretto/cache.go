@@ -43,7 +43,7 @@ func (c *Cache[K, V]) Config() any {
 	return &c.Conf
 }
 
-func (c *Cache[K, V]) SetEntity() {
+func (c *Cache[K, V]) Set() {
 	c.Cache = c.Conf.Build()
 }
 

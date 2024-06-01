@@ -47,7 +47,7 @@ func (db *Client) Config() any {
 	return &db.Conf
 }
 
-func (db *Client) SetEntity() {
+func (db *Client) Set() {
 	db.Client = db.Conf.Build()
 }
 

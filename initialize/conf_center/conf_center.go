@@ -1,7 +1,6 @@
 package conf_center
 
 import (
-	"github.com/hopeio/cherry/utils/encoding"
 	"github.com/hopeio/cherry/utils/log"
 	stringsi "github.com/hopeio/cherry/utils/strings"
 	"strings"
@@ -16,7 +15,7 @@ type ConfigCenter interface {
 
 type Config struct {
 	// 配置格式
-	Format encoding.Format `flag:"name:format;default:toml;usage:配置格式" comment:"toml,json,yaml,yml"`
+	Format string `flag:"name:format;default:toml;usage:配置格式"`
 	// 配置类型
 	Type string `flag:"name:conf_type;default:local;usage:配置类型"`
 	// config字段顺序不能变,ConfigCenter 保持在最后

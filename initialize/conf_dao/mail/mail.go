@@ -55,7 +55,7 @@ func (m *Mail) Config() any {
 	return &m.Conf
 }
 
-func (m *Mail) SetEntity() {
+func (m *Mail) Set() {
 	m.Auth = m.Conf.Build()
 }
 

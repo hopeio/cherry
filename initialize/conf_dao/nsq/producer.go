@@ -32,7 +32,7 @@ func (p *Producer) Config() any {
 	return &p.Conf
 }
 
-func (p *Producer) SetEntity() {
+func (p *Producer) Set() {
 	p.Producer = p.Conf.Build()
 }
 

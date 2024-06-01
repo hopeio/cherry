@@ -31,7 +31,7 @@ func (e *Client) Config() any {
 	return &e.Conf
 }
 
-func (e *Client) SetEntity() {
+func (e *Client) Set() {
 	e.Client = e.Conf.Build()
 }
 

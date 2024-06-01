@@ -30,7 +30,7 @@ func (m *Group) Config() any {
 	return &m.Conf
 }
 
-func (m *Group) SetEntity() {
+func (m *Group) Set() {
 	m.Group = m.Conf.Build()
 }
 

@@ -38,7 +38,7 @@ func (m *DB) Config() any {
 	return &m.Conf
 }
 
-func (m *DB) SetEntity() {
+func (m *DB) Set() {
 	m.DB = m.Conf.Build()
 }
 

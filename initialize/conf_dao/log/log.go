@@ -29,7 +29,7 @@ func (l *Logger) Config() any {
 	return &l.Conf
 }
 
-func (l *Logger) SetEntity() {
+func (l *Logger) Set() {
 	l.Logger = l.Conf.Build()
 }
 

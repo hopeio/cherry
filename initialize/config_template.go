@@ -1,7 +1,6 @@
 package initialize
 
 import (
-	"github.com/hopeio/cherry/utils/encoding"
 	"github.com/hopeio/cherry/utils/log"
 	stringsi "github.com/hopeio/cherry/utils/strings"
 	"os"
@@ -46,14 +45,14 @@ func (gc *globalConfig) genConfigTemplate(singleTemplateFileConfig bool) {
 	}
 }
 
-func daoConfigTemplateMap(format encoding.Format, value reflect.Value, confMap map[string]any) {
+func daoConfigTemplateMap(format string, value reflect.Value, confMap map[string]any) {
 	typ := value.Type()
 	for i := 0; i < value.NumField(); i++ {
 		field := value.Field(i)
 		if field.Addr().Type().Implements(DaoFieldType) {
 			newconfMap := make(map[string]any)
 			fieldType := typ.Field(i)
-			name := fieldType.Tag.Get(string(format))
+			name := fieldType.Tag.Get(format)
 			if name == "" {
 				name = fieldType.Name
 				tagSettings := ParseInitTagSettings(fieldType.Tag.Get(initTagName))

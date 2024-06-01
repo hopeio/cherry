@@ -1,6 +1,7 @@
 package log
 
 import (
+	"fmt"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -26,4 +27,13 @@ func FileWithLineNum() string {
 	}
 
 	return ""
+}
+
+func trimLineBreak(path string) string {
+	return path[:len(path)-1]
+}
+
+func getMessage(fmtArgs []interface{}) string {
+	msg := fmt.Sprintln(fmtArgs...)
+	return msg[:len(msg)-1]
 }

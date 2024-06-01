@@ -61,41 +61,14 @@ var DaoFieldType = reflect.TypeOf((*DaoField)(nil)).Elem()
 
 type DaoField interface {
 	Config() any
-	SetEntity()
+	Set()
 	io.Closer
 }
 
 // TODO
-type DaoFieldCloserWithError = io.Closer
+type DaoFieldCloseE = io.Closer
 type DaoFieldCloser interface {
 	Close()
-}
-
-type CloseFunc func() error
-
-type DaoConfig[D any] interface {
-	Build() (*D, CloseFunc)
-}
-
-type DaoEntity[C DaoConfig[D], D any] struct {
-	Conf   C
-	Client *D
-	close  CloseFunc
-}
-
-func (d *DaoEntity[C, D]) Config() any {
-	return d.Conf
-}
-
-func (d *DaoEntity[C, D]) SetEntity() {
-	d.Client, d.close = d.Conf.Build()
-}
-
-func (d *DaoEntity[C, D]) Close() error {
-	if d.close != nil {
-		return d.close()
-	}
-	return nil
 }
 
 type Marshal = func(any) ([]byte, error)

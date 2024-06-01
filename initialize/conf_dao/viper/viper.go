@@ -137,7 +137,7 @@ func (v *Viper) Config() any {
 	return &v.Conf
 }
 
-func (v *Viper) SetEntity() {
+func (v *Viper) Set() {
 	v.Viper = v.Conf.Build()
 }
 

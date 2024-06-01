@@ -10,8 +10,8 @@ import (
 
 // SingleFileConfig This is for illustrative purposes only and is not for practical use
 type SingleFileConfig struct {
-	initconf.BasicConfig `yaml:",inline"`
-	initconf.EnvConfig   `yaml:",inline"`
+	initconf.BasicConfig
+	initconf.EnvConfig
 }
 
 func (gc *globalConfig) setBasicConfig() {
@@ -25,7 +25,9 @@ func (gc *globalConfig) setBasicConfig() {
 	applyFlagConfig(nil, basicConfig)
 	gc.InitConfig.BasicConfig = basicConfig.BasicConfig
 	gc.InitConfig.EnvConfig = basicConfig.EnvConfig
-	gc.InitConfig.ConfigCenter.Format = format
+	if gc.InitConfig.ConfigCenter.Format == "" {
+		gc.InitConfig.ConfigCenter.Format = format
+	}
 	if gc.InitConfig.Module == "" {
 		gc.InitConfig.Module = stringsi.CutPart(filepath.Base(os.Args[0]), ".")
 	}
