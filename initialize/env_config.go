@@ -5,6 +5,7 @@ import (
 	"github.com/hopeio/cherry/initialize/initconf"
 	"github.com/hopeio/cherry/utils/log"
 	"github.com/hopeio/cherry/utils/reflect/mtos"
+	"github.com/spf13/viper"
 	"os"
 	"reflect"
 	"strings"
@@ -80,6 +81,10 @@ func (gc *globalConfig) setEnvConfig() {
 		log.Fatal(err)
 	}
 	applyFlagConfig(nil, &gc.InitConfig.EnvConfig)
+	if gc.InitConfig.EnvConfig.ConfigCenter.Format == "" {
+		log.Fatalf("lack of configCenter format, support format:%v", viper.SupportedExts)
+	}
+	gc.Viper.SetConfigType(gc.InitConfig.EnvConfig.ConfigCenter.Format)
 	if gc.InitConfig.EnvConfig.ConfigCenter.Type == "" {
 		log.Warn("lack of configCenter type, try single config file")
 		return

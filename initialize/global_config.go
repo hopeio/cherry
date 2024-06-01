@@ -121,7 +121,7 @@ func (gc *globalConfig) loadConfig() {
 		}
 	}
 	if gc.InitConfig.ConfUrl != "" {
-		log.Infof("Load config from: %s\n", gc.InitConfig.ConfUrl)
+		log.Infof("load config from: %s", gc.InitConfig.ConfUrl)
 		if format == "" {
 			format = path.Ext(gc.InitConfig.ConfUrl)
 			if format != "" {
