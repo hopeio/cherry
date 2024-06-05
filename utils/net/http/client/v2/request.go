@@ -83,7 +83,7 @@ func (req *Request[RES]) CachedHeader(key string) *Request[RES] {
 	return req
 }
 
-func (req *Request[RES]) Logger(logger client.LogCallback) *Request[RES] {
+func (req *Request[RES]) Logger(logger client.AccessLog) *Request[RES] {
 	(*client.Request)(req).Logger(logger)
 	return req
 }

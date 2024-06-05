@@ -2,7 +2,6 @@ package client
 
 import (
 	"bytes"
-	"compress/gzip"
 	"context"
 	"encoding/json"
 	"errors"
@@ -52,8 +51,8 @@ func DisableLog() {
 	globalLevel = LogLevelSilent
 }
 
-func SetDefaultLogger(logger LogCallback) {
-	defaultLog = logger
+func SetDefaultLog(log AccessLog) {
+	defaultLog = log
 }
 
 func SetProxy(url string) {
@@ -68,18 +67,6 @@ func ResetProxy() {
 func SetDefaultClient(client *http.Client) {
 	defaultClient = client
 }
-
-type ContentType uint8
-
-const (
-	ContentTypeJson ContentType = iota
-	ContentTypeForm
-	ContentTypeFormData
-	ContentTypeProtobuf
-	ContentTypeText
-	ContentTypeImage
-	ContentTypeBinary
-)
 
 // Request ...
 type Request struct {
@@ -103,8 +90,8 @@ type Request struct {
 	// response
 	responseHandler func(response *http.Response) (retry bool, data []byte, err error)
 
-	// config
-	logger   LogCallback
+	// logger
+	logger   AccessLog
 	logLevel LogLevel
 
 	// retry
@@ -166,7 +153,7 @@ func (req *Request) CachedHeader(key string) *Request {
 	return req
 }
 
-func (req *Request) Logger(logger LogCallback) *Request {
+func (req *Request) Logger(logger AccessLog) *Request {
 	if logger == nil {
 		return req
 	}
@@ -410,15 +397,18 @@ Retry:
 	}
 
 	var reader io.Reader
-	if resp.Header.Get(httpi.HeaderContentEncoding) == "gzip" {
-		reader, err = gzip.NewReader(resp.Body)
-		if err != nil {
-			resp.Body.Close()
-			return err
-		}
-	} else {
-		reader = resp.Body
-	}
+	// net/http会自动处理gzip
+	/*	if resp.Header.Get(httpi.HeaderContentEncoding) == "gzip" {
+			reader, err = gzip.NewReader(resp.Body)
+			if err != nil {
+				resp.Body.Close()
+				return err
+			}
+		} else {
+			reader = resp.Body
+		}*/
+
+	reader = resp.Body
 
 	if httpresp, ok := response.(*io.Reader); ok {
 		*httpresp = reader
@@ -451,17 +441,7 @@ Retry:
 	respBody.Data = respBytes
 	if len(respBytes) > 0 && response != nil {
 		contentType := resp.Header.Get(httpi.HeaderContentType)
-		if strings.HasPrefix(contentType, httpi.ContentJsonHeaderValue) {
-			respBody.ContentType = ContentTypeJson
-		} else if strings.HasPrefix(contentType, httpi.ContentFormHeaderValue) {
-			respBody.ContentType = ContentTypeForm
-		} else if strings.HasPrefix(contentType, "text") {
-			respBody.ContentType = ContentTypeText
-		} else if strings.HasPrefix(contentType, "image") {
-			respBody.ContentType = ContentTypeImage
-		} else {
-			respBody.ContentType = ContentTypeJson
-		}
+		respBody.ContentType.Decode(contentType)
 
 		if raw, ok := response.(*RawBytes); ok {
 			*raw = respBytes

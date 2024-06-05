@@ -29,10 +29,10 @@ func (b *Body) IsJson() bool {
 }
 
 func (b *Body) IsProtobuf() bool {
-	return b.ContentType == ContentTypeProtobuf
+	return b.ContentType == ContentTypeGrpc
 }
 
-type LogCallback func(url, method, auth string, reqBody, respBody *Body, status int, process time.Duration, err error)
+type AccessLog func(url, method, auth string, reqBody, respBody *Body, status int, process time.Duration, err error)
 
 type Logger interface {
 	SetPrefix(string)
