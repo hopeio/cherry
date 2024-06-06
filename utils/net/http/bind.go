@@ -1,9 +1,36 @@
 package http
 
 import (
+	"fmt"
 	"github.com/hopeio/cherry/utils/net/http/binding"
 	"net/http"
+	"reflect"
 )
+
+func NewReq[REQ any](r *http.Request) (*REQ, error) {
+	req := new(REQ)
+
+	if !reflect.ValueOf(req).Elem().FieldByName("pat").IsNil() {
+		err := binding.Uri.Bind(r, req)
+		if err != nil {
+			return nil, fmt.Errorf("uri bind error: %w", err)
+		}
+	}
+	if len(r.URL.RawQuery) > 0 {
+		err := binding.Query.Bind(r, req)
+		if err != nil {
+			return nil, fmt.Errorf("query bind error: %w", err)
+		}
+	}
+	if r.Body != nil && r.ContentLength != 0 {
+		b := binding.Default(r.Method, r.Header.Get(HeaderContentType))
+		err := MustBindWith(r, req, b)
+		if err != nil {
+			return nil, fmt.Errorf("body bind error: %w", err)
+		}
+	}
+	return req, nil
+}
 
 func Bind(r *http.Request, obj interface{}) error {
 	b := binding.Default(r.Method, r.Header.Get(HeaderContentType))
