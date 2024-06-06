@@ -3,7 +3,6 @@ package apidoc
 import (
 	"bytes"
 	"github.com/go-openapi/runtime/middleware"
-	"mime"
 	"net/http"
 	"os"
 	"path"
@@ -71,9 +70,8 @@ func DocList(w http.ResponseWriter, r *http.Request) {
 }
 
 func OpenApi(mux *http.ServeMux, filePath string) {
-	_ = mime.AddExtensionType(".svg", "image/svg+xml")
 	ApiDocDir = filePath
-	mux.Handle(UriPrefix+"/markdown/", http.HandlerFunc(Markdown))
 	mux.Handle(UriPrefix, http.HandlerFunc(DocList))
+	mux.Handle(UriPrefix+"/markdown/", http.HandlerFunc(Markdown))
 	mux.Handle(UriPrefix+"/swagger/", http.HandlerFunc(Swagger))
 }
