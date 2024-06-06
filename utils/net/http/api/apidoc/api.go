@@ -132,7 +132,7 @@ func WriteToFile(realPath, modName string) {
 		log.Error(err)
 	}
 
-	realPath = filepath.Join(realPath, modName+EXT)
+	realPath = filepath.Join(realPath, modName+SwaggerEXT)
 
 	if _, err := os.Stat(realPath); err == nil {
 		os.Remove(realPath)

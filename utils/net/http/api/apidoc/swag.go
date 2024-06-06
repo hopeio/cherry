@@ -1,70 +1,79 @@
 package apidoc
 
 import (
-	"encoding/json"
-	"io/ioutil"
-	"net/http"
-	"path"
-	"strings"
-
-	"github.com/go-openapi/loads"
+	"bytes"
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/go-openapi/spec"
-	"github.com/hopeio/cherry/utils/log"
+	"mime"
+	"net/http"
+	"os"
+	"path"
 )
 
-var PrefixUri = "/api-doc/"
-var FilePath = "./api/"
+// 目录结构 ./api/mod/mod.swagger.json ./api/mod/mod.apidoc.md
+// 请求路由 /api-doc /api-doc/swagger/mod/mod.swagger.json /api-doc/markdown/mod/mod.apidoc.md
+var UriPrefix = "/api-doc"
+var ApiDocDir = "./api/"
 
-const swagger = "swagger"
-const EXT = ".swagger.json"
+const TypeSwagger = "swagger"
+const TypeMarkdown = "markdown"
+const SwaggerEXT = ".swagger.json"
+const MarkDownEXT = ".apidoc.md"
 
-func HttpHandle(w http.ResponseWriter, r *http.Request) {
-	prefixUri := PrefixUri + swagger + "/"
+func Swagger(w http.ResponseWriter, r *http.Request) {
+	prefixUri := UriPrefix + "/" + TypeSwagger + "/"
 	if r.RequestURI[len(r.RequestURI)-5:] == ".json" {
-		specDoc, err := loads.Spec(FilePath + r.RequestURI[len(prefixUri):])
+		b, err := os.ReadFile(ApiDocDir + r.RequestURI[len(prefixUri):])
 		if err != nil {
 			w.Write([]byte(err.Error()))
 			return
 		}
-		specDoc, err = specDoc.Expanded(&spec.ExpandOptions{
-			SkipSchemas:         false,
-			ContinueOnError:     true,
-			AbsoluteCircularRef: true,
-		})
-		if err != nil {
-			w.Write([]byte(err.Error()))
-			return
-		}
-		b, err := json.MarshalIndent(specDoc.Spec(), "", "  ")
-		if err != nil {
-			w.Write([]byte(err.Error()))
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
-		//#nosec
-		_, _ = w.Write(b)
+		w.Write(b)
 		return
 	}
 	mod := r.RequestURI[len(prefixUri):]
 	middleware.Redoc(middleware.RedocOpts{
 		BasePath: prefixUri,
-		SpecURL:  path.Join(prefixUri+mod, mod+EXT),
+		SpecURL:  path.Join(prefixUri+mod, mod+SwaggerEXT),
 		Path:     mod,
 	}, http.NotFoundHandler()).ServeHTTP(w, r)
 }
 
-func ApiMod(w http.ResponseWriter, r *http.Request) {
-	fileInfos, err := ioutil.ReadDir(FilePath)
+func Markdown(w http.ResponseWriter, r *http.Request) {
+	prefixUri := UriPrefix + "/" + TypeMarkdown + "/"
+	mod := r.RequestURI[len(prefixUri):]
+	b, err := os.ReadFile(ApiDocDir + mod + "/" + mod + MarkDownEXT)
 	if err != nil {
-		log.Error(err)
+		w.Write([]byte(err.Error()))
+		return
 	}
-	var ret []string
+	w.Header().Set("Content-Type", "text/markdown; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	w.Write(b)
+	return
+}
+
+func DocList(w http.ResponseWriter, r *http.Request) {
+	fileInfos, err := os.ReadDir(ApiDocDir)
+	if err != nil {
+		w.Write([]byte(err.Error()))
+		return
+	}
+	var buff bytes.Buffer
 	for i := range fileInfos {
 		if fileInfos[i].IsDir() {
-			ret = append(ret, `<a href="`+r.RequestURI+"/"+fileInfos[i].Name()+`">`+fileInfos[i].Name()+`</a>`)
+			buff.Write([]byte(`<a href="` + r.RequestURI + "/swagger/" + fileInfos[i].Name() + `"> swagger: ` + fileInfos[i].Name() + `</a><br>`))
+			buff.Write([]byte(`<a href="` + r.RequestURI + "/markdown/" + fileInfos[i].Name() + `"> markdown: ` + fileInfos[i].Name() + `</a><br>`))
 		}
 	}
-	w.Write([]byte(strings.Join(ret, "<br>")))
+	w.Write(buff.Bytes())
+}
+
+func OpenApi(mux *http.ServeMux, filePath string) {
+	_ = mime.AddExtensionType(".svg", "image/svg+xml")
+	ApiDocDir = filePath
+	mux.Handle(UriPrefix+"/markdown/", http.HandlerFunc(Markdown))
+	mux.Handle(UriPrefix, http.HandlerFunc(DocList))
+	mux.Handle(UriPrefix+"/swagger/", http.HandlerFunc(Swagger))
 }

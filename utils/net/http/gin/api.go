@@ -1,20 +1,13 @@
 package gin
 
 import (
-	"mime"
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/cherry/utils/net/http/api/apidoc"
 )
 
 func OpenApi(mux *gin.Engine, filePath string) {
-	_ = mime.AddExtensionType(".svg", "image/svg+xml")
-	apidoc.FilePath = filePath
-	mux.GET(apidoc.PrefixUri+"md/*file", func(ctx *gin.Context) {
-		mod := ctx.Params.ByName("file")
-		http.ServeFile(ctx.Writer, ctx.Request, filePath+"/"+mod+"/"+mod+".apidoc.md")
-	})
-	mux.GET(apidoc.PrefixUri+"swagger", Wrap(apidoc.ApiMod))
-	mux.GET(apidoc.PrefixUri+"swagger/*file", Wrap(apidoc.HttpHandle))
+	apidoc.ApiDocDir = filePath
+	mux.GET(apidoc.UriPrefix+"/markdown/*file", Wrap(apidoc.Markdown))
+	mux.GET(apidoc.UriPrefix, Wrap(apidoc.DocList))
+	mux.GET(apidoc.UriPrefix+"/swagger/*file", Wrap(apidoc.Swagger))
 }
