@@ -251,9 +251,6 @@ func (e *Engine[KEY]) Stop() {
 	close(e.taskChanConsumer)
 	close(e.taskChanProducer)
 	close(e.errChan)
-	for _, worker := range e.workers {
-		close(worker.taskCh)
-	}
 	for _, worker := range e.fixedWorkers {
 		close(worker.taskCh)
 	}
