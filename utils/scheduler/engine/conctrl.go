@@ -3,10 +3,9 @@ package engine
 import (
 	"fmt"
 	"github.com/davecgh/go-spew/spew"
-	id2 "github.com/hopeio/cherry/utils/idgenerator/id"
+	id2 "github.com/hopeio/cherry/utils/datastructure/idgen/id"
 	"github.com/hopeio/cherry/utils/log"
 	synci "github.com/hopeio/cherry/utils/sync"
-	"runtime/debug"
 	"sync/atomic"
 	"time"
 )
@@ -107,7 +106,7 @@ func (e *Engine[KEY]) newWorker(readyTask *Task[KEY]) {
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				log.Error(r, string(debug.Stack()))
+				log.ErrorStack(r)
 				log.Info(spew.Sdump(readyTask))
 				atomic.AddUint64(&e.taskFailedCount, 1)
 				e.wg.Done()
@@ -197,8 +196,7 @@ func (e *Engine[KEY]) newFixedWorker(worker *Worker[KEY], interval time.Duration
 		var task *Task[KEY]
 		defer func() {
 			if r := recover(); r != nil {
-				log.Error(r)
-				log.Error(string(debug.Stack()))
+				log.ErrorStack(r)
 				log.Info(spew.Sdump(task))
 				atomic.AddUint64(&e.taskFailedCount, 1)
 				e.wg.Done()

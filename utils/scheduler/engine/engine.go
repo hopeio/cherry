@@ -31,15 +31,16 @@ type Engine[KEY Key] struct {
 	limitWorkerCount, currentWorkerCount, workerCount uint64
 	limitWaitTaskCount                                uint
 	workers                                           []*Worker[KEY]
-	fixedWorkers                                      []*Worker[KEY] // 固定只执行一种任务的worker,避免并发问题
-	taskChanProducer                                  chan *Task[KEY]
-	taskChanConsumer                                  chan *Task[KEY]
-	taskReadyHeap                                     heap.Heap[*Task[KEY], Tasks[KEY]]
-	ctx                                               context.Context
-	cancel                                            context.CancelFunc // 手动停止执行
-	wg                                                sync.WaitGroup     // 控制确保所有任务执行完
-	speedLimit                                        time2.Ticker
-	rateLimiter                                       *rate.Limiter
+	fixedWorkers                                      []*Worker[KEY]
+	// workerGroup [][]*Worker[KEY] //TODO 工作组概念
+	taskChanProducer chan *Task[KEY]
+	taskChanConsumer chan *Task[KEY]
+	taskReadyHeap    heap.Heap[*Task[KEY], Tasks[KEY]]
+	ctx              context.Context
+	cancel           context.CancelFunc // 手动停止执行
+	wg               sync.WaitGroup     // 控制确保所有任务执行完
+	speedLimit       time2.Ticker
+	rateLimiter      *rate.Limiter
 	//TODO
 	monitorInterval              time.Duration // 全局检测定时器间隔时间，任务的卡住检测，worker panic recover都可以用这个检测
 	enableTracing, enableMetrics bool
