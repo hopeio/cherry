@@ -33,7 +33,7 @@ func genTask(id int) *Task[int] {
 		TaskMeta: TaskMeta[int]{Key: id},
 		TaskFunc: func(ctx context.Context) ([]*Task[int], error) {
 			fmt.Println("task1:", id)
-			return []*Task[int]{genTask2(id + 2)}, nil
+			return []*Task[int]{genTask2(id + 100)}, nil
 		},
 	}
 }

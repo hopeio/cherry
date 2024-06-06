@@ -5,7 +5,6 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/dgraph-io/ristretto"
 	"github.com/hopeio/cherry/utils/datastructure/heap/idxless"
-	"github.com/hopeio/cherry/utils/datastructure/list"
 	"github.com/hopeio/cherry/utils/io/fs"
 	"github.com/hopeio/cherry/utils/log"
 	"github.com/hopeio/cherry/utils/slices"
@@ -29,19 +28,18 @@ func (c *Config[KEY]) NewEngine() *Engine[KEY] {
 }
 
 type Engine[KEY Key] struct {
-	limitWorkerCount, currentWorkerCount uint64
-	limitWaitTaskCount                   uint
-	workerChan                           chan *Worker[KEY]
-	workers                              []*Worker[KEY]
-	workerReadyList                      list.List[*Worker[KEY]]
-	fixedWorkers                         []*Worker[KEY] // 固定只执行一种任务的worker,避免并发问题
-	taskChan                             chan *Task[KEY]
-	taskReadyHeap                        heap.Heap[*Task[KEY], Tasks[KEY]]
-	ctx                                  context.Context
-	cancel                               context.CancelFunc // 手动停止执行
-	wg                                   sync.WaitGroup     // 控制确保所有任务执行完
-	speedLimit                           time2.Ticker
-	rateLimiter                          *rate.Limiter
+	limitWorkerCount, currentWorkerCount, workerCount uint64
+	limitWaitTaskCount                                uint
+	workers                                           []*Worker[KEY]
+	fixedWorkers                                      []*Worker[KEY] // 固定只执行一种任务的worker,避免并发问题
+	taskChanProducer                                  chan *Task[KEY]
+	taskChanConsumer                                  chan *Task[KEY]
+	taskReadyHeap                                     heap.Heap[*Task[KEY], Tasks[KEY]]
+	ctx                                               context.Context
+	cancel                                            context.CancelFunc // 手动停止执行
+	wg                                                sync.WaitGroup     // 控制确保所有任务执行完
+	speedLimit                                        time2.Ticker
+	rateLimiter                                       *rate.Limiter
 	//TODO
 	monitorInterval              time.Duration // 全局检测定时器间隔时间，任务的卡住检测，worker panic recover都可以用这个检测
 	enableTracing, enableMetrics bool
@@ -82,9 +80,8 @@ func NewEngineWithContext[KEY Key](workerCount uint, ctx context.Context) *Engin
 		limitWaitTaskCount: workerCount * 10,
 		ctx:                ctx,
 		cancel:             cancel,
-		workerChan:         make(chan *Worker[KEY]),
-		taskChan:           make(chan *Task[KEY]),
-		workerReadyList:    list.New[*Worker[KEY]](),
+		taskChanProducer:   make(chan *Task[KEY]),
+		taskChanConsumer:   make(chan *Task[KEY]),
 		taskReadyHeap:      heap.Heap[*Task[KEY], Tasks[KEY]]{},
 		monitorInterval:    5 * time.Second,
 		done:               cache,

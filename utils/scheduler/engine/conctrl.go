@@ -40,36 +40,29 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 			var emptyTimes uint
 			var readyTaskCh chan *Task[KEY]
 			var readyTask *Task[KEY]
-			taskChan := e.taskChan
+			taskChan := e.taskChanProducer
 		loop:
 			for {
-				if e.workerReadyList.Len() > 0 && len(e.taskReadyHeap) > 0 {
-					if readyTaskCh == nil {
-						readyWorker, _ := e.workerReadyList.Pop()
-						readyTaskCh = readyWorker.taskCh
-					}
-					if readyTask == nil {
-						readyTask, _ = e.taskReadyHeap.Pop()
-					}
+				if len(e.taskReadyHeap) > 0 && readyTask == nil {
+					readyTask, _ = e.taskReadyHeap.Pop()
+					readyTaskCh = e.taskChanConsumer
 				}
 
 				// go 无法动态的设置case,但是可以动态的把channel置为nil
 				if len(e.taskReadyHeap) >= int(e.limitWaitTaskCount) {
 					taskChan = nil
 				} else {
-					taskChan = e.taskChan
+					taskChan = e.taskChanProducer
 				}
 				select {
 				case readyTaskTmp := <-taskChan:
 					e.taskReadyHeap.Push(readyTaskTmp)
-				case readyWorker := <-e.workerChan:
-					e.workerReadyList.Push(readyWorker)
 				case readyTaskCh <- readyTask:
 					readyTaskCh = nil
 					readyTask = nil
 				case <-timer.C:
 					//检测任务是否已空
-					if e.workerReadyList.Len() == uint(e.currentWorkerCount) && len(e.taskReadyHeap) == 0 {
+					if uint(e.workerCount) == 0 && len(e.taskReadyHeap) == 0 {
 						e.lock.Lock()
 						counter, _ := synci.WaitGroupState(&e.wg)
 						if counter == 1 {
@@ -109,8 +102,8 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 func (e *Engine[KEY]) newWorker(readyTask *Task[KEY]) {
 	atomic.AddUint64(&e.currentWorkerCount, 1)
 	//id := c.currentWorkerCount
-	taskChan := make(chan *Task[KEY])
-	worker := &Worker[KEY]{Id: uint(e.currentWorkerCount), taskCh: taskChan}
+	// 这里考虑回复多channel,worker数量多起来的时候,channel维护的goroutine数量太多
+	worker := &Worker[KEY]{Id: uint(e.currentWorkerCount)}
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
@@ -123,13 +116,13 @@ func (e *Engine[KEY]) newWorker(readyTask *Task[KEY]) {
 			}
 			atomic.AddUint64(&e.currentWorkerCount, ^uint64(0))
 		}()
+
 		if readyTask != nil {
 			e.ExecTask(worker, readyTask)
 		}
 		for {
 			select {
-			case e.workerChan <- worker:
-				readyTask = <-taskChan
+			case readyTask = <-e.taskChanConsumer:
 				e.ExecTask(worker, readyTask)
 			case <-e.ctx.Done():
 				return
@@ -147,12 +140,12 @@ func (e *Engine[KEY]) addWorker() {
 	go func() {
 		for {
 			select {
-			case readyTask := <-e.taskChan:
+			case readyTask := <-e.taskChanConsumer:
 				if e.currentWorkerCount < e.limitWorkerCount {
 					e.newWorker(readyTask)
 				} else {
 					log.Info("worker count is full")
-					e.taskChan <- readyTask
+					e.taskChanProducer <- readyTask
 					return
 				}
 			case <-e.ctx.Done():
@@ -177,7 +170,7 @@ func (e *Engine[KEY]) AddTasks(generation int, tasks ...*Task[KEY]) {
 		}
 		task.Priority += generation
 		task.id = id2.GenOrderID()
-		e.taskChan <- task
+		e.taskChanProducer <- task
 	}
 }
 
@@ -255,8 +248,8 @@ func (e *Engine[KEY]) RunSingleWorker(tasks ...*Task[KEY]) {
 
 func (e *Engine[KEY]) Stop() {
 	e.cancel()
-	close(e.workerChan)
-	close(e.taskChan)
+	close(e.taskChanConsumer)
+	close(e.taskChanProducer)
 	close(e.errChan)
 	for _, worker := range e.workers {
 		close(worker.taskCh)
@@ -285,6 +278,7 @@ func (e *Engine[KEY]) Stop() {
 }
 
 func (e *Engine[KEY]) ExecTask(worker *Worker[KEY], task *Task[KEY]) {
+	atomic.AddUint64(&e.workerCount, 1)
 	worker.isExecuting = true
 	worker.currentTask = task
 	if task != nil {
@@ -298,6 +292,7 @@ func (e *Engine[KEY]) ExecTask(worker *Worker[KEY], task *Task[KEY]) {
 		}
 	}
 	atomic.AddUint64(&e.taskDoneCount, 1)
+	atomic.AddUint64(&e.workerCount, ^uint64(0))
 	e.wg.Done()
 	worker.isExecuting = false
 }
