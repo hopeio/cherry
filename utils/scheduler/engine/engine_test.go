@@ -11,7 +11,7 @@ type Prop struct {
 }
 
 func TestEngine(t *testing.T) {
-	engine := NewEngine[int, Prop, Prop](5)
+	engine := NewEngine[int](5)
 	engine.ErrHandlerUtilSuccess()
 	engine.TaskSourceFunc(taskSourceFunc)
 	engine.Run()
@@ -35,7 +35,6 @@ func genTask(id int) *Task[int] {
 			fmt.Println("task1:", id)
 			return []*Task[int]{genTask2(id + 2)}, nil
 		},
-		errs: nil,
 	}
 }
 
@@ -47,12 +46,11 @@ func genTask2(id int) *Task[int] {
 			time.Sleep(time.Millisecond * 200)
 			return nil, nil
 		},
-		errs: nil,
 	}
 }
 
 func TestEngineConcurrencyRun(t *testing.T) {
-	engine := NewEngine[int, Prop, Prop](5)
+	engine := NewEngine[int](5)
 	engine.ErrHandlerUtilSuccess()
 	go func() {
 		for {
@@ -78,6 +76,5 @@ func genTask3(typ string, id int) *Task[int] {
 			}
 			return tasks, nil
 		},
-		errs: nil,
 	}
 }

@@ -11,6 +11,7 @@ import (
 func init() {
 	output.RegisterSink()
 	SetDefaultLogger(&Config{Development: true, Level: zapcore.DebugLevel})
+	stackLogger = defaultLogger.WithOptions(zap.WithCaller(true), zap.AddStacktrace(zapcore.ErrorLevel))
 }
 
 type skipLogger struct {
@@ -20,6 +21,7 @@ type skipLogger struct {
 
 var (
 	defaultLogger *Logger
+	stackLogger   *Logger
 	skipLoggers   = make([]skipLogger, 10)
 	mu            sync.Mutex
 )
@@ -171,8 +173,68 @@ func Errorw(msg string, fields ...zap.Field) {
 	}
 }
 
+func Panicw(msg string, fields ...zap.Field) {
+	if ce := defaultLogger.Check(zap.PanicLevel, msg); ce != nil {
+		ce.Write(fields...)
+	}
+}
+
+func Fatalw(msg string, fields ...zap.Field) {
+	if ce := defaultLogger.Check(zap.FatalLevel, msg); ce != nil {
+		ce.Write(fields...)
+	}
+}
+
 func Println(args ...any) {
 	if ce := defaultLogger.Check(zap.InfoLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
 		ce.Write()
+	}
+}
+
+func ErrorStack(args ...any) {
+	if ce := stackLogger.Check(zap.ErrorLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
+		ce.Write()
+	}
+}
+
+func PanicStack(args ...any) {
+	if ce := stackLogger.Check(zap.PanicLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
+		ce.Write()
+	}
+}
+
+func FatalStack(args ...any) {
+	if ce := stackLogger.Check(zap.FatalLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
+		ce.Write()
+	}
+}
+
+func ErrorStackf(template string, args ...any) {
+	if ce := stackLogger.Check(zap.ErrorLevel, fmt.Sprintf(template, args...)); ce != nil {
+		ce.Write()
+	}
+}
+
+func FatalStackf(template string, args ...any) {
+	if ce := stackLogger.Check(zap.FatalLevel, fmt.Sprintf(template, args...)); ce != nil {
+		ce.Write()
+	}
+}
+
+func ErrorStackw(msg string, fields ...zap.Field) {
+	if ce := stackLogger.Check(zap.ErrorLevel, msg); ce != nil {
+		ce.Write(fields...)
+	}
+}
+
+func PanicStackw(msg string, fields ...zap.Field) {
+	if ce := defaultLogger.Check(zap.PanicLevel, msg); ce != nil {
+		ce.Write(fields...)
+	}
+}
+
+func FatalStackw(msg string, fields ...zap.Field) {
+	if ce := defaultLogger.Check(zap.FatalLevel, msg); ce != nil {
+		ce.Write(fields...)
 	}
 }

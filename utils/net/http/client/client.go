@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	httpi "github.com/hopeio/cherry/utils/net/http"
 	"io"
 	"net"
@@ -421,15 +422,14 @@ Retry:
 		var retry bool
 		retry, respBytes, err = req.responseHandler(resp)
 		resp.Body.Close()
-		if err != nil {
-			return err
-		}
 
 		if retry {
 			if req.logLevel > LogLevelSilent {
-				req.logger(url, method, req.authUser, reqBody, respBody, statusCode, time.Since(reqTime), errors.New("will retry"))
+				req.logger(url, method, req.authUser, reqBody, respBody, statusCode, time.Since(reqTime), err)
 			}
 			goto Retry
+		} else if err != nil {
+			return err
 		}
 	} else {
 		respBytes, err = io.ReadAll(reader)
@@ -453,7 +453,7 @@ Retry:
 			// 默认json
 			err = json.Unmarshal(respBytes, response)
 			if err != nil {
-				return errors.New("json.Unmarshal error:" + err.Error())
+				return fmt.Errorf("json.Unmarshal error: %v", err)
 			}
 		}
 

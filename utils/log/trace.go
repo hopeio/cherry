@@ -2,7 +2,7 @@ package log
 
 import (
 	"context"
-	contexti "github.com/hopeio/cherry/utils/context"
+	contexti "github.com/hopeio/cherry/utils/trace"
 	"go.uber.org/zap"
 )
 

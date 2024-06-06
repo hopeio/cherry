@@ -2,9 +2,9 @@ package gorm
 
 import (
 	"context"
-	contexti "github.com/hopeio/cherry/utils/context"
 	loggeri "github.com/hopeio/cherry/utils/dao/database/gorm/logger"
 	"github.com/hopeio/cherry/utils/log"
+	contexti "github.com/hopeio/cherry/utils/trace"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )

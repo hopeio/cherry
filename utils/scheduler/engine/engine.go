@@ -6,10 +6,10 @@ import (
 	"github.com/dgraph-io/ristretto"
 	"github.com/hopeio/cherry/utils/datastructure/heap/idxless"
 	"github.com/hopeio/cherry/utils/datastructure/list"
-	"github.com/hopeio/cherry/utils/datastructure/timer"
 	"github.com/hopeio/cherry/utils/io/fs"
 	"github.com/hopeio/cherry/utils/log"
 	"github.com/hopeio/cherry/utils/slices"
+	time2 "github.com/hopeio/cherry/utils/time"
 	"golang.org/x/time/rate"
 	"sync"
 	"time"
@@ -34,16 +34,17 @@ type Engine[KEY Key] struct {
 	workerChan                           chan *Worker[KEY]
 	workers                              []*Worker[KEY]
 	workerReadyList                      list.List[*Worker[KEY]]
+	fixedWorkers                         []*Worker[KEY] // 固定只执行一种任务的worker,避免并发问题
 	taskChan                             chan *Task[KEY]
 	taskReadyHeap                        heap.Heap[*Task[KEY], Tasks[KEY]]
 	ctx                                  context.Context
 	cancel                               context.CancelFunc // 手动停止执行
 	wg                                   sync.WaitGroup     // 控制确保所有任务执行完
-	fixedWorkers                         []*Worker[KEY]     // 固定只执行一种任务的worker,避免并发问题
-	speedLimit                           timer.Timer
+	speedLimit                           time2.Ticker
 	rateLimiter                          *rate.Limiter
 	//TODO
 	monitorInterval              time.Duration // 全局检测定时器间隔时间，任务的卡住检测，worker panic recover都可以用这个检测
+	enableTracing, enableMetrics bool
 	isRunning, isFinished, isRan bool
 	lock                         sync.RWMutex
 	EngineStatistics
@@ -57,7 +58,7 @@ type Engine[KEY Key] struct {
 
 type KindHandler[KEY Key] struct {
 	Skip        bool
-	speedLimit  timer.Timer
+	speedLimit  time2.Ticker
 	rateLimiter *rate.Limiter
 	// TODO 指定Kind的Handler
 	HandleFun TaskFunc[KEY]
@@ -87,12 +88,10 @@ func NewEngineWithContext[KEY Key](workerCount uint, ctx context.Context) *Engin
 		taskReadyHeap:      heap.Heap[*Task[KEY], Tasks[KEY]]{},
 		monitorInterval:    5 * time.Second,
 		done:               cache,
-		errHandler: func(task *Task[KEY]) {
-			log.Error(task.errs)
-		},
-		lock:    sync.RWMutex{},
-		errChan: make(chan *Task[KEY]),
-		zeroKey: *new(KEY),
+		errHandler:         func(task *Task[KEY]) { task.ErrLog() },
+		lock:               sync.RWMutex{},
+		errChan:            make(chan *Task[KEY]),
+		zeroKey:            *new(KEY),
 	}
 }
 
@@ -134,19 +133,22 @@ func (e *Engine[KEY]) ErrHandler(errHandler func(task *Task[KEY])) *Engine[KEY] 
 }
 
 func (e *Engine[KEY]) ErrHandlerUtilSuccess() *Engine[KEY] {
+	log.Warn("it will clear history exec log contains err")
 	return e.ErrHandler(func(task *Task[KEY]) {
-		task.errs = task.errs[:0]
+		task.errTimes = 0
+		task.reExecLogs = task.reExecLogs[:0]
 		e.AsyncAddTasks(task.Priority, task)
 	})
 }
 
 func (e *Engine[KEY]) ErrHandlerRetryTimes(times int) *Engine[KEY] {
 	return e.ErrHandler(func(task *Task[KEY]) {
-		if task.errTimes < times {
-			task.errs = task.errs[:0]
+		if task.reExecTimes < times {
+			task.errTimes = 0
+			task.reExecLogs = task.reExecLogs[:0]
 			e.AsyncAddTasks(task.Priority, task)
 		} else {
-			log.Error(task.errs)
+			task.ErrLog()
 		}
 
 	})
@@ -171,28 +173,28 @@ func (e *Engine[KEY]) StopCallBack(callBack func()) *Engine[KEY] {
 }
 
 func (e *Engine[KEY]) SpeedLimited(interval time.Duration) *Engine[KEY] {
-	e.speedLimit = timer.NewTimer(interval)
+	e.speedLimit = time2.NewTicker(interval)
 	return e
 }
 
 func (e *Engine[KEY]) RandSpeedLimited(minInterval, maxInterval time.Duration) *Engine[KEY] {
-	e.speedLimit = timer.NewRandTimer(minInterval, maxInterval)
+	e.speedLimit = time2.NewRandTicker(minInterval, maxInterval)
 	return e
 }
 
 func (e *Engine[KEY]) KindSpeedLimit(kind Kind, interval time.Duration) *Engine[KEY] {
-	limiter := timer.NewRandTimer(interval, interval)
+	limiter := time2.NewRandTicker(interval, interval)
 	e.kindSpeedLimit(kind, limiter)
 	return e
 }
 
 func (e *Engine[KEY]) KindRandSpeedLimit(kind Kind, minInterval, maxInterval time.Duration) *Engine[KEY] {
-	limiter := timer.NewRandTimer(minInterval, maxInterval)
+	limiter := time2.NewRandTicker(minInterval, maxInterval)
 	e.kindSpeedLimit(kind, limiter)
 	return e
 }
 
-func (e *Engine[KEY]) kindSpeedLimit(kind Kind, limiter timer.Timer) *Engine[KEY] {
+func (e *Engine[KEY]) kindSpeedLimit(kind Kind, limiter time2.Ticker) *Engine[KEY] {
 	if e.kindHandlers == nil {
 		e.kindHandlers = make([]*KindHandler[KEY], int(kind)+1)
 	}
@@ -209,7 +211,7 @@ func (e *Engine[KEY]) kindSpeedLimit(kind Kind, limiter timer.Timer) *Engine[KEY
 
 // 多个kind共用一个timer
 func (e *Engine[KEY]) KindGroupSpeedLimit(interval time.Duration, kinds ...Kind) *Engine[KEY] {
-	limiter := timer.NewRandTimer(interval, interval)
+	limiter := time2.NewRandTicker(interval, interval)
 	for _, kind := range kinds {
 		e.kindSpeedLimit(kind, limiter)
 	}
@@ -217,7 +219,7 @@ func (e *Engine[KEY]) KindGroupSpeedLimit(interval time.Duration, kinds ...Kind)
 }
 
 func (e *Engine[KEY]) KindGroupRandSpeedLimit(minInterval, maxInterval time.Duration, kinds ...Kind) *Engine[KEY] {
-	limiter := timer.NewRandTimer(minInterval, maxInterval)
+	limiter := time2.NewRandTicker(minInterval, maxInterval)
 	for _, kind := range kinds {
 		e.kindSpeedLimit(kind, limiter)
 	}

@@ -16,7 +16,7 @@ import (
 
 func (s *Server) httpHandler() http.HandlerFunc {
 	conf := s.Config
-	enableMetrics := conf.Metrics
+	enableMetrics := conf.EnableMetrics
 	// 默认使用gin
 	ginServer := conf.Gin.New()
 	s.GinHandler(ginServer)

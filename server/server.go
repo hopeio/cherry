@@ -105,7 +105,7 @@ func (s *Server) Start() {
 		wrappedGrpc = web.WrapServer(grpcServer, s.Config.GrpcWebOption...)
 	}
 
-	enableTracing := s.Config.Tracing
+	enableTracing := s.Config.EnableTrace
 
 	//systemTracing := serviceConfig.SystemTracing
 	if enableTracing {

@@ -2,6 +2,8 @@ package engine
 
 import (
 	"context"
+	"github.com/hopeio/cherry/utils/log"
+	"strings"
 	"time"
 )
 
@@ -16,16 +18,22 @@ var (
 )
 
 type TaskMeta[KEY Key] struct {
-	id          uint64
-	Kind        Kind
-	Key         KEY
-	Priority    int
-	Describe    string
-	createdAt   time.Time
+	id        uint64
+	Kind      Kind
+	Key       KEY
+	Priority  int
+	Describe  string
+	createdAt time.Time
+	ExecLog
+	reExecLogs []*ExecLog // 多数任务只会执行一次
+	timeout    time.Duration
+	TaskStatistics
+}
+
+type ExecLog struct {
 	execBeginAt time.Time
 	execEndAt   time.Time
-	timeout     time.Duration
-	TaskStatistics
+	err         error
 }
 
 func (t *TaskMeta[KEY]) SortKey() int {
@@ -49,22 +57,32 @@ func (t *TaskMeta[KEY]) Id() uint64 {
 }
 
 type TaskStatistics struct {
-	reDoTimes uint
-	errTimes  int
+	reExecTimes int
+	errTimes    int
 }
 
 type Task[KEY Key] struct {
 	ctx context.Context
 	TaskMeta[KEY]
 	TaskFunc[KEY]
-	errs []error
 }
 
-func (t *Task[KEY]) Errs() []error {
-	return t.errs
-}
 func (t *Task[KEY]) SetContext(ctx context.Context) {
 	t.ctx = ctx
+}
+
+func (t *Task[KEY]) ErrLog() {
+	builder := strings.Builder{}
+	if t.err != nil {
+		builder.WriteString(t.err.Error())
+	}
+	for _, log := range t.reExecLogs {
+		if log.err != nil {
+			builder.WriteByte(' ')
+			builder.WriteString(log.err.Error())
+		}
+	}
+	log.Error(builder.String())
 }
 
 type TaskInterface[KEY Key] interface {

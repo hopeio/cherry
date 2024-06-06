@@ -30,7 +30,7 @@ func (s *Server) grpcHandler() *grpc.Server {
 		var unary = []grpc.UnaryServerInterceptor{UnaryAccess(s.Config), UnaryValidator}
 		// 想做的大而全几乎不可能,为了更高的自由度,这里不做实现,均由使用者自行实现,后续可提供默认实现,但同样要由用户自己调用
 		/*		var srvMetrics *grpcprom.ServerMetrics
-				if conf.Metrics {
+				if conf.EnableMetrics {
 					// Setup metrics.
 					srvMetrics = grpcprom.NewServerMetrics(
 						grpcprom.WithServerHandlingTimeHistogram(
@@ -56,7 +56,7 @@ func (s *Server) grpcHandler() *grpc.Server {
 		}, s.Config.GrpcOptions...)
 
 		grpcServer := grpc.NewServer(s.Config.GrpcOptions...)
-		/*		if conf.Metrics {
+		/*		if conf.EnableMetrics {
 				srvMetrics.InitializeMetrics(grpcServer)
 			}*/
 		s.GrpcHandler(grpcServer)
@@ -67,7 +67,7 @@ func (s *Server) grpcHandler() *grpc.Server {
 }
 
 func UnaryAccess(conf *Config) grpc.UnaryServerInterceptor {
-	enablePrometheus := conf.Metrics
+	enablePrometheus := conf.EnableMetrics
 	return func(
 		ctx context.Context, req interface{},
 		info *grpc.UnaryServerInfo,

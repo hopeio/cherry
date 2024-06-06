@@ -40,6 +40,7 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 			var emptyTimes uint
 			var readyTaskCh chan *Task[KEY]
 			var readyTask *Task[KEY]
+			taskChan := e.taskChan
 		loop:
 			for {
 				if e.workerReadyList.Len() > 0 && len(e.taskReadyHeap) > 0 {
@@ -52,54 +53,46 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 					}
 				}
 
+				// go 无法动态的设置case,但是可以动态的把channel置为nil
 				if len(e.taskReadyHeap) >= int(e.limitWaitTaskCount) {
-					select {
-					case readyWorker := <-e.workerChan:
-						e.workerReadyList.Push(readyWorker)
-					case readyTaskCh <- readyTask:
-						readyTaskCh = nil
-						readyTask = nil
-					case <-e.ctx.Done():
-						break loop
-					case <-timer.C:
-						log.Debugf("[Running] total:%d,done:%d,failed:%d\r", e.taskTotalCount, e.taskDoneCount, e.taskFailedCount)
-						timer.Reset(e.monitorInterval)
-					}
+					taskChan = nil
 				} else {
-					select {
-					case readyTaskTmp := <-e.taskChan:
-						e.taskReadyHeap.Push(readyTaskTmp)
-					case readyWorker := <-e.workerChan:
-						e.workerReadyList.Push(readyWorker)
-					case readyTaskCh <- readyTask:
-						readyTaskCh = nil
-						readyTask = nil
-					case <-timer.C:
-						//检测任务是否已空
-						if e.workerReadyList.Len() == uint(e.currentWorkerCount) && len(e.taskReadyHeap) == 0 {
-							e.lock.Lock()
-							counter, _ := synci.WaitGroupState(&e.wg)
-							if counter == 1 {
-								emptyTimes++
-								if emptyTimes > 2 {
-									log.Debug("the task is about to end.")
-									e.wg.Done()
-									e.isRunning = false
-									e.lock.Unlock()
-									break loop
-								}
-							}
-							e.lock.Unlock()
-						}
-						log.Debugf("[Running] total:%d,done:%d,failed:%d\r", e.taskTotalCount, e.taskDoneCount, e.taskFailedCount)
-						timer.Reset(e.monitorInterval)
-					case <-e.ctx.Done():
-						if err := e.ctx.Err(); err != nil {
-							log.Error(err)
-						}
-						break loop
-					}
+					taskChan = e.taskChan
 				}
+				select {
+				case readyTaskTmp := <-taskChan:
+					e.taskReadyHeap.Push(readyTaskTmp)
+				case readyWorker := <-e.workerChan:
+					e.workerReadyList.Push(readyWorker)
+				case readyTaskCh <- readyTask:
+					readyTaskCh = nil
+					readyTask = nil
+				case <-timer.C:
+					//检测任务是否已空
+					if e.workerReadyList.Len() == uint(e.currentWorkerCount) && len(e.taskReadyHeap) == 0 {
+						e.lock.Lock()
+						counter, _ := synci.WaitGroupState(&e.wg)
+						if counter == 1 {
+							emptyTimes++
+							if emptyTimes > 2 {
+								log.Debug("the task is about to end.")
+								e.wg.Done()
+								e.isRunning = false
+								e.lock.Unlock()
+								break loop
+							}
+						}
+						e.lock.Unlock()
+					}
+					log.Debugf("[Running] total:%d,done:%d,failed:%d\r", e.taskTotalCount, e.taskDoneCount, e.taskFailedCount)
+					timer.Reset(e.monitorInterval)
+				case <-e.ctx.Done():
+					if err := e.ctx.Err(); err != nil {
+						log.Error(err)
+					}
+					break loop
+				}
+
 			}
 		}()
 	}
@@ -121,8 +114,7 @@ func (e *Engine[KEY]) newWorker(readyTask *Task[KEY]) {
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				log.Error(r)
-				log.Error(string(debug.Stack()))
+				log.Error(r, string(debug.Stack()))
 				log.Info(spew.Sdump(readyTask))
 				atomic.AddUint64(&e.taskFailedCount, 1)
 				e.wg.Done()
@@ -344,16 +336,33 @@ func (e *Engine[KEY]) execTask(task *Task[KEY]) bool {
 		}
 	}
 
+	if task.reExecTimes > 0 {
+		task.reExecLogs = append(task.reExecLogs, &ExecLog{
+			execBeginAt: time.Now(),
+		})
+	} else {
+		task.execBeginAt = time.Now()
+	}
 	tasks, err := task.TaskFunc.Do(task.ctx)
+	if task.reExecTimes > 0 {
+		task.reExecLogs[len(task.reExecLogs)-1].execEndAt = time.Now()
+	} else {
+		task.execEndAt = time.Now()
+	}
+
 	if err != nil {
 		task.errTimes++
-		task.errs = append(task.errs, err)
-		if len(task.errs) < 5 {
-			task.reDoTimes++
-			log.Warnf("%v执行失败:%v,将第%d次执行", task.Key, err, task.reDoTimes+1)
-			e.AsyncAddTasks(task.Priority+1, task)
+		if task.reExecTimes > 0 {
+			task.reExecLogs[len(task.reExecLogs)-1].err = err
+		} else {
+			task.err = err
 		}
-		if len(task.errs) == 5 {
+
+		if task.errTimes < 5 {
+			task.reExecTimes++
+			log.Warnf("%v执行失败:%v,将第%d次执行", task.Key, err, task.reExecTimes)
+			e.AsyncAddTasks(task.Priority+1, task)
+		} else {
 			log.Warn(task.Key, "多次执行失败:", err, ",将执行错误处理")
 			e.errChan <- task
 		}
