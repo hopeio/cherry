@@ -7,12 +7,12 @@ import (
 	"reflect"
 )
 
-type MultipartRequest http.Request
+type MultipartSource http.Request
 
-var _ Setter = (*MultipartRequest)(nil)
+var _ Setter = (*MultipartSource)(nil)
 
 // TrySet tries to set a value by the multipart request with the binding a form file
-func (r *MultipartRequest) TrySet(value reflect.Value, field reflect.StructField, key string, opt SetOptions) (isSet bool, err error) {
+func (r *MultipartSource) TrySet(value reflect.Value, field reflect.StructField, key string, opt SetOptions) (isSet bool, err error) {
 	if files := r.MultipartForm.File[key]; len(files) != 0 {
 		return SetByMultipartFormFile(value, field, files)
 	}

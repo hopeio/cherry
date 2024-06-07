@@ -58,7 +58,7 @@ func (formMultipartBinding) Bind(ctx *gin.Context, obj interface{}) error {
 	if err := ctx.Request.ParseMultipartForm(defaultMemory); err != nil {
 		return err
 	}
-	if err := binding.MappingByPtr(obj, (*binding.MultipartRequest)(ctx.Request), Tag); err != nil {
+	if err := binding.MappingByPtr(obj, (*binding.MultipartSource)(ctx.Request), Tag); err != nil {
 		return err
 	}
 

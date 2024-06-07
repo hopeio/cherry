@@ -62,12 +62,14 @@ func Body(contentType []byte) Binding {
 }
 
 func Bind(c fiber.Ctx, obj interface{}) error {
+	tag := binding.Tag
 	if data := c.Body(); len(data) > 0 {
 		b := Body(c.Request().Header.ContentType())
 		err := b.Bind(c, obj)
 		if err != nil {
 			return fmt.Errorf("body bind error: %w", err)
 		}
+		tag = b.Name()
 	}
 
 	var args binding.Args
@@ -80,7 +82,7 @@ func Bind(c fiber.Ctx, obj interface{}) error {
 	if headers := c.GetReqHeaders(); len(headers) > 0 {
 		args = append(args, binding.HeaderSource(headers))
 	}
-	err := binding.MapForm(obj, args)
+	err := binding.MapFormByTag(obj, args, tag)
 	if err != nil {
 		return fmt.Errorf("args bind error: %w", err)
 	}

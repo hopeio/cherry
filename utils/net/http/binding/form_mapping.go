@@ -18,32 +18,18 @@ import (
 var errUnknownType = errors.New("unknown type")
 
 func MapForm(ptr interface{}, set Setter) error {
-	return mapFormByTag(ptr, set, Tag)
+	return MapFormByTag(ptr, set, Tag)
 }
 
 var emptyField = reflect.StructField{}
 
-func mapFormByTag(ptr interface{}, set Setter, tag string) error {
+func MapFormByTag(ptr interface{}, set Setter, tag string) error {
 	return MappingByPtr(ptr, set, tag)
 }
 
 // Setter tries to set value on a walking by fields of a struct
 type Setter interface {
 	TrySet(value reflect.Value, field reflect.StructField, key string, opt SetOptions) (isSet bool, err error)
-}
-
-type FormSource map[string][]string
-
-var _ Setter = FormSource(nil)
-
-func (form FormSource) Peek(key string) ([]string, bool) {
-	v, ok := form[key]
-	return v, ok
-}
-
-// TrySet tries to set a value by request's form source (like map[string][]string)
-func (form FormSource) TrySet(value reflect.Value, field reflect.StructField, tagValue string, opt SetOptions) (isSet bool, err error) {
-	return SetByKV(value, field, form, tagValue, opt)
 }
 
 func MappingByPtr(ptr interface{}, setter Setter, tag string) error {

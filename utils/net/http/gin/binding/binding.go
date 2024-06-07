@@ -96,12 +96,14 @@ func Validate(obj interface{}) error {
 }
 
 func Bind(c *gin.Context, obj interface{}) error {
+	tag := binding.Tag
 	if c.Request.Body != nil && c.Request.ContentLength != 0 {
 		b := Body(c.ContentType())
 		err := b.Bind(c, obj)
 		if err != nil {
 			return fmt.Errorf("body bind error: %w", err)
 		}
+		tag = b.Name()
 	}
 
 	var args binding.Args
@@ -114,7 +116,7 @@ func Bind(c *gin.Context, obj interface{}) error {
 	if len(c.Request.Header) > 0 {
 		args = append(args, binding.HeaderSource(c.Request.Header))
 	}
-	err := binding.MapForm(obj, args)
+	err := binding.MapFormByTag(obj, args, tag)
 	if err != nil {
 		return fmt.Errorf("args bind error: %w", err)
 	}

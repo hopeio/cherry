@@ -60,12 +60,14 @@ func Body(contentType []byte) Binding {
 }
 
 func Bind(c *fasthttp.RequestCtx, obj interface{}) error {
+	tag := binding.Tag
 	if data := c.Request.Body(); len(data) > 0 {
 		b := Body(c.Request.Header.ContentType())
 		err := b.Bind(c, obj)
 		if err != nil {
 			return fmt.Errorf("body bind error: %w", err)
 		}
+		tag = binding.Tag
 	}
 
 	var args binding.Args
@@ -74,7 +76,7 @@ func Bind(c *fasthttp.RequestCtx, obj interface{}) error {
 		args = append(args, (*ArgsSource)(query))
 	}
 	args = append(args, (*HeaderSource)(&c.Request.Header))
-	err := binding.MapForm(obj, args)
+	err := binding.MapFormByTag(obj, args, tag)
 	if err != nil {
 		return fmt.Errorf("args bind error: %w", err)
 	}

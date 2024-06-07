@@ -1,7 +1,10 @@
 package binding
 
 import (
+	"fmt"
+	httpi "github.com/hopeio/cherry/utils/net/http"
 	"net/http"
+	"reflect"
 
 	"github.com/hopeio/cherry/utils/validation/validator"
 )
@@ -95,6 +98,33 @@ func Body(contentType string) Binding {
 }
 
 func Validate(obj interface{}) error {
-
 	return Validator.ValidateStruct(obj)
+}
+
+func Bind(r *http.Request, obj interface{}) error {
+	tag := Tag
+	if r.Body != nil && r.ContentLength != 0 {
+		b := Body(r.Header.Get(httpi.HeaderContentType))
+		err := b.Bind(r, obj)
+		if err != nil {
+			return fmt.Errorf("body bind error: %w", err)
+		}
+		tag = b.Name()
+	}
+
+	var args Args
+	if !reflect.ValueOf(r).Elem().FieldByName("pat").IsNil() {
+		args = append(args, (*UriSource)(r))
+	}
+	if len(r.URL.RawQuery) > 0 {
+		args = append(args, FormSource(r.URL.Query()))
+	}
+	if len(r.Header) > 0 {
+		args = append(args, HeaderSource(r.Header))
+	}
+	err := MapFormByTag(obj, args, tag)
+	if err != nil {
+		return fmt.Errorf("args bind error: %w", err)
+	}
+	return nil
 }
