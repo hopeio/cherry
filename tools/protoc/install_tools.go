@@ -8,6 +8,7 @@ import (
 
 // 提供给使用框架的人安装所需环境
 func main() {
+	osi.StdOutCmd("go version")
 	libDir, _ := osi.CmdLog("go list -m -f {{.Dir}}  github.com/hopeio/cherry")
 	os.Chdir(libDir)
 	osi.CmdLog("go install google.golang.org/protobuf/cmd/protoc-gen-go")

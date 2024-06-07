@@ -7,5 +7,5 @@ func TestLog(t *testing.T) {
 }
 
 func TestLogStack(t *testing.T) {
-	ErrorStack("test")
+	ErrorS("test")
 }

@@ -13,6 +13,10 @@ import (
 	"reflect"
 )
 
+var (
+	HttpContextType = reflect.TypeOf((*httpctx.Context)(nil))
+)
+
 func commonHandler(w http.ResponseWriter, req *http.Request, handle *reflect.Value, ps *Params, tracing bool) {
 	handleTyp := handle.Type()
 	handleNumIn := handleTyp.NumIn()

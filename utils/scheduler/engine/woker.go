@@ -24,12 +24,12 @@ type Worker[KEY Key] struct {
 
 // WorkStatistics worker统计数据
 type WorkStatistics struct {
-	averageTimeCost                                                                  time.Duration
-	taskDoneCount, taskTotalCount, taskErrorCount, taskTimeoutCount, taskFailedCount uint64
+	averageTimeCost                                                                 time.Duration
+	taskDoneCount, taskTotalCount, taskSkipCount, taskTimeoutCount, taskFailedCount uint64
+	taskRepeatCount, taskErrorCount, taskErrHandleCount                             uint64
 }
 
 // EngineStatistics 基本引擎统计数据
 type EngineStatistics struct {
 	WorkStatistics
-	taskErrCount uint64
 }
