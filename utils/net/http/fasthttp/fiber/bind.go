@@ -5,9 +5,17 @@ import (
 	"github.com/hopeio/cherry/utils/net/http/fasthttp/fiber/binding"
 )
 
+func NewReq[REQ any](c fiber.Ctx) (*REQ, error) {
+	req := new(REQ)
+	err := Bind(c, req)
+	if err != nil {
+		return nil, err
+	}
+	return req, nil
+}
+
 func Bind(c fiber.Ctx, obj interface{}) error {
-	b := binding.Default(c.Method(), c.Request().Header.ContentType())
-	return MustBindWith(c, obj, b)
+	return binding.Bind(c, obj)
 }
 
 // BindJSON is a shortcut for c.MustBindWith(obj, binding.JSON).
@@ -81,7 +89,7 @@ func ShouldBindYAML(c fiber.Ctx, obj interface{}) error {
 
 // ShouldBindUri binds the passed struct pointer using the specified binding engine.
 func ShouldBindUri(c fiber.Ctx, obj interface{}) error {
-	return binding.Uri.BindUri(c, obj)
+	return binding.Uri.Bind(c, obj)
 }
 
 // ShouldBindWith binds the passed struct pointer using the specified binding engine.

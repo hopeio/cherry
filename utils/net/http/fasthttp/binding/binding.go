@@ -1,6 +1,7 @@
 package binding
 
 import (
+	"fmt"
 	"github.com/hopeio/cherry/utils/net/http/binding"
 	stringsi "github.com/hopeio/cherry/utils/strings"
 	"github.com/valyala/fasthttp"
@@ -20,11 +21,9 @@ type BindingBody interface {
 var (
 	JSON          = jsonBinding{}
 	XML           = xmlBinding{}
-	Form          = formBinding{}
 	Query         = queryBinding{}
 	FormPost      = formPostBinding{}
 	FormMultipart = formMultipartBinding{}
-	Uri           = uriBinding{}
 	ProtoBuf      = protobufBinding{}
 	MsgPack       = msgpackBinding{}
 	YAML          = yamlBinding{}
@@ -36,6 +35,10 @@ func Default(method, contentType []byte) Binding {
 		return Query
 	}
 
+	return Body(contentType)
+}
+
+func Body(contentType []byte) Binding {
 	switch stringsi.BytesToString(contentType) {
 	case binding.MIMEJSON:
 		return JSON
@@ -51,7 +54,29 @@ func Default(method, contentType []byte) Binding {
 		return YAML
 	case binding.MIMEMultipartPOSTForm:
 		return FormMultipart
-	default: // case MIMEPOSTForm:
-		return Form
+	default:
+		return JSON
 	}
+}
+
+func Bind(c *fasthttp.RequestCtx, obj interface{}) error {
+	if data := c.Request.Body(); len(data) > 0 {
+		b := Body(c.Request.Header.ContentType())
+		err := b.Bind(c, obj)
+		if err != nil {
+			return fmt.Errorf("body bind error: %w", err)
+		}
+	}
+
+	var args binding.Args
+
+	if query := c.QueryArgs(); query != nil {
+		args = append(args, (*ArgsSource)(query))
+	}
+	args = append(args, (*HeaderSource)(&c.Request.Header))
+	err := binding.MapForm(obj, args)
+	if err != nil {
+		return fmt.Errorf("args bind error: %w", err)
+	}
+	return nil
 }

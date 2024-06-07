@@ -1,6 +1,7 @@
 package binding
 
 import (
+	"fmt"
 	"github.com/hopeio/cherry/utils/net/http/binding"
 	"net/http"
 
@@ -49,7 +50,6 @@ type BindingBody interface {
 var (
 	JSON          = jsonBinding{}
 	XML           = xmlBinding{}
-	Form          = formBinding{}
 	Query         = queryBinding{}
 	FormPost      = formPostBinding{}
 	FormMultipart = formMultipartBinding{}
@@ -67,6 +67,10 @@ func Default(method string, contentType string) Binding {
 		return Query
 	}
 
+	return Body(contentType)
+}
+
+func Body(contentType string) Binding {
 	switch contentType {
 	case MIMEJSON:
 		return JSON
@@ -83,10 +87,36 @@ func Default(method string, contentType string) Binding {
 	case MIMEMultipartPOSTForm:
 		return FormMultipart
 	default: // case MIMEPOSTForm:
-		return Form
+		return JSON
 	}
 }
 
 func Validate(obj interface{}) error {
 	return binding.Validator.ValidateStruct(obj)
+}
+
+func Bind(c *gin.Context, obj interface{}) error {
+	if c.Request.Body != nil && c.Request.ContentLength != 0 {
+		b := Body(c.ContentType())
+		err := b.Bind(c, obj)
+		if err != nil {
+			return fmt.Errorf("body bind error: %w", err)
+		}
+	}
+
+	var args binding.Args
+	if len(c.Params) > 0 {
+		args = append(args, uriSource(c.Params))
+	}
+	if len(c.Request.URL.RawQuery) > 0 {
+		args = append(args, binding.FormSource(c.Request.URL.Query()))
+	}
+	if len(c.Request.Header) > 0 {
+		args = append(args, binding.HeaderSource(c.Request.Header))
+	}
+	err := binding.MapForm(obj, args)
+	if err != nil {
+		return fmt.Errorf("args bind error: %w", err)
+	}
+	return nil
 }

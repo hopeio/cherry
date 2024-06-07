@@ -17,8 +17,7 @@ func (queryBinding) Name() string {
 
 func (queryBinding) Bind(ctx *gin.Context, obj interface{}) error {
 	values := ctx.Request.URL.Query()
-	args := binding.Args{binding.FormSource(ctx.Request.Form), binding.FormSource(values), uriSource(ctx.Params)}
-	if err := binding.MapForm(obj, args); err != nil {
+	if err := binding.MapForm(obj, binding.FormSource(values)); err != nil {
 		return err
 	}
 	return Validate(obj)

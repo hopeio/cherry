@@ -56,3 +56,15 @@ func SetByKV(value reflect.Value, field reflect.StructField, kv Arg, tagValue st
 		return true, setWithProperType(val, value, field)
 	}
 }
+
+type KVSource map[string]string
+
+func (form KVSource) Peek(key string) ([]string, bool) {
+	v, ok := form[key]
+	return []string{v}, ok
+}
+
+// TrySet tries to set a value by request's form source (like map[string][]string)
+func (form KVSource) TrySet(value reflect.Value, field reflect.StructField, tagValue string, opt SetOptions) (isSet bool, err error) {
+	return SetByKV(value, field, form, tagValue, opt)
+}

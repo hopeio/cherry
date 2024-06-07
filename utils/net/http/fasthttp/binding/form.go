@@ -5,7 +5,6 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-type formBinding struct{}
 type formPostBinding struct{}
 type formMultipartBinding struct{}
 
@@ -18,16 +17,6 @@ func (formMultipartBinding) Bind(req *fasthttp.RequestCtx, obj interface{}) erro
 		return err
 	}
 
-	return binding.Validate(obj)
-}
-
-func (formBinding) Name() string {
-	return "form"
-}
-func (formBinding) Bind(req *fasthttp.RequestCtx, obj interface{}) error {
-	if err := binding.MapForm(obj, (*ArgsSource)(req.PostArgs())); err != nil {
-		return err
-	}
 	return binding.Validate(obj)
 }
 

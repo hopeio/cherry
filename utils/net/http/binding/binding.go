@@ -70,7 +70,10 @@ func Default(method string, contentType string) Binding {
 	if method == http.MethodGet {
 		return Query
 	}
+	return Body(contentType)
+}
 
+func Body(contentType string) Binding {
 	switch contentType {
 	case MIMEJSON:
 		return JSON
@@ -87,10 +90,11 @@ func Default(method string, contentType string) Binding {
 	case MIMEMultipartPOSTForm:
 		return FormMultipart
 	default: // case MIMEPOSTForm:
-		return Form
+		return JSON
 	}
 }
 
 func Validate(obj interface{}) error {
+
 	return Validator.ValidateStruct(obj)
 }

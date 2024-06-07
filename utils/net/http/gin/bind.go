@@ -1,41 +1,22 @@
 package gin
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/cherry/protobuf/errorcode"
 	"github.com/hopeio/cherry/utils/net/http/gin/binding"
-	"github.com/hopeio/cherry/utils/validation/validator"
-	"io/ioutil"
+	"io"
 )
 
 func NewReq[REQ any](c *gin.Context) (*REQ, error) {
 	req := new(REQ)
-	if len(c.Params) > 0 {
-		err := c.ShouldBindUri(req)
-		if err != nil {
-			return nil, fmt.Errorf("uri bind error: %w", err)
-		}
-	}
-	if len(c.Request.URL.RawQuery) > 0 {
-		err := c.ShouldBindQuery(req)
-		if err != nil {
-			return nil, fmt.Errorf("query bind error: %w", err)
-		}
-	}
-	if c.Request.Body != nil && c.Request.ContentLength != 0 {
-		b := binding.Default(c.Request.Method, c.ContentType())
-		err := MustBindWith(c, req, b)
-		if err != nil {
-			return nil, fmt.Errorf("body bind error: %w", err)
-		}
+	err := Bind(c, req)
+	if err != nil {
+		return nil, err
 	}
 	return req, nil
 }
 
 func Bind(c *gin.Context, obj interface{}) error {
-	b := binding.Default(c.Request.Method, c.ContentType())
-	return MustBindWith(c, obj, b)
+	return binding.Bind(c, obj)
 }
 
 // BindJSON is a shortcut for c.MustBindWith(obj, binding.JSON).
@@ -65,8 +46,8 @@ func MustBindWith(c *gin.Context, obj interface{}, b binding.Binding) error {
 	if err := ShouldBindWith(c, obj, b); err != nil {
 		return err
 	}
-	if err := validator.Validator.Struct(obj); err != nil {
-		return errorcode.InvalidArgument.Message(validator.Trans(err))
+	if err := binding.Validate(obj); err != nil {
+		return err
 	}
 	return nil
 }
@@ -130,7 +111,7 @@ func ShouldBindBodyWith(c *gin.Context, obj interface{}, bb binding.BindingBody)
 		}
 	}
 	if body == nil {
-		body, err = ioutil.ReadAll(c.Request.Body)
+		body, err = io.ReadAll(c.Request.Body)
 		if err != nil {
 			return err
 		}

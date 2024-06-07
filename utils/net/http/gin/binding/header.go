@@ -12,11 +12,9 @@ func (headerBinding) Name() string {
 }
 
 func (headerBinding) Bind(req *http.Request, obj interface{}) error {
-
 	if err := mapHeader(obj, req.Header); err != nil {
 		return err
 	}
-
 	return Validate(obj)
 }
 

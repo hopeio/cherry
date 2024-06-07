@@ -6,9 +6,17 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func Bind(r *fasthttp.RequestCtx, obj interface{}) error {
-	b := binding.Default(r.Method(), r.Request.Header.Peek(httpi.HeaderContentType))
-	return MustBindWith(r, obj, b)
+func NewReq[REQ any](c *fasthttp.RequestCtx) (*REQ, error) {
+	req := new(REQ)
+	err := Bind(c, req)
+	if err != nil {
+		return nil, err
+	}
+	return req, nil
+}
+
+func Bind(c *fasthttp.RequestCtx, obj interface{}) error {
+	return binding.Bind(c, obj)
 }
 
 // BindJSON is a shortcut for c.MustBindWith(obj, binding.JSON).

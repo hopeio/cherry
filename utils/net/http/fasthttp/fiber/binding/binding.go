@@ -1,6 +1,7 @@
 package binding
 
 import (
+	"fmt"
 	"github.com/gofiber/fiber/v3"
 	"github.com/hopeio/cherry/utils/net/http/binding"
 	stringsi "github.com/hopeio/cherry/utils/strings"
@@ -21,7 +22,6 @@ type BindingBody interface {
 var (
 	JSON          = jsonBinding{}
 	XML           = xmlBinding{}
-	Form          = formBinding{}
 	Query         = queryBinding{}
 	FormPost      = formPostBinding{}
 	FormMultipart = formMultipartBinding{}
@@ -37,9 +37,15 @@ func Default(method string, contentType []byte) Binding {
 		return Query
 	}
 
+	return Body(contentType)
+}
+
+func Body(contentType []byte) Binding {
 	switch stringsi.BytesToString(contentType) {
 	case binding.MIMEJSON:
 		return JSON
+	case binding.MIMEPOSTForm:
+		return FormPost
 	case binding.MIMEXML, binding.MIMEXML2:
 		return XML
 	case binding.MIMEPROTOBUF:
@@ -51,6 +57,32 @@ func Default(method string, contentType []byte) Binding {
 	case binding.MIMEMultipartPOSTForm:
 		return FormMultipart
 	default: // case MIMEPOSTForm:
-		return Form
+		return JSON
 	}
+}
+
+func Bind(c fiber.Ctx, obj interface{}) error {
+	if data := c.Body(); len(data) > 0 {
+		b := Body(c.Request().Header.ContentType())
+		err := b.Bind(c, obj)
+		if err != nil {
+			return fmt.Errorf("body bind error: %w", err)
+		}
+	}
+
+	var args binding.Args
+
+	args = append(args, (*uriSource)(c.(*fiber.DefaultCtx)))
+
+	if query := c.Queries(); len(query) > 0 {
+		args = append(args, binding.KVSource(query))
+	}
+	if headers := c.GetReqHeaders(); len(headers) > 0 {
+		args = append(args, binding.HeaderSource(headers))
+	}
+	err := binding.MapForm(obj, args)
+	if err != nil {
+		return fmt.Errorf("args bind error: %w", err)
+	}
+	return nil
 }

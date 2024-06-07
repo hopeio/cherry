@@ -6,7 +6,6 @@ import (
 	binding2 "github.com/hopeio/cherry/utils/net/http/fasthttp/binding"
 )
 
-type formBinding struct{}
 type formPostBinding struct{}
 type formMultipartBinding struct{}
 
@@ -19,17 +18,6 @@ func (formMultipartBinding) Bind(ctx fiber.Ctx, obj interface{}) error {
 		return err
 	}
 
-	return binding.Validate(obj)
-}
-
-func (formBinding) Name() string {
-	return "form"
-}
-
-func (formBinding) Bind(ctx fiber.Ctx, obj interface{}) error {
-	if err := binding.MapForm(obj, (*binding2.ArgsSource)(ctx.Request().PostArgs())); err != nil {
-		return err
-	}
 	return binding.Validate(obj)
 }
 

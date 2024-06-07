@@ -7,7 +7,7 @@ package binding
 import (
 	"github.com/gin-gonic/gin"
 	"google.golang.org/protobuf/proto"
-	"io/ioutil"
+	"io"
 )
 
 type protobufBinding struct{}
@@ -17,7 +17,7 @@ func (protobufBinding) Name() string {
 }
 
 func (b protobufBinding) Bind(ctx *gin.Context, obj interface{}) error {
-	buf, err := ioutil.ReadAll(ctx.Request.Body)
+	buf, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
 		return err
 	}
