@@ -2,7 +2,6 @@ package binding
 
 import (
 	"fmt"
-	httpi "github.com/hopeio/cherry/utils/net/http"
 	"net/http"
 	"reflect"
 
@@ -104,7 +103,7 @@ func Validate(obj interface{}) error {
 func Bind(r *http.Request, obj interface{}) error {
 	tag := Tag
 	if r.Body != nil && r.ContentLength != 0 {
-		b := Body(r.Header.Get(httpi.HeaderContentType))
+		b := Body(r.Header.Get("Content-Type"))
 		err := b.Bind(r, obj)
 		if err != nil {
 			return fmt.Errorf("body bind error: %w", err)

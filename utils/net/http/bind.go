@@ -7,7 +7,7 @@ import (
 
 func NewReq[REQ any](r *http.Request) (*REQ, error) {
 	req := new(REQ)
-	err := Bind(r, req)
+	err := binding.Bind(r, req)
 	if err != nil {
 		return nil, err
 	}

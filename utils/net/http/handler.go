@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/hopeio/cherry/protobuf/errorcode"
 	"github.com/hopeio/cherry/utils/log"
+	"github.com/hopeio/cherry/utils/net/http/binding"
 	http_fs "github.com/hopeio/cherry/utils/net/http/fs"
 	"github.com/hopeio/cherry/utils/types"
 	"go.uber.org/zap"
@@ -44,7 +45,7 @@ func (hs *HandlerFuncs) Add(handler http.HandlerFunc) {
 func commonHandler[REQ, RES any](method types.GrpcServiceMethod[*REQ, *RES]) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		req := new(REQ)
-		err := Bind(r, req)
+		err := binding.Bind(r, req)
 		if err != nil {
 			return
 		}

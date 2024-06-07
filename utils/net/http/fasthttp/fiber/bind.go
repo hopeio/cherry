@@ -7,7 +7,7 @@ import (
 
 func NewReq[REQ any](c fiber.Ctx) (*REQ, error) {
 	req := new(REQ)
-	err := Bind(c, req)
+	err := binding.Bind(c, req)
 	if err != nil {
 		return nil, err
 	}

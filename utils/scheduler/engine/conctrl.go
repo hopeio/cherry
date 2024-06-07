@@ -76,7 +76,7 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 						}
 						e.lock.Unlock()
 					}
-					log.Debugf("[Running] total:%d,done:%d,failed:%d\r", e.taskTotalCount, e.taskDoneCount, e.taskFailedCount)
+					log.Debugf("[Running] task:%d/%d/%d,worker: %d/%d\r", e.taskDoneCount, e.taskTotalCount, e.taskFailedCount, e.workerCount, e.currentWorkerCount)
 					timer.Reset(e.monitorInterval)
 				case <-e.ctx.Done():
 					if err := e.ctx.Err(); err != nil {
