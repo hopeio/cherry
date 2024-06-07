@@ -3,13 +3,13 @@ package gzip
 import (
 	"compress/gzip"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
-
-	"github.com/gin-gonic/gin"
 )
 
 const (
@@ -19,13 +19,14 @@ const (
 	NoCompression      = gzip.NoCompression
 )
 
-func Gzip(level int, options ...Option) gin.HandlerFunc {
+func Gzip(level int, options ...Option) http.HandlerFunc {
 	return newGzipHandler(level, options...).Handle
 }
 
 type gzipWriter struct {
-	gin.ResponseWriter
+	http.ResponseWriter
 	writer *gzip.Writer
+	size   int
 }
 
 func (g *gzipWriter) WriteString(s string) (int, error) {
@@ -35,7 +36,12 @@ func (g *gzipWriter) WriteString(s string) (int, error) {
 
 func (g *gzipWriter) Write(data []byte) (int, error) {
 	g.Header().Del("Content-Length")
-	return g.writer.Write(data)
+	n, err := g.writer.Write(data)
+	if err != nil {
+		return n, err
+	}
+	g.size += n
+	return n, nil
 }
 
 // Fix: https://github.com/mholt/caddy/issues/38
@@ -68,28 +74,24 @@ func newGzipHandler(level int, options ...Option) *gzipHandler {
 	return handler
 }
 
-func (g *gzipHandler) Handle(c *gin.Context) {
-	if fn := g.DecompressFn; fn != nil && c.Request.Header.Get("Content-Encoding") == "gzip" {
-		fn(c)
-	}
+func (g *gzipHandler) Handle(w http.ResponseWriter, r *http.Request) {
 
-	if !g.shouldCompress(c.Request) {
+	if !g.shouldCompress(r) {
 		return
 	}
 
 	gz := g.gzPool.Get().(*gzip.Writer)
 	defer g.gzPool.Put(gz)
 	defer gz.Reset(ioutil.Discard)
-	gz.Reset(c.Writer)
+	gz.Reset(w)
+	header := w.Header()
+	header.Set("Content-Encoding", "gzip")
+	header.Set("Vary", "Accept-Encoding")
+	gw := &gzipWriter{w, gz, 0}
+	g.Options.Handler(w, r)
+	gz.Close()
+	header.Set("Content-Length", strconv.Itoa(gw.size))
 
-	c.Header("Content-Encoding", "gzip")
-	c.Header("Vary", "Accept-Encoding")
-	c.Writer = &gzipWriter{c.Writer, gz}
-	defer func() {
-		gz.Close()
-		c.Header("Content-Length", fmt.Sprint(c.Writer.Size()))
-	}()
-	c.Next()
 }
 
 func (g *gzipHandler) shouldCompress(req *http.Request) bool {
@@ -108,9 +110,30 @@ func (g *gzipHandler) shouldCompress(req *http.Request) bool {
 	if g.ExcludedPaths.Contains(req.URL.Path) {
 		return false
 	}
-	if g.ExcludedPathesRegexs.Contains(req.URL.Path) {
+	if g.ExcludedPathsRegex.Contains(req.URL.Path) {
 		return false
 	}
 
 	return true
+}
+
+func GzipBody(r *http.Request) ([]byte, error) {
+	if r.Header.Get("Content-Encoding") == "gzip" {
+		reader, err := gzip.NewReader(r.Body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create gzip reader %w", err)
+		}
+		defer reader.Close()
+
+		body, err := io.ReadAll(reader)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read gzip body %w", err)
+		}
+		return body, nil
+	}
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read body %w", err)
+	}
+	return body, nil
 }

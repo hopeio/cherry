@@ -15,23 +15,23 @@ import (
 var Doc *spec.Swagger
 
 // 参数为路径和格式
-func GetDoc(path string) *spec.Swagger {
+func GetDoc(realPath, modName string) *spec.Swagger {
 	if Doc != nil {
 		return Doc
 	}
-	targetPath := "." + string(os.PathSeparator) + "swagger.json"
-	if path != "" {
-		targetPath = path
-	} else {
-		return generate()
+	if realPath == "" {
+		realPath = "."
 	}
 
-	realPath, err := filepath.Abs(targetPath)
+	realPath = realPath + modName
+	err := os.MkdirAll(realPath, os.ModePerm)
 	if err != nil {
 		log.Error(err)
 	}
 
-	apiType := filepath.Ext(targetPath)
+	realPath = filepath.Join(realPath, modName+SwaggerEXT)
+
+	apiType := filepath.Ext(realPath)
 
 	if _, err := os.Stat(realPath); os.IsNotExist(err) {
 		return generate()

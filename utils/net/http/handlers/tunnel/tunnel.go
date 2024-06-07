@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func HandleTunneling(w http.ResponseWriter, r *http.Request) {
+func Tunneling(w http.ResponseWriter, r *http.Request) {
 	dest_conn, err := net.DialTimeout("tcp", r.Host, 10*time.Second)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusServiceUnavailable)

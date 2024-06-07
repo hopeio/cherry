@@ -2,7 +2,7 @@ package gin
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/cherry/utils/net/http/api/apidoc"
+	"github.com/hopeio/cherry/utils/net/http/apidoc"
 )
 
 func OpenApi(mux *gin.Engine, filePath string) {

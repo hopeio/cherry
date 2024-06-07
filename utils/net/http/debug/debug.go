@@ -16,7 +16,7 @@ func Debug() http.Handler {
 	return http.DefaultServeMux
 }
 
-func PromHandler() http.Handler {
+func Prom() http.Handler {
 	http.Handle("/metrics", promhttp.Handler())
 	return http.DefaultServeMux
 }

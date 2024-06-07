@@ -1,12 +1,9 @@
 package gzip
 
 import (
-	"compress/gzip"
 	"net/http"
 	"regexp"
 	"strings"
-
-	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -19,10 +16,10 @@ var (
 )
 
 type Options struct {
-	ExcludedExtensions   ExcludedExtensions
-	ExcludedPaths        ExcludedPaths
-	ExcludedPathesRegexs ExcludedPathesRegexs
-	DecompressFn         func(c *gin.Context)
+	ExcludedExtensions ExcludedExtensions
+	ExcludedPaths      ExcludedPaths
+	ExcludedPathsRegex ExcludedPathsRegex
+	Handler            http.HandlerFunc
 }
 
 type Option func(*Options)
@@ -39,15 +36,15 @@ func WithExcludedPaths(args []string) Option {
 	}
 }
 
-func WithExcludedPathsRegexs(args []string) Option {
+func WithExcludedPathsRegexes(args []string) Option {
 	return func(o *Options) {
-		o.ExcludedPathesRegexs = NewExcludedPathesRegexs(args)
+		o.ExcludedPathsRegex = NewExcludedPathsRegex(args)
 	}
 }
 
-func WithDecompressFn(decompressFn func(c *gin.Context)) Option {
+func WithHandler(decompressFn http.HandlerFunc) Option {
 	return func(o *Options) {
-		o.DecompressFn = decompressFn
+		o.Handler = decompressFn
 	}
 }
 
@@ -82,35 +79,21 @@ func (e ExcludedPaths) Contains(requestURI string) bool {
 	return false
 }
 
-type ExcludedPathesRegexs []*regexp.Regexp
+type ExcludedPathsRegex []*regexp.Regexp
 
-func NewExcludedPathesRegexs(regexs []string) ExcludedPathesRegexs {
-	result := make([]*regexp.Regexp, len(regexs), len(regexs))
-	for i, reg := range regexs {
+func NewExcludedPathsRegex(regexes []string) ExcludedPathsRegex {
+	result := make([]*regexp.Regexp, len(regexes), len(regexes))
+	for i, reg := range regexes {
 		result[i] = regexp.MustCompile(reg)
 	}
 	return result
 }
 
-func (e ExcludedPathesRegexs) Contains(requestURI string) bool {
+func (e ExcludedPathsRegex) Contains(requestURI string) bool {
 	for _, reg := range e {
 		if reg.MatchString(requestURI) {
 			return true
 		}
 	}
 	return false
-}
-
-func DefaultDecompressHandle(c *gin.Context) {
-	if c.Request.Body == nil {
-		return
-	}
-	r, err := gzip.NewReader(c.Request.Body)
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-	c.Request.Header.Del("Content-Encoding")
-	c.Request.Header.Del("Content-Length")
-	c.Request.Body = r
 }
