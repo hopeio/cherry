@@ -3,6 +3,7 @@ package engine
 import (
 	"context"
 	"github.com/hopeio/cherry/utils/log"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -74,12 +75,15 @@ func (t *Task[KEY]) SetContext(ctx context.Context) {
 func (t *Task[KEY]) ErrLog() {
 	builder := strings.Builder{}
 	if t.err != nil {
+		builder.WriteString("[1]{")
 		builder.WriteString(t.err.Error())
+		builder.WriteString("}\n")
 	}
-	for _, log := range t.reExecLogs {
+	for i, log := range t.reExecLogs {
 		if log.err != nil {
-			builder.WriteByte(' ')
+			builder.WriteString("[" + strconv.Itoa(i+2) + "]{")
 			builder.WriteString(log.err.Error())
+			builder.WriteString("}\n")
 		}
 	}
 	log.Error(builder.String())
