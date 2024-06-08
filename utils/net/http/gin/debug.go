@@ -2,7 +2,7 @@ package gin
 
 import (
 	"github.com/gin-gonic/gin"
-	httpi "github.com/hopeio/cherry/utils/net/http/debug"
+	httpi "github.com/hopeio/cherry/utils/net/http/handlers/debug"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 

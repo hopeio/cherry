@@ -1,4 +1,4 @@
-package http
+package handlers
 
 import (
 	"github.com/hopeio/cherry/utils/net/http/binding"
