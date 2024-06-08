@@ -8,28 +8,40 @@ import (
 	"strings"
 )
 
-const rbgcFormat = "\x1b[38;2;%d;%d;%dm%c\x1b[0m"
-const rbgcBgFormat = "\x1b[48;2;%d;%d;%dm%c\x1b[0m"
-const rbgsFormat = "\x1b[38;2;%d;%d;%dm%s\x1b[0m"
-const rbgsBgFormat = "\x1b[48;2;%d;%d;%dm%s\x1b[0m"
+const rbgcFormat = "\x1b[38;2;%d;%d;%dm%c"
+const rbgcFormatWithReset = rbgcFormat + reset
+const rbgcBgFormat = "\x1b[48;2;%d;%d;%dm%c"
+const rbgcBgFormatWithReset = rbgcBgFormat + reset
+const rbgsFormat = "\x1b[38;2;%d;%d;%dm%s"
+const rbgsFormatWithReset = rbgsFormat + reset
+const rbgsBgFormat = "\x1b[48;2;%d;%d;%dm%s"
+const rbgsBgFormatWithReset = rbgsBgFormat + reset
 
-type color struct {
+type colorRGB struct {
 	r, g, b int16
 }
 
-func (c *color) Format(text string) string {
-	return fmt.Sprintf(rbgsFormat, c.r, c.g, c.b, text)
+func (c *colorRGB) Format(s string) string {
+	return fmt.Sprintf(rbgsFormatWithReset, c.r, c.g, c.b, s)
 }
 
-func RGBFormat(text string, r, g, b byte) string {
-	return fmt.Sprintf(rbgsFormat, r, g, b, text)
+func ColorRGBFormat(s string, r, g, b byte) string {
+	return fmt.Sprintf(rbgsFormatWithReset, r, g, b, s)
 }
 
-func NewColor(r, g, b byte) color {
-	return color{r: int16(r), g: int16(g), b: int16(b)}
+func NewColorRGB(r, g, b byte) colorRGB {
+	return colorRGB{r: int16(r), g: int16(g), b: int16(b)}
 }
 
-func Gradient(text string, begin, end color) string {
+func ColorRGB(s string, r, g, b byte) string {
+	return fmt.Sprintf(rbgsFormatWithReset, r, g, b, s)
+}
+
+func BgColorRGB(s string, r, g, b byte) string {
+	return fmt.Sprintf(rbgsBgFormatWithReset, r, g, b, s)
+}
+
+func Gradient(text string, begin, end colorRGB) string {
 	var colorText []string
 	for i, r := range text {
 		var ratio = float64(i) / float64(len(text)-1)
@@ -38,16 +50,17 @@ func Gradient(text string, begin, end color) string {
 		var blue = byte(math.Round(float64(begin.b) + float64(end.b-begin.b)*ratio))
 		colorText = append(colorText, fmt.Sprintf(rbgcFormat, red, green, blue, r))
 	}
+	colorText = append(colorText, reset)
 	return strings.Join(colorText, "")
 }
 
-func RandomGradient(text string) string {
-	var begin = color{r: int16(rand.N(byte(255))), g: int16(rand.N(byte(255))), b: int16(rand.N(byte(255)))}
-	var end = color{r: int16(rand.N(byte(255))), g: int16(rand.N(byte(255))), b: int16(rand.N(byte(255)))}
+func GradientRandom(text string) string {
+	var begin = colorRGB{r: int16(rand.N(byte(255))), g: int16(rand.N(byte(255))), b: int16(rand.N(byte(255)))}
+	var end = colorRGB{r: int16(rand.N(byte(255))), g: int16(rand.N(byte(255))), b: int16(rand.N(byte(255)))}
 	return Gradient(text, begin, end)
 }
 
-func MultiLineGradient(text string, begin, end color) string {
+func GradientMultiLine(text string, begin, end colorRGB) string {
 	scanner := bufio.NewScanner(strings.NewReader(text))
 	var colorText []string
 	for scanner.Scan() {
@@ -56,54 +69,56 @@ func MultiLineGradient(text string, begin, end color) string {
 	return strings.Join(colorText, "\n")
 }
 
-func MultiLineRandomGradient(text string) string {
+func GradientMultiLineRandom(text string) string {
 	scanner := bufio.NewScanner(strings.NewReader(text))
 	var colorText []string
 	for scanner.Scan() {
-		var begin = color{r: int16(rand.N(byte(255))), g: int16(rand.N(byte(255))), b: int16(rand.N(byte(255)))}
-		var end = color{r: int16(rand.N(byte(255))), g: int16(rand.N(byte(255))), b: int16(rand.N(byte(255)))}
+		var begin = colorRGB{r: int16(rand.N(byte(255))), g: int16(rand.N(byte(255))), b: int16(rand.N(byte(255)))}
+		var end = colorRGB{r: int16(rand.N(byte(255))), g: int16(rand.N(byte(255))), b: int16(rand.N(byte(255)))}
 		colorText = append(colorText, Gradient(scanner.Text(), begin, end))
 	}
 	return strings.Join(colorText, "\n")
 }
 
 var (
-	RainbowColor  = [...]color{RainbowRed, RainbowOrange, RainbowYellow, RainbowGreen, RainbowCyan, RainbowBlue, RainbowPurple}
-	RainbowRed    = NewColor(255, 0, 0)
-	RainbowOrange = NewColor(255, 165, 0)
-	RainbowYellow = NewColor(255, 255, 0)
-	RainbowGreen  = NewColor(0, 255, 0)
-	RainbowCyan   = NewColor(0, 255, 255)
-	RainbowBlue   = NewColor(0, 0, 255)
-	RainbowPurple = NewColor(128, 0, 128)
+	RainbowRGB       = [...]colorRGB{RainbowRedRGB, RainbowOrangeRGB, RainbowYellowRGB, RainbowGreenRGB, RainbowCyanRGB, RainbowBlueRGB, RainbowPurpleRGB}
+	RainbowRedRGB    = NewColorRGB(255, 0, 0)
+	RainbowOrangeRGB = NewColorRGB(255, 165, 0)
+	RainbowYellowRGB = NewColorRGB(255, 255, 0)
+	RainbowGreenRGB  = NewColorRGB(0, 255, 0)
+	RainbowCyanRGB   = NewColorRGB(0, 255, 255)
+	RainbowBlueRGB   = NewColorRGB(0, 0, 255)
+	RainbowPurpleRGB = NewColorRGB(128, 0, 128)
 )
 
 func Rainbow(text string) string {
-	var colorText string
+	var colorText []string
 	var n int
 	for _, r := range text {
-		color := RainbowColor[n]
-		colorText += fmt.Sprintf(rbgcFormat, color.r, color.g, color.b, r)
+		color := RainbowRGB[n]
+		colorText = append(colorText, fmt.Sprintf(rbgcFormat, color.r, color.g, color.b, r))
 		n++
 		if n == 7 {
 			n = 0
 		}
 	}
-	return colorText
+	colorText = append(colorText, reset)
+	return strings.Join(colorText, "")
 }
 
-func MultiLineRainbow(text string) string {
+func RainbowMultiLine(text string) string {
 	scanner := bufio.NewScanner(strings.NewReader(text))
 	var colorText []string
 	var n int
 	for scanner.Scan() {
-		color := RainbowColor[n]
+		color := RainbowRGB[n]
 		colorText = append(colorText, color.Format(scanner.Text()))
 		n++
 		if n == 7 {
 			n = 0
 		}
 	}
+	colorText = append(colorText, reset)
 	return strings.Join(colorText, "\n")
 }
 

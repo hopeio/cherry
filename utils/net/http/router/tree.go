@@ -5,7 +5,7 @@
 package pickrouter
 
 import (
-	httpi "github.com/hopeio/cherry/utils/net/http/handlers"
+	httpi "github.com/hopeio/cherry/utils/net/http"
 	"net/http"
 	"reflect"
 	"sort"

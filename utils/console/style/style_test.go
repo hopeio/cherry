@@ -6,6 +6,11 @@ import (
 )
 
 func TestCustom(t *testing.T) {
-	fmt.Println(Custom(31, 39)("红色"))
-	fmt.Println(Custom(47, 0)("红色"))
+	fmt.Println(Custom("红色", 31, 39))
+	fmt.Println(Custom("红色", 47, 0))
+	fmt.Println(Custom("红色", DecorationItalic, 0))
+	fmt.Println(Custom("红色", DecorationUnderline, 0))
+	for i := range 256 {
+		fmt.Println(Color256("红色", byte(i)))
+	}
 }

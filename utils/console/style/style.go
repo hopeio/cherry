@@ -6,17 +6,23 @@ import (
 	"strconv"
 )
 
-var styleFormat = "\x1b[%sm%s\x1b[0m"
+const styleFormat = "\x1b[%sm%s"
+const styleFormatWithReset = styleFormat + reset
+const reset = "\x1b[0m"
+const color256 = "\x1b[38;5;%dm%s"
+const color256WithReset = color256 + reset
+const bgColor256 = "\x1b[48;5;%dm%s"
+const bgColor256WithReset = bgColor256 + reset
 
 func colorize(colorCode Style, s string) string {
-	return fmt.Sprintf(styleFormat, colorCode.String(), s)
+	return fmt.Sprintf(styleFormat+reset, colorCode.String(), s)
 }
 
-func StyleFormat(s string, styles ...Style) string {
+func StylesFormat(s string, styles ...Style) string {
 	if len(styles) == 0 {
 		return s
 	}
-	return fmt.Sprintf(styleFormat, slices.Join(styles, ";"), s)
+	return fmt.Sprintf(styleFormatWithReset, slices.Join(styles, ";"), s)
 }
 
 type Style int
@@ -28,8 +34,20 @@ func (d Style) String() string {
 const (
 	DecorationNormal Style = iota
 	DecorationBold
+	_
 	DecorationItalic
 	DecorationUnderline
+	DecorationFlashing
+	_
+	DecorationReverse
+)
+const (
+	DecorationResetBold = 22 + iota
+	_
+	DecorationResetUnderline
+	DecorationResetFlashing
+	_
+	DecorationResetReverse
 )
 
 const (
@@ -38,9 +56,20 @@ const (
 	ColorGreen
 	ColorYellow
 	ColorBlue
-	ColorPurple
-	ColorLightGreen
+	ColorMagenta
+	ColorCyan
 	ColorGray
+)
+
+const (
+	HighLightColorBlack Style = 90 + iota
+	HighLightColorRed
+	HighLightColorGreen
+	HighLightColorYellow
+	HighLightColorBlue
+	HighLightColorMagenta
+	HighLightColorCyan
+	HighLightColorGray
 )
 
 const (
@@ -49,21 +78,32 @@ const (
 	BackgroundGreen
 	BackgroundYellow
 	BackgroundBlue
-	BackgroundPurple
-	BackgroundLightGreen
+	BackgroundMagenta
+	BackgroundCyan
 	BackgroundGray
+)
+
+const (
+	HighLightBackGroundBlack Style = 100 + iota
+	HighLightBackGroundRed
+	HighLightBackGroundGreen
+	HighLightBackGroundYellow
+	HighLightBackGroundBlue
+	HighLightBackGroundMagenta
+	HighLightBackGroundCyan
+	HighLightBackGroundGray
 )
 
 func Blue(s string) string {
 	return colorize(ColorBlue, s)
 }
 
-func LightGreen(s string) string {
-	return colorize(ColorLightGreen, s)
+func Cyan(s string) string {
+	return colorize(ColorCyan, s)
 }
 
-func Purple(s string) string {
-	return colorize(ColorPurple, s)
+func Magenta(s string) string {
+	return colorize(ColorMagenta, s)
 }
 
 func Gray(s string) string {
@@ -74,7 +114,7 @@ func Red(s string) string {
 	return colorize(ColorRed, s)
 }
 
-func RedBackground(s string) string {
+func BgRed(s string) string {
 	return colorize(BackgroundRed, s)
 }
 
@@ -86,8 +126,14 @@ func Yellow(s string) string {
 	return colorize(ColorYellow, s)
 }
 
-func Custom(begin, end any) func(text string) string {
-	return func(text string) string {
-		return fmt.Sprintf("\x1b[%vm%s\x1b[%vm", begin, text, end)
-	}
+func Custom(text string, begin, end any) string {
+	return fmt.Sprintf("\x1b[%vm%s\x1b[%vm", begin, text, end)
+}
+
+func Color256(s string, c byte) string {
+	return fmt.Sprintf(color256WithReset, c, s)
+}
+
+func BgColor256(s string, c byte) string {
+	return fmt.Sprintf(bgColor256WithReset, c, s)
 }
