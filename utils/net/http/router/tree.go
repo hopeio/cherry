@@ -5,14 +5,13 @@
 package pickrouter
 
 import (
+	httpi "github.com/hopeio/cherry/utils/net/http"
 	"net/http"
 	"reflect"
 	"sort"
 	"strings"
 	"unicode"
 	"unicode/utf8"
-
-	httpi "github.com/hopeio/cherry/utils/net/http"
 )
 
 const MethodAny = "*"

@@ -1,52 +1,47 @@
-package gin
+package binding
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/cherry/utils/net/http/gin/binding"
 	"io"
 )
 
 func NewReq[REQ any](c *gin.Context) (*REQ, error) {
 	req := new(REQ)
-	err := binding.Bind(c, req)
+	err := Bind(c, req)
 	if err != nil {
 		return nil, err
 	}
 	return req, nil
 }
 
-func Bind(c *gin.Context, obj interface{}) error {
-	return binding.Bind(c, obj)
-}
-
 // BindJSON is a shortcut for c.MustBindWith(obj, binding.JSON).
 func BindJSON(c *gin.Context, obj interface{}) error {
-	return MustBindWith(c, obj, binding.JSON)
+	return MustBindWith(c, obj, JSON)
 }
 
 // BindXML is a shortcut for c.MustBindWith(obj, binding.BindXML).
 func BindXML(c *gin.Context, obj interface{}) error {
-	return MustBindWith(c, obj, binding.XML)
+	return MustBindWith(c, obj, XML)
 }
 
 // BindQuery is a shortcut for c.MustBindWith(obj, binding.Query).
 func BindQuery(c *gin.Context, obj interface{}) error {
-	return MustBindWith(c, obj, binding.Query)
+	return MustBindWith(c, obj, Query)
 }
 
 // BindYAML is a shortcut for c.MustBindWith(obj, binding.YAML).
 func BindYAML(c *gin.Context, obj interface{}) error {
-	return MustBindWith(c, obj, binding.YAML)
+	return MustBindWith(c, obj, YAML)
 }
 
 // MustBindWith binds the passed struct pointer using the specified binding engine.
 // It will abort the request with HTTP 400 if any error occurs.
 // See the binding package.
-func MustBindWith(c *gin.Context, obj interface{}, b binding.Binding) error {
+func MustBindWith(c *gin.Context, obj interface{}, b Binding) error {
 	if err := ShouldBindWith(c, obj, b); err != nil {
 		return err
 	}
-	if err := binding.Validate(obj); err != nil {
+	if err := Validate(obj); err != nil {
 		return err
 	}
 	return nil
@@ -63,38 +58,38 @@ func MustBindWith(c *gin.Context, obj interface{}, b binding.Binding) error {
 // It decodes the json payload into the struct specified as a pointer.
 // Like c.GinBind() but this method does not set the response status code to 400 and abort if the json is not valid.
 func ShouldBind(c *gin.Context, obj interface{}) error {
-	b := binding.Default(c.Request.Method, c.ContentType())
+	b := Default(c.Request.Method, c.ContentType())
 	return b.Bind(c, obj)
 }
 
 // ShouldBindJSON is a shortcut for c.ShouldBindWith(obj, binding.JSON).
 func ShouldBindJSON(c *gin.Context, obj interface{}) error {
-	return ShouldBindWith(c, obj, binding.JSON)
+	return ShouldBindWith(c, obj, JSON)
 }
 
 // ShouldBindXML is a shortcut for c.ShouldBindWith(obj, binding.XML).
 func ShouldBindXML(c *gin.Context, obj interface{}) error {
-	return ShouldBindWith(c, obj, binding.XML)
+	return ShouldBindWith(c, obj, XML)
 }
 
 // ShouldBindQuery is a shortcut for c.ShouldBindWith(obj, binding.Query).
 func ShouldBindQuery(c *gin.Context, obj interface{}) error {
-	return ShouldBindWith(c, obj, binding.Query)
+	return ShouldBindWith(c, obj, Query)
 }
 
 // ShouldBindYAML is a shortcut for c.ShouldBindWith(obj, binding.YAML).
 func ShouldBindYAML(c *gin.Context, obj interface{}) error {
-	return ShouldBindWith(c, obj, binding.YAML)
+	return ShouldBindWith(c, obj, YAML)
 }
 
 // ShouldBindUri binds the passed struct pointer using the specified binding engine.
 func ShouldBindUri(r *gin.Context, obj interface{}) error {
-	return binding.Uri.Bind(r, obj)
+	return Uri.Bind(r, obj)
 }
 
 // ShouldBindWith binds the passed struct pointer using the specified binding engine.
 // See the binding package.
-func ShouldBindWith(c *gin.Context, obj interface{}, b binding.Binding) error {
+func ShouldBindWith(c *gin.Context, obj interface{}, b Binding) error {
 	return b.Bind(c, obj)
 }
 
@@ -103,7 +98,7 @@ func ShouldBindWith(c *gin.Context, obj interface{}, b binding.Binding) error {
 //
 // NOTE: This method reads the body before binding. So you should use
 // ShouldBindWith for better performance if you need to call only once.
-func ShouldBindBodyWith(c *gin.Context, obj interface{}, bb binding.BindingBody) (err error) {
+func ShouldBindBodyWith(c *gin.Context, obj interface{}, bb BindingBody) (err error) {
 	var body []byte
 	if cb, ok := c.Get(gin.BodyBytesKey); ok {
 		if cbb, ok := cb.([]byte); ok {

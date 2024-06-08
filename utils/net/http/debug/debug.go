@@ -9,14 +9,16 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func Debug() http.Handler {
-	http.Handle("/debug/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write(debug.Stack())
-	}))
+func DebugHandler() http.Handler {
+	http.Handle("/debug/", http.HandlerFunc(Debug))
 	return http.DefaultServeMux
 }
 
-func Prom() http.Handler {
+func Debug(w http.ResponseWriter, r *http.Request) {
+	w.Write(debug.Stack())
+}
+
+func PromHandler() http.Handler {
 	http.Handle("/metrics", promhttp.Handler())
 	return http.DefaultServeMux
 }

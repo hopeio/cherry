@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	log2 "github.com/hopeio/cherry/utils/net/http/handlers/log"
+	log2 "github.com/hopeio/cherry/utils/net/http/log"
 	"strings"
 	"time"
 

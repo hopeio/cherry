@@ -1,41 +1,37 @@
-package http
+package binding
 
 import (
-	"github.com/hopeio/cherry/utils/net/http/binding"
+	http2 "github.com/hopeio/cherry/utils/net/http"
 	"net/http"
 )
 
 func NewReq[REQ any](r *http.Request) (*REQ, error) {
 	req := new(REQ)
-	err := binding.Bind(r, req)
+	err := Bind(r, req)
 	if err != nil {
 		return nil, err
 	}
 	return req, nil
 }
 
-func Bind(r *http.Request, obj interface{}) error {
-	return binding.Bind(r, obj)
-}
-
 // BindJSON is a shortcut for c.MustBindWith(obj, binding.JSON).
 func BindJSON(r *http.Request, obj interface{}) error {
-	return MustBindWith(r, obj, binding.JSON)
+	return MustBindWith(r, obj, JSON)
 }
 
 // BindXML is a shortcut for c.MustBindWith(obj, binding.BindXML).
 func BindXML(r *http.Request, obj interface{}) error {
-	return MustBindWith(r, obj, binding.XML)
+	return MustBindWith(r, obj, XML)
 }
 
 // BindQuery is a shortcut for c.MustBindWith(obj, binding.Query).
 func BindQuery(r *http.Request, obj interface{}) error {
-	return MustBindWith(r, obj, binding.Query)
+	return MustBindWith(r, obj, Query)
 }
 
 // BindYAML is a shortcut for c.MustBindWith(obj, binding.YAML).
 func BindYAML(r *http.Request, obj interface{}) error {
-	return MustBindWith(r, obj, binding.YAML)
+	return MustBindWith(r, obj, YAML)
 }
 
 // MustBindWith binds the passed struct pointer using the specified binding engine.
@@ -48,7 +44,7 @@ func BindUri(r *http.Request, obj interface{}) error {
 // MustBindWith binds the passed struct pointer using the specified binding engine.
 // It will abort the request with HTTP 400 if any error occurs.
 // See the binding package.
-func MustBindWith(r *http.Request, obj interface{}, b binding.Binding) error {
+func MustBindWith(r *http.Request, obj interface{}, b Binding) error {
 	return ShouldBindWith(r, obj, b)
 }
 
@@ -63,37 +59,37 @@ func MustBindWith(r *http.Request, obj interface{}, b binding.Binding) error {
 // It decodes the json payload into the struct specified as a pointer.
 // Like c.GinBind() but this method does not set the response status code to 400 and abort if the json is not valid.
 func ShouldBind(r *http.Request, obj interface{}) error {
-	b := binding.Default(r.Method, r.Header.Get(HeaderContentType))
+	b := Default(r.Method, r.Header.Get(http2.HeaderContentType))
 	return ShouldBindWith(r, obj, b)
 }
 
 // ShouldBindJSON is a shortcut for c.ShouldBindWith(obj, binding.JSON).
 func ShouldBindJSON(r *http.Request, obj interface{}) error {
-	return ShouldBindWith(r, obj, binding.JSON)
+	return ShouldBindWith(r, obj, JSON)
 }
 
 // ShouldBindXML is a shortcut for c.ShouldBindWith(obj, binding.XML).
 func ShouldBindXML(r *http.Request, obj interface{}) error {
-	return ShouldBindWith(r, obj, binding.XML)
+	return ShouldBindWith(r, obj, XML)
 }
 
 // ShouldBindQuery is a shortcut for c.ShouldBindWith(obj, binding.Query).
 func ShouldBindQuery(r *http.Request, obj interface{}) error {
-	return ShouldBindWith(r, obj, binding.Query)
+	return ShouldBindWith(r, obj, Query)
 }
 
 // ShouldBindYAML is a shortcut for c.ShouldBindWith(obj, binding.YAML).
 func ShouldBindYAML(r *http.Request, obj interface{}) error {
-	return ShouldBindWith(r, obj, binding.YAML)
+	return ShouldBindWith(r, obj, YAML)
 }
 
 // ShouldBindUri binds the passed struct pointer using the specified binding engine.
 func ShouldBindUri(r *http.Request, obj interface{}) error {
-	return binding.Uri.Bind(r, obj)
+	return Uri.Bind(r, obj)
 }
 
 // ShouldBindWith binds the passed struct pointer using the specified binding engine.
 // See the binding package.
-func ShouldBindWith(r *http.Request, obj interface{}, b binding.Binding) error {
+func ShouldBindWith(r *http.Request, obj interface{}, b Binding) error {
 	return b.Bind(r, obj)
 }

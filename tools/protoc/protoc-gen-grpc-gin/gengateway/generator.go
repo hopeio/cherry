@@ -45,11 +45,9 @@ func New(reg *descriptor2.Registry, useRequestContext bool, registerFuncSuffix s
 		"google.golang.org/grpc/metadata",
 		"google.golang.org/grpc/status",
 		"github.com/gin-gonic/gin",
-		"github.com/grpc-ecosystem/grpc-gateway/v2/runtime",
-		"github.com/grpc-ecosystem/grpc-gateway/v2/utilities",
-		"github.com/hopeio/cherry/utils/net/http/gin",
-		"github.com/hopeio/cherry/utils/net/http/grpc/gateway",
-		"github.com/hopeio/cherry/utils/net/http",
+		"github.com/hopeio/cherry/utils/net/http/gin/binding",
+		"github.com/hopeio/cherry/utils/net/http/grpc",
+		"github.com/hopeio/cherry/utils/net/http/grpc/gateway/gin",
 	} {
 		pkg := descriptor2.GoPackage{
 			Path: pkgpath,

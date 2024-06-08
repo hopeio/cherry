@@ -13,11 +13,9 @@ import (
 	"io"
 
 	"github.com/gin-gonic/gin"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
-	"github.com/hopeio/cherry/utils/net/http"
-	gin_0 "github.com/hopeio/cherry/utils/net/http/gin"
-	"github.com/hopeio/cherry/utils/net/http/grpc/gateway"
+	"github.com/hopeio/cherry/utils/net/http/gin/binding"
+	grpc_0 "github.com/hopeio/cherry/utils/net/http/grpc"
+	gin_0 "github.com/hopeio/cherry/utils/net/http/grpc/gateway/gin"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
@@ -30,16 +28,14 @@ import (
 var _ codes.Code
 var _ io.Reader
 var _ status.Status
-var _ = runtime.String
-var _ = utilities.NewDoubleArray
+var _ = grpc_0.String
 var _ = metadata.Join
-var _ = http.Error
 
-func request_UserService_Signup_0(ctx *gin.Context, client UserServiceClient) (proto.Message, runtime.ServerMetadata, error) {
+func request_UserService_Signup_0(ctx *gin.Context, client UserServiceClient) (proto.Message, grpc_0.ServerMetadata, error) {
 	var protoReq SignupReq
-	var metadata runtime.ServerMetadata
+	var metadata grpc_0.ServerMetadata
 
-	if err := gin_0.Bind(ctx, &protoReq); err != nil {
+	if err := binding.Bind(ctx, &protoReq); err != nil {
 		return nil, metadata, err
 	}
 
@@ -51,7 +47,7 @@ func request_UserService_Signup_0(ctx *gin.Context, client UserServiceClient) (p
 func local_request_UserService_Signup_0(server UserServiceServer, ctx *gin.Context) (proto.Message, error) {
 	var protoReq SignupReq
 
-	if err := gin_0.Bind(ctx, &protoReq); err != nil {
+	if err := binding.Bind(ctx, &protoReq); err != nil {
 		return nil, err
 	}
 
@@ -66,14 +62,14 @@ func local_request_UserService_Signup_0(server UserServiceServer, ctx *gin.Conte
 func RegisterUserServiceHandlerServer(mux *gin.Engine, server UserServiceServer) error {
 
 	mux.Handle("POST", "/api/v1/user", func(ctx *gin.Context) {
-		var md runtime.ServerMetadata
+		var md grpc_0.ServerMetadata
 		resp, err := local_request_UserService_Signup_0(server, ctx)
 		if err != nil {
-			gateway.HTTPError(ctx, err)
+			gin_0.HttpError(ctx, err)
 			return
 		}
 
-		gateway.ForwardResponseMessage(ctx, md, resp)
+		gin_0.ForwardResponseMessage(ctx, md, resp)
 
 	})
 
@@ -121,11 +117,11 @@ func RegisterUserServiceHandlerClient(ctx context.Context, mux *gin.Engine, clie
 	mux.Handle("POST", "/api/v1/user", func(ctx *gin.Context) {
 		resp, md, err := request_UserService_Signup_0(ctx, client)
 		if err != nil {
-			gateway.HTTPError(ctx, err)
+			gin_0.HttpError(ctx, err)
 			return
 		}
 
-		gateway.ForwardResponseMessage(ctx, md, resp)
+		gin_0.ForwardResponseMessage(ctx, md, resp)
 
 	})
 

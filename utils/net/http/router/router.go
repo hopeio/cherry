@@ -82,13 +82,12 @@ package pickrouter
 
 import (
 	"context"
+	httpi "github.com/hopeio/cherry/utils/net/http"
 	urli "github.com/hopeio/cherry/utils/net/url"
 	"net/http"
 	"reflect"
 	"strings"
 	"sync"
-
-	httpi "github.com/hopeio/cherry/utils/net/http"
 )
 
 // Param is a single URL parameter, consisting of a key and a value.

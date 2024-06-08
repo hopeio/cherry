@@ -7,7 +7,7 @@ import (
 	"github.com/hopeio/cherry/context/httpctx"
 	httpi "github.com/hopeio/cherry/utils/net/http"
 	gini "github.com/hopeio/cherry/utils/net/http/gin"
-	"github.com/hopeio/cherry/utils/net/http/grpc/gateway"
+	"github.com/hopeio/cherry/utils/net/http/grpc/gateway/runtime"
 	"io"
 
 	stringsi "github.com/hopeio/cherry/utils/strings"
@@ -35,7 +35,7 @@ func (s *Server) httpHandler() http.HandlerFunc {
 	}
 	var gatewayServer http.Handler
 	if s.GatewayHandler != nil {
-		gatewayServer = gateway.Gateway(s.GatewayHandler)
+		gatewayServer = runtime.Gateway(s.GatewayHandler)
 		/*	ginServer.NoRoute(func(ctx *gin.Context) {
 			gatewayServer.ServeHTTP(
 				(*httpi.ResponseRecorder)(unsafe.Pointer(uintptr(*(*int64)(unsafe.Pointer(uintptr(unsafe.Pointer(ctx))+8))))),

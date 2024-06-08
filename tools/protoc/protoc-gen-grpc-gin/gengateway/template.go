@@ -234,10 +234,8 @@ import (
 var _ codes.Code
 var _ io.Reader
 var _ status.Status
-var _ = runtime.String
-var _ = utilities.NewDoubleArray
+var _ = grpc_0.String
 var _ = metadata.Join
-var _ = http.Error
 `))
 
 	handlerTemplate = template.Must(template.New("handler").Parse(`
@@ -252,14 +250,14 @@ var _ = http.Error
 
 	_ = template.Must(handlerTemplate.New("request-func-signature").Parse(strings.Replace(`
 {{if .Method.GetServerStreaming}}
-func request_{{.Method.Service.GetName}}_{{.Method.GetName}}_{{.Index}}(ctx *gin.Context, client {{.Method.Service.InstanceName}}Client) ({{.Method.Service.InstanceName}}_{{.Method.GetName}}Client, runtime.ServerMetadata, error)
+func request_{{.Method.Service.GetName}}_{{.Method.GetName}}_{{.Index}}(ctx *gin.Context, client {{.Method.Service.InstanceName}}Client) ({{.Method.Service.InstanceName}}_{{.Method.GetName}}Client, grpc_0.ServerMetadata, error)
 {{else}}
-func request_{{.Method.Service.GetName}}_{{.Method.GetName}}_{{.Index}}(ctx *gin.Context, client {{.Method.Service.InstanceName}}Client) (proto.Message, runtime.ServerMetadata, error)
+func request_{{.Method.Service.GetName}}_{{.Method.GetName}}_{{.Index}}(ctx *gin.Context, client {{.Method.Service.InstanceName}}Client) (proto.Message, grpc_0.ServerMetadata, error)
 {{end}}`, "\n", "", -1)))
 
 	_ = template.Must(handlerTemplate.New("client-streaming-request-func").Parse(`
 {{template "request-func-signature" .}} {
-	var metadata runtime.ServerMetadata
+	var metadata grpc_0.ServerMetadata
 	stream, err := client.{{.Method.GetName}}(ctx)
 	if err != nil {
 		grpclog.Infof("Failed to start streaming: %v", err)
@@ -274,7 +272,7 @@ func request_{{.Method.Service.GetName}}_{{.Method.GetName}}_{{.Index}}(ctx *gin
 		}
 		if err != nil {
 			grpclog.Infof("Failed to decode request: %v", err)
-			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", http.Error(err))
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 		}
 		if err = stream.Send(&protoReq); err != nil {
 			if err == io.EOF {
@@ -309,9 +307,9 @@ func request_{{.Method.Service.GetName}}_{{.Method.GetName}}_{{.Index}}(ctx *gin
 {{$AllowPatchFeature := .AllowPatchFeature}}
 {{template "request-func-signature" .}} {
 	var protoReq {{.Method.RequestType.GoType .Method.Service.File.GoPkg.Path}}
-	var metadata runtime.ServerMetadata
+	var metadata grpc_0.ServerMetadata
 {{if or (or .Body .HasQueryParam) (and (ne .HTTPMethod "GET") (ne .HTTPMethod "DELETE"))}}
-	if err := gin_0.Bind(ctx, &protoReq); err != nil {
+	if err := binding.Bind(ctx, &protoReq); err != nil {
 		return nil, metadata, err
 	}
 {{end}}
@@ -332,25 +330,25 @@ func request_{{.Method.Service.GetName}}_{{.Method.GetName}}_{{.Index}}(ctx *gin
 	{{$enum := $binding.LookupEnum $param}}
 
 {{if $param.IsNestedProto3}}
-	err = runtime.PopulateFieldFromPath(&protoReq, {{$param | printf "%q"}}, ctx.Param({{$param | printf "%q"}}))
+	err = gin_1.PopulateFieldFromPath(&protoReq, {{$param | printf "%q"}}, ctx.Param({{$param | printf "%q"}}))
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", {{$param | printf "%q"}}, http.Error(err))
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", {{$param | printf "%q"}}, err)
 	}
 	{{if $enum}}
 		e{{if $param.IsRepeated}}s{{end}}, err = {{$param.ConvertFuncExpr}}(ctx.Param({{$param | printf "%q"}}){{if $param.IsRepeated}}, {{$binding.Registry.GetRepeatedPathParamSeparator | printf "%c" | printf "%q"}}{{end}}, {{$enum.GoType $param.Method.Service.File.GoPkg.Path}}_value)
 		if err != nil {
-			return nil, metadata, status.Errorf(codes.InvalidArgument, "could not parse path as enum value, parameter: %s, error: %v", {{$param | printf "%q"}}, http.Error(err))
+			return nil, metadata, status.Errorf(codes.InvalidArgument, "could not parse path as enum value, parameter: %s, error: %v", {{$param | printf "%q"}}, err)
 		}
 	{{end}}
 {{else if $enum}}
 	e{{if $param.IsRepeated}}s{{end}}, err = {{$param.ConvertFuncExpr}}(ctx.Param({{$param | printf "%q"}}){{if $param.IsRepeated}}, {{$binding.Registry.GetRepeatedPathParamSeparator | printf "%c" | printf "%q"}}{{end}}, {{$enum.GoType $param.Method.Service.File.GoPkg.Path}}_value)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", {{$param | printf "%q"}}, http.Error(err))
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", {{$param | printf "%q"}}, err)
 	}
 {{else}}
 	{{$param.AssignableExpr "protoReq"}}, err = {{$param.ConvertFuncExpr}}(ctx.Param({{$param | printf "%q"}}){{if $param.IsRepeated}}, {{$binding.Registry.GetRepeatedPathParamSeparator | printf "%c" | printf "%q"}}{{end}})
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", {{$param | printf "%q"}}, http.Error(err))
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", {{$param | printf "%q"}}, err)
 	}
 {{end}}
 {{if and $enum $param.IsRepeated}}
@@ -384,7 +382,7 @@ func request_{{.Method.Service.GetName}}_{{.Method.GetName}}_{{.Index}}(ctx *gin
 
 	_ = template.Must(handlerTemplate.New("bidi-streaming-request-func").Parse(`
 {{template "request-func-signature" .}} {
-	var metadata runtime.ServerMetadata
+	var metadata grpc_0.ServerMetadata
 	stream, err := client.{{.Method.GetName}}(ctx)
 	if err != nil {
 		grpclog.Infof("Failed to start streaming: %v", err)
@@ -456,7 +454,7 @@ func local_request_{{.Method.Service.GetName}}_{{.Method.GetName}}_{{.Index}}(se
 {{template "local-request-func-signature" .}} {
 	var protoReq {{.Method.RequestType.GoType .Method.Service.File.GoPkg.Path}}
 {{if or (or .Body .HasQueryParam) (and (ne .HTTPMethod "GET") (ne .HTTPMethod "DELETE"))}}
-	if err := gin_0.Bind(ctx, &protoReq); err != nil {
+	if err := binding.Bind(ctx, &protoReq); err != nil {
 		return nil, err
 	}
 {{end}}
@@ -478,25 +476,25 @@ func local_request_{{.Method.Service.GetName}}_{{.Method.GetName}}_{{.Index}}(se
 
 
 {{if $param.IsNestedProto3}}
-	err = runtime.PopulateFieldFromPath(&protoReq, {{$param | printf "%q"}}, ctx.Param({{$param | printf "%q"}}))
+	err = gin_1.PopulateFieldFromPath(&protoReq, {{$param | printf "%q"}}, ctx.Param({{$param | printf "%q"}}))
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", {{$param | printf "%q"}}, http.Error(err))
+		return nil, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", {{$param | printf "%q"}}, err)
 	}
 	{{if $enum}}
 		e{{if $param.IsRepeated}}s{{end}}, err = {{$param.ConvertFuncExpr}}(ctx.Param({{$param | printf "%q"}}){{if $param.IsRepeated}}, {{$binding.Registry.GetRepeatedPathParamSeparator | printf "%c" | printf "%q"}}{{end}}, {{$enum.GoType $param.Method.Service.File.GoPkg.Path}}_value)
 		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "could not parse path as enum value, parameter: %s, error: %v", {{$param | printf "%q"}}, http.Error(err))
+			return nil, status.Errorf(codes.InvalidArgument, "could not parse path as enum value, parameter: %s, error: %v", {{$param | printf "%q"}}, err)
 		}
 	{{end}}
 {{else if $enum}}
 	e{{if $param.IsRepeated}}s{{end}}, err = {{$param.ConvertFuncExpr}}(ctx.Param({{$param | printf "%q"}}){{if $param.IsRepeated}}, {{$binding.Registry.GetRepeatedPathParamSeparator | printf "%c" | printf "%q"}}{{end}}, {{$enum.GoType $param.Method.Service.File.GoPkg.Path}}_value)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", {{$param | printf "%q"}}, http.Error(err))
+		return nil, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", {{$param | printf "%q"}}, err)
 	}
 {{else}}
 	{{$param.AssignableExpr "protoReq"}}, err = {{$param.ConvertFuncExpr}}(ctx.Param({{$param | printf "%q"}}){{if $param.IsRepeated}}, {{$binding.Registry.GetRepeatedPathParamSeparator | printf "%c" | printf "%q"}}{{end}})
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", {{$param | printf "%q"}}, http.Error(err))
+		return nil, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", {{$param | printf "%q"}}, err)
 	}
 {{end}}
 {{if and $enum $param.IsRepeated}}
@@ -531,21 +529,21 @@ func Register{{$svc.GetName}}{{$.RegisterFuncSuffix}}Server(mux *gin.Engine, ser
 	{{if or $m.GetClientStreaming $m.GetServerStreaming}}
 	mux.Handle({{$b.HTTPMethod | printf "%q"}}, {{$b.PathTmpl.Template | printf "%q"}}, func(ctx *gin.Context) {
 		err := status.Error(codes.Unimplemented, "streaming calls are not yet supported in the in-process transport")
-		gateway.HTTPError(ctx, err)
+		gin_0.HttpError(ctx, err)
 		return
 	})
 	{{else}}
 	mux.Handle({{$b.HTTPMethod | printf "%q"}}, {{$b.PathTmpl.Template | printf "%q"}}, func(ctx *gin.Context) {
-		var md runtime.ServerMetadata
+		var md grpc_0.ServerMetadata
 		resp, err := local_request_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}(server, ctx)
 		if err !=nil {
-			gateway.HTTPError(ctx, err)
+			gin_0.HttpError(ctx, err)
 			return
 		}
 		{{ if $b.ResponseBody }}
-		gateway.ForwardResponseMessage(ctx, md, response_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}{resp})
+		gin_0.ForwardResponseMessage(ctx, md, response_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}{resp})
 		{{ else }}
-		gateway.ForwardResponseMessage(ctx, md, resp)
+		gin_0.ForwardResponseMessage(ctx, md, resp)
 		{{end}}
 	})
 	{{end}}
@@ -600,23 +598,23 @@ func Register{{$svc.GetName}}{{$.RegisterFuncSuffix}}Client(ctx context.Context,
 	mux.Handle({{$b.HTTPMethod | printf "%q"}}, {{$b.PathTmpl.Template | printf "%q"}}, func(ctx *gin.Context) {
 		resp, md, err := request_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}(ctx, client)
 		if err !=nil {
-			gateway.HTTPError(ctx, err)
+			gin_0.HttpError(ctx, err)
 			return
 		}
 		{{if $m.GetServerStreaming}}
 		{{ if $b.ResponseBody }}
-		gateway.ForwardResponseMessage(ctx, md, func() (proto.Message, error) {
+		gin_0.ForwardResponseMessage(ctx, md, func() (proto.Message, error) {
 			res, err := resp.Recv()
 			return response_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}{res}, err
 		})
 		{{ else }}
-		gateway.ForwardResponseMessage(ctx, md, func() (proto.Message, error) { return resp.Recv() })
+		gin_0.ForwardResponseMessage(ctx, md, func() (proto.Message, error) { return resp.Recv() })
 		{{end}}
 		{{else}}
 		{{ if $b.ResponseBody }}
-		gateway.ForwardResponseMessage(ctx, md, response_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}{resp})
+		gin_0.ForwardResponseMessage(ctx, md, response_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}{resp})
 		{{ else }}
-		gateway.ForwardResponseMessage(ctx, md, resp)
+		gin_0.ForwardResponseMessage(ctx, md, resp)
 		{{end}}
 		{{end}}
 	})

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/hopeio/cherry/context/httpctx"
 	httpi "github.com/hopeio/cherry/utils/net/http"
+	"github.com/hopeio/cherry/utils/net/http/grpc/gateway/runtime"
 	"github.com/hopeio/cherry/utils/net/http/grpc/web"
 	stringsi "github.com/hopeio/cherry/utils/strings"
 	"github.com/quic-go/quic-go"
@@ -21,7 +22,6 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/cherry/utils/log"
-	"github.com/hopeio/cherry/utils/net/http/grpc/gateway"
 	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 	"go.uber.org/zap"
 	"golang.org/x/net/http2/h2c"
@@ -33,7 +33,7 @@ type Server struct {
 	// 注册 grpc 服务
 	GrpcHandler func(*grpc.Server)
 	// 注册 grpc-gateway 服务
-	GatewayHandler gateway.GatewayHandler
+	GatewayHandler runtime.GatewayHandler
 	// 注册 gin 服务
 	GinHandler func(*gin.Engine)
 	// 注册 graphql 服务
@@ -46,7 +46,7 @@ type Server struct {
 	OnAfterStop   func(context.Context)
 }
 
-func NewServer(config *Config, ginhandler func(*gin.Engine), grpchandler func(*grpc.Server), gatewayhandler gateway.GatewayHandler, graphqlhandler graphql.ExecutableSchema) *Server {
+func NewServer(config *Config, ginhandler func(*gin.Engine), grpchandler func(*grpc.Server), gatewayhandler runtime.GatewayHandler, graphqlhandler graphql.ExecutableSchema) *Server {
 	return &Server{
 		Config:         config,
 		GinHandler:     ginhandler,

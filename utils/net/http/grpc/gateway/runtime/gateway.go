@@ -1,8 +1,9 @@
-package gateway
+package runtime
 
 import (
 	"context"
 	httpi "github.com/hopeio/cherry/utils/net/http"
+	"github.com/hopeio/cherry/utils/net/http/grpc/gateway"
 	"net/http"
 	"net/url"
 
@@ -64,12 +65,12 @@ func Gateway(gatewayHandle GatewayHandler) *runtime.ServeMux {
 			}
 			return "", false
 		}),
-		runtime.WithOutgoingHeaderMatcher(outgoingHeaderMatcher))
+		runtime.WithOutgoingHeaderMatcher(gateway.OutgoingHeaderMatcher))
 
-	runtime.WithForwardResponseOption(CookieHook)(gwmux)
-	runtime.WithForwardResponseOption(ResponseHook)(gwmux)
+	runtime.WithForwardResponseOption(gateway.CookieHook)(gwmux)
+	runtime.WithForwardResponseOption(gateway.ResponseHook)(gwmux)
 	runtime.WithRoutingErrorHandler(RoutingErrorHandler)(gwmux)
-	runtime.WithErrorHandler(CustomHTTPError)(gwmux)
+	runtime.WithErrorHandler(gateway.CustomHTTPError)(gwmux)
 	if gatewayHandle != nil {
 		gatewayHandle(ctx, gwmux)
 	}
