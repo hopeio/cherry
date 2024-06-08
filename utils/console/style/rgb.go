@@ -9,24 +9,20 @@ import (
 )
 
 const rbgcFormat = "\x1b[38;2;%d;%d;%dm%c"
-const rbgcFormatWithReset = rbgcFormat + reset
+const rbgcWithResetFormat = rbgcFormat + reset
 const rbgcBgFormat = "\x1b[48;2;%d;%d;%dm%c"
-const rbgcBgFormatWithReset = rbgcBgFormat + reset
+const rbgcBgWithResetFormat = rbgcBgFormat + reset
 const rbgsFormat = "\x1b[38;2;%d;%d;%dm%s"
-const rbgsFormatWithReset = rbgsFormat + reset
+const rbgsWithResetFormat = rbgsFormat + reset
 const rbgsBgFormat = "\x1b[48;2;%d;%d;%dm%s"
-const rbgsBgFormatWithReset = rbgsBgFormat + reset
+const rbgsBgWithResetFormat = rbgsBgFormat + reset
 
 type colorRGB struct {
 	r, g, b int16
 }
 
 func (c *colorRGB) Format(s string) string {
-	return fmt.Sprintf(rbgsFormatWithReset, c.r, c.g, c.b, s)
-}
-
-func ColorRGBFormat(s string, r, g, b byte) string {
-	return fmt.Sprintf(rbgsFormatWithReset, r, g, b, s)
+	return fmt.Sprintf(rbgsWithResetFormat, c.r, c.g, c.b, s)
 }
 
 func NewColorRGB(r, g, b byte) colorRGB {
@@ -34,11 +30,11 @@ func NewColorRGB(r, g, b byte) colorRGB {
 }
 
 func ColorRGB(s string, r, g, b byte) string {
-	return fmt.Sprintf(rbgsFormatWithReset, r, g, b, s)
+	return fmt.Sprintf(rbgsWithResetFormat, r, g, b, s)
 }
 
 func BgColorRGB(s string, r, g, b byte) string {
-	return fmt.Sprintf(rbgsBgFormatWithReset, r, g, b, s)
+	return fmt.Sprintf(rbgsBgWithResetFormat, r, g, b, s)
 }
 
 func Gradient(text string, begin, end colorRGB) string {

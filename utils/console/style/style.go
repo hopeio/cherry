@@ -6,23 +6,24 @@ import (
 	"strconv"
 )
 
+const baseFormat = "\x1b[%sm"
 const styleFormat = "\x1b[%sm%s"
-const styleFormatWithReset = styleFormat + reset
+const styleWithResetFormat = styleFormat + reset
 const reset = "\x1b[0m"
-const color256 = "\x1b[38;5;%dm%s"
-const color256WithReset = color256 + reset
-const bgColor256 = "\x1b[48;5;%dm%s"
-const bgColor256WithReset = bgColor256 + reset
+const color256Format = "\x1b[38;5;%dm%s"
+const color256WithResetFormat = color256Format + reset
+const bgColor256Format = "\x1b[48;5;%dm%s"
+const bgColor256WithResetFormat = bgColor256Format + reset
 
 func colorize(colorCode Style, s string) string {
 	return fmt.Sprintf(styleFormat+reset, colorCode.String(), s)
 }
 
-func StylesFormat(s string, styles ...Style) string {
+func ByStyles(s string, styles ...Style) string {
 	if len(styles) == 0 {
 		return s
 	}
-	return fmt.Sprintf(styleFormatWithReset, slices.Join(styles, ";"), s)
+	return fmt.Sprintf(styleWithResetFormat, slices.Join(styles, ";"), s)
 }
 
 type Style int
@@ -131,9 +132,9 @@ func Custom(text string, begin, end any) string {
 }
 
 func Color256(s string, c byte) string {
-	return fmt.Sprintf(color256WithReset, c, s)
+	return fmt.Sprintf(color256WithResetFormat, c, s)
 }
 
 func BgColor256(s string, c byte) string {
-	return fmt.Sprintf(bgColor256WithReset, c, s)
+	return fmt.Sprintf(bgColor256WithResetFormat, c, s)
 }
