@@ -2,8 +2,6 @@ module github.com/hopeio/cherry
 
 go 1.22
 
-toolchain go1.22.1
-
 require (
 	bou.ke/monkey v1.0.2
 	github.com/99designs/gqlgen v0.17.47
@@ -292,6 +290,7 @@ require (
 	github.com/tidwall/tinyqueue v0.1.1 // indirect
 	github.com/tjfoc/gmsm v1.4.1 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
+	github.com/ugorji/go v1.2.12 // indirect
 	github.com/urfave/cli/v2 v2.27.2 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fastrand v1.1.0 // indirect
