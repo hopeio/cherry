@@ -21,7 +21,7 @@ func RoutingErrorHandler(ctx context.Context, mux *runtime.ServeMux, marshaler r
 	w.Write(stringsi.ToBytes(http.StatusText(httpStatus)))
 }
 
-func CustomHTTPError(ctx context.Context, mux *runtime.ServeMux, marshaler runtime.Marshaler, w http.ResponseWriter, r *http.Request, err error) {
+func CustomHttpError(ctx context.Context, mux *runtime.ServeMux, marshaler runtime.Marshaler, w http.ResponseWriter, r *http.Request, err error) {
 
 	s, ok := status.FromError(err)
 	if ok && s.Code() == 14 && strings.HasSuffix(s.Message(), `refused it."`) {

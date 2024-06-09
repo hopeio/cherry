@@ -70,7 +70,7 @@ func Gateway(gatewayHandle GatewayHandler) *runtime.ServeMux {
 	runtime.WithForwardResponseOption(gateway.CookieHook)(gwmux)
 	runtime.WithForwardResponseOption(gateway.ResponseHook)(gwmux)
 	runtime.WithRoutingErrorHandler(RoutingErrorHandler)(gwmux)
-	runtime.WithErrorHandler(gateway.CustomHTTPError)(gwmux)
+	runtime.WithErrorHandler(CustomHttpError)(gwmux)
 	if gatewayHandle != nil {
 		gatewayHandle(ctx, gwmux)
 	}
