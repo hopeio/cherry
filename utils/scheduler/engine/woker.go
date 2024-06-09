@@ -1,11 +1,10 @@
 package engine
 
 import (
-	"context"
 	"time"
 )
 
-type Type uint8
+type Type uint32
 
 const (
 	normalType Type = iota
@@ -13,23 +12,23 @@ const (
 )
 
 type Worker[KEY Key] struct {
-	Id          uint
-	Type        Type
-	Kind        Kind
-	taskCh      chan *Task[KEY]
-	currentTask *Task[KEY]
-	isExecuting bool
-	ctx         context.Context
+	id                      uint
+	typ                     Type
+	kind                    Kind
+	taskCh                  chan *Task[KEY]
+	createdAt               time.Time
+	currentTask             *Task[KEY]
+	isExecuting, canExecute bool
 }
 
-// WorkStatistics worker统计数据
-type WorkStatistics struct {
-	averageTimeCost                                                                 time.Duration
-	taskDoneCount, taskTotalCount, taskSkipCount, taskTimeoutCount, taskFailedCount uint64
-	taskRepeatCount, taskErrorCount, taskErrHandleCount                             uint64
+// workStatistics worker统计数据
+type workStatistics struct {
+	timeCost                                                                          time.Duration
+	taskTotalCount, taskDoneCount, taskSkipCount, taskErrHandleCount, taskFailedCount uint64
+	taskRepeatTimes, taskErrorTimes, taskTimeoutTimes                                 uint64
 }
 
 // EngineStatistics 基本引擎统计数据
 type EngineStatistics struct {
-	WorkStatistics
+	workStatistics
 }

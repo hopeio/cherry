@@ -4,13 +4,14 @@ import (
 	"context"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/dgraph-io/ristretto"
-	"github.com/hopeio/cherry/utils/datastructure/heap/idxless"
+	"github.com/hopeio/cherry/utils/datastructure/heap"
 	"github.com/hopeio/cherry/utils/io/fs"
 	"github.com/hopeio/cherry/utils/log"
 	"github.com/hopeio/cherry/utils/slices"
 	time2 "github.com/hopeio/cherry/utils/time"
 	"golang.org/x/time/rate"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -28,14 +29,13 @@ func (c *Config[KEY]) NewEngine() *Engine[KEY] {
 }
 
 type Engine[KEY Key] struct {
-	limitWorkerCount, currentWorkerCount, workerCount uint64
-	limitWaitTaskCount                                uint
-	workers                                           []*Worker[KEY]
-	fixedWorkers                                      []*Worker[KEY]
+	limitWorkerCount, currentWorkerCount, workingWorkerCount uint64
+	limitWaitTaskCount                                       uint
+	workers                                                  []*Worker[KEY]
 	// workerGroup [][]*Worker[KEY] //TODO 工作组概念
 	taskChanProducer chan *Task[KEY]
 	taskChanConsumer chan *Task[KEY]
-	taskReadyHeap    heap.Heap[*Task[KEY], Tasks[KEY]]
+	taskReadyHeap    heap.Heap[*Task[KEY]]
 	ctx              context.Context
 	cancel           context.CancelFunc // 手动停止执行
 	wg               sync.WaitGroup     // 控制确保所有任务执行完
@@ -43,14 +43,16 @@ type Engine[KEY Key] struct {
 	rateLimiter      *rate.Limiter
 	//TODO
 	monitorInterval              time.Duration // 全局检测定时器间隔时间，任务的卡住检测，worker panic recover都可以用这个检测
+	workerFactoryRunning         atomic.Bool
+	errHandleRunning             bool
 	enableTracing, enableMetrics bool
-	isRunning, isFinished, isRan bool
+	isRunning, isStopped         bool
 	lock                         sync.RWMutex
 	EngineStatistics
 	done         *ristretto.Cache[KEY, struct{}]
 	kindHandlers []*KindHandler[KEY]
 	errHandler   func(task *Task[KEY])
-	errChan      chan *Task[KEY]
+	taskErrChan  chan *Task[KEY]
 	stopCallBack []func()
 	zeroKey      KEY // 泛型不够强大,又为了性能妥协的字段
 }
@@ -83,12 +85,12 @@ func NewEngineWithContext[KEY Key](workerCount uint, ctx context.Context) *Engin
 		cancel:             cancel,
 		taskChanProducer:   make(chan *Task[KEY]),
 		taskChanConsumer:   make(chan *Task[KEY]),
-		taskReadyHeap:      heap.Heap[*Task[KEY], Tasks[KEY]]{},
+		taskReadyHeap:      heap.Heap[*Task[KEY]]{},
 		monitorInterval:    5 * time.Second,
 		done:               cache,
 		errHandler:         func(task *Task[KEY]) { task.ErrLog() },
 		lock:               sync.RWMutex{},
-		errChan:            make(chan *Task[KEY]),
+		taskErrChan:        make(chan *Task[KEY]),
 		zeroKey:            *new(KEY),
 	}
 }
@@ -133,18 +135,18 @@ func (e *Engine[KEY]) ErrHandler(errHandler func(task *Task[KEY])) *Engine[KEY] 
 func (e *Engine[KEY]) ErrHandlerUtilSuccess() *Engine[KEY] {
 	log.Warn("it will clear history exec log contains err")
 	return e.ErrHandler(func(task *Task[KEY]) {
-		task.errTimes = 0
+		task.ErrTimes = 0
 		task.reExecLogs = task.reExecLogs[:0]
-		e.AsyncAddTasks(task.Priority, task)
+		e.AsyncAddOptionTasks(task.Context, task.Priority, task)
 	})
 }
 
 func (e *Engine[KEY]) ErrHandlerRetryTimes(times int) *Engine[KEY] {
 	return e.ErrHandler(func(task *Task[KEY]) {
-		if task.reExecTimes < times {
-			task.errTimes = 0
+		if task.ReExecTimes < times {
+			task.ErrTimes = 0
 			task.reExecLogs = task.reExecLogs[:0]
-			e.AsyncAddTasks(task.Priority, task)
+			e.AsyncAddOptionTasks(task.Context, task.Priority, task)
 		} else {
 			task.ErrLog()
 		}
@@ -248,25 +250,13 @@ func (e *Engine[KEY]) kindLimiter(kind Kind, r rate.Limit, b int) {
 	}
 }
 
-// TaskSourceChannel 任务源,参数是一个channel,channel关闭时，代表任务源停止发送任务
-func (e *Engine[KEY]) TaskSourceChannel(taskSourceChannel <-chan *Task[KEY]) {
-	e.wg.Add(1)
-	go func() {
-		for task := range taskSourceChannel {
-			if task == nil || task.TaskFunc == nil {
-				continue
-			}
-			e.AddTasks(0, task)
-		}
-		e.wg.Done()
-	}()
-}
+type AddTask[KEY Key] func(ctx context.Context, priority int, task ...*Task[KEY])
 
-// TaskSourceFunc,参数为添加任务的函数，直到该函数运行结束，任务引擎才会检测任务是否结束
-func (e *Engine[KEY]) TaskSourceFunc(taskSourceFunc func(*Engine[KEY])) {
+// TaskSource,参数为添加任务的函数，直到该函数运行结束，任务引擎才会检测任务是否结束
+func (e *Engine[KEY]) TaskSource(taskSource func(addTask *Engine[KEY])) {
 	e.wg.Add(1)
 	go func() {
-		taskSourceFunc(e)
+		taskSource(e)
 		e.wg.Done()
 	}()
 }

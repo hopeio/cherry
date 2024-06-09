@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-type Kind uint8
+type Kind uint32
 
 const (
 	KindNormal = iota
@@ -18,58 +18,81 @@ var (
 	stdTimeout time.Duration = 0
 )
 
-type TaskMeta[KEY Key] struct {
-	id        uint64
-	Kind      Kind
-	Key       KEY
-	Priority  int
-	Describe  string
-	createdAt time.Time
-	ExecLog
-	reExecLogs []*ExecLog // 多数任务只会执行一次
-	timeout    time.Duration
-	TaskStatistics
-}
-
-type ExecLog struct {
+type execLog struct {
 	execBeginAt time.Time
 	execEndAt   time.Time
 	err         error
 }
 
-func (t *TaskMeta[KEY]) SortKey() int {
-	return t.Priority
-}
-
-func (t *TaskMeta[KEY]) SetPriority(priority int) {
-	t.Priority = priority
-}
-
-func (t *TaskMeta[KEY]) SetKind(k Kind) {
-	t.Kind = k
-}
-
-func (t *TaskMeta[KEY]) SetKey(key KEY) {
-	t.Key = key
-}
-
-func (t *TaskMeta[KEY]) Id() uint64 {
-	return t.id
-}
-
 type TaskStatistics struct {
-	reExecTimes int
-	errTimes    int
+	ReExecTimes int
+	ErrTimes    int
 }
 
 type Task[KEY Key] struct {
-	ctx context.Context
-	TaskMeta[KEY]
+	context.Context
+	Kind      Kind
+	Key       KEY
+	Priority  int
+	Describe  string
+	id        uint64
+	createdAt time.Time
+	execLog
+	reExecLogs []*execLog // 多数任务只会执行一次
+	deadline   time.Time
+	timeout    time.Duration
+	TaskStatistics
 	TaskFunc[KEY]
 }
 
-func (t *Task[KEY]) SetContext(ctx context.Context) {
-	t.ctx = ctx
+func NewTask[KEY Key](task TaskFunc[KEY]) *Task[KEY] {
+	return &Task[KEY]{
+		TaskFunc: task,
+	}
+}
+
+func (t *Task[KEY]) SetContext(ctx context.Context) *Task[KEY] {
+	t.Context = ctx
+	return t
+}
+
+func (t *Task[KEY]) SetPriority(priority int) *Task[KEY] {
+	t.Priority = priority
+	return t
+}
+
+func (t *Task[KEY]) SetKind(k Kind) *Task[KEY] {
+	t.Kind = k
+	return t
+}
+
+func (t *Task[KEY]) SetKey(key KEY) *Task[KEY] {
+	t.Key = key
+	return t
+}
+
+func (t *Task[KEY]) SetDescribe(describe string) *Task[KEY] {
+	t.Describe = describe
+	return t
+}
+
+func (t *Task[KEY]) Id() uint64 {
+	return t.id
+}
+
+func (t *Task[KEY]) Compare(t2 *Task[KEY]) int {
+	return t.Priority - t2.Priority
+}
+
+func (t *Task[KEY]) Errs() []error {
+	var errs []error
+	if t.err != nil {
+		errs = append(errs, t.err)
+	}
+	for _, log := range t.reExecLogs {
+		errs = append(errs, log.err)
+	}
+	return errs
 }
 
 func (t *Task[KEY]) ErrLog() {

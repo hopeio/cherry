@@ -13,7 +13,7 @@ type Prop struct {
 func TestEngine(t *testing.T) {
 	engine := NewEngine[int](5)
 	engine.ErrHandlerUtilSuccess()
-	engine.TaskSourceFunc(taskSourceFunc)
+	engine.TaskSource(taskSourceFunc)
 	engine.Run()
 }
 
@@ -21,7 +21,7 @@ func taskSourceFunc(e *Engine[int]) {
 	var id int
 	for {
 		id++
-		e.AddNoPriorityTasks(genTask(id))
+		e.AddTasks(genTask(id))
 		if id == 10 {
 			break
 		}
@@ -30,7 +30,7 @@ func taskSourceFunc(e *Engine[int]) {
 
 func genTask(id int) *Task[int] {
 	return &Task[int]{
-		TaskMeta: TaskMeta[int]{Key: id},
+		Key: id,
 		TaskFunc: func(ctx context.Context) ([]*Task[int], error) {
 			fmt.Println("task1:", id)
 			return []*Task[int]{genTask2(id + 100)}, nil
@@ -40,7 +40,7 @@ func genTask(id int) *Task[int] {
 
 func genTask2(id int) *Task[int] {
 	return &Task[int]{
-		TaskMeta: TaskMeta[int]{Key: id},
+		Key: id,
 		TaskFunc: func(ctx context.Context) ([]*Task[int], error) {
 			fmt.Println("task2:", id)
 			time.Sleep(time.Millisecond * 200)
@@ -67,7 +67,7 @@ func TestEngineConcurrencyRun(t *testing.T) {
 
 func genTask3(typ string, id int) *Task[int] {
 	return &Task[int]{
-		TaskMeta: TaskMeta[int]{Key: id},
+		Key: id,
 		TaskFunc: func(ctx context.Context) ([]*Task[int], error) {
 			fmt.Println("task:", typ, id)
 			var tasks []*Task[int]
