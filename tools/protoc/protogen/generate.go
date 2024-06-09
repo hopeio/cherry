@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/hopeio/cherry/utils/io/fs"
 	pathi "github.com/hopeio/cherry/utils/io/fs/path"
 	osi "github.com/hopeio/cherry/utils/os"
 	execi "github.com/hopeio/cherry/utils/os/exec"
@@ -81,6 +82,7 @@ func init() {
 	pflag.BoolVarP(&config.useValidatorOutPlugin, "validator", "v", false, "是否使用validators插件")
 	pflag.BoolVarP(&config.useGqlPlugin, "graphql", "q", false, "是否使用graphql插件")
 	pflag.BoolVar(&config.stdPatch, "patch", false, "是否使用原生protopatch")
+	pflag.StringVar(&config.apidocDir, "apiDocDir", "", "api doc目录")
 	rootCmd.AddCommand(&cobra.Command{
 		Use: "test",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -126,7 +128,7 @@ func run(dir string) {
 	for i := range fileInfos {
 		if !exec && strings.HasSuffix(fileInfos[i].Name(), ".proto") {
 			exec = true
-			protoc(plugin, dir+"/*.proto", pathi.Base(dir), dir[len(config.proto)+1:])
+			protocCmd(plugin, dir+"/*.proto", pathi.Base(dir), dir[len(config.proto)+1:])
 		}
 		if fileInfos[i].IsDir() {
 			run(dir + "/" + fileInfos[i].Name())
@@ -139,10 +141,17 @@ func getInclude() {
 	config.genpath, _ = filepath.Abs(config.genpath)
 	log.Println("proto:", config.proto)
 	log.Println("genpath:", config.genpath)
+	if config.apidocDir == "" {
+		config.apidocDir = config.genpath + "/apidoc/"
+	} else {
+		if config.apidocDir[len(config.apidocDir)-1] != '/' {
+			config.apidocDir += "/"
+		}
+	}
 	if config.useGateWayPlugin || config.useGqlPlugin {
-		_, err := os.Stat(config.genpath + "/api")
+		_, err := os.Stat(config.apidocDir)
 		if os.IsNotExist(err) {
-			err = os.Mkdir(config.genpath+"/api", os.ModePerm)
+			err = os.Mkdir(config.apidocDir, os.ModePerm)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -241,20 +250,20 @@ func gengql() {
 	_, after, _ := strings.Cut(compath, out)
 	gomod := strings.ReplaceAll(mod+after, "\\", "/")
 	packages := getPackages(compath)
-	gqldir := config.genpath + "/api"
+	gqldir := config.apidocDir
 	fileInfos, err := os.ReadDir(gqldir)
 	if err != nil {
 		log.Panicln(err)
 	}
 	for i := range fileInfos {
 		if fileInfos[i].IsDir() {
-			files, err := os.ReadDir(gqldir + "/" + fileInfos[i].Name())
+			files, err := os.ReadDir(gqldir + fileInfos[i].Name())
 			if err != nil {
 				log.Panicln(err)
 			}
 			for j := range files {
 				if strings.HasSuffix(files[j].Name(), ".graphql") {
-					os.Chdir(gqldir + "/" + fileInfos[i].Name())
+					os.Chdir(gqldir + fileInfos[i].Name())
 					/*			data, err := os.ReadFile(fileInfos[i].Name() + ".graphql")
 								if err != nil {
 									return
@@ -286,4 +295,28 @@ func gengql() {
 			}
 		}
 	}
+}
+
+func protocCmd(plugins []string, file, mod, modDir string) {
+	cmd := "protoc " + config.include + " " + file
+	var args string
+
+	for _, plugin := range plugins {
+		genpath := config.genpath
+		if strings.HasPrefix(plugin, "openapiv2_out") {
+			plugin += mod
+			genpath = config.apidocDir + modDir
+			err := fs.MkdirAll(genpath)
+			if err != nil {
+				log.Panicln(err)
+			}
+		}
+
+		if strings.HasPrefix(plugin, "gql_out") {
+			genpath = config.apidocDir
+		}
+		args += " --" + plugin + ":" + genpath
+
+	}
+	protoc(cmd + args)
 }
