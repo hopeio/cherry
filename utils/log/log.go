@@ -203,44 +203,14 @@ func ErrorS(args ...any) {
 	}
 }
 
-func PanicS(args ...any) {
-	if ce := stackLogger.Check(zap.PanicLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
-		ce.Write()
-	}
-}
-
-func FatalS(args ...any) {
-	if ce := stackLogger.Check(zap.FatalLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
-		ce.Write()
-	}
-}
-
 func ErrorSf(template string, args ...any) {
 	if ce := stackLogger.Check(zap.ErrorLevel, fmt.Sprintf(template, args...)); ce != nil {
 		ce.Write()
 	}
 }
 
-func FatalSf(template string, args ...any) {
-	if ce := stackLogger.Check(zap.FatalLevel, fmt.Sprintf(template, args...)); ce != nil {
-		ce.Write()
-	}
-}
-
 func ErrorSw(msg string, fields ...zap.Field) {
 	if ce := stackLogger.Check(zap.ErrorLevel, msg); ce != nil {
-		ce.Write(fields...)
-	}
-}
-
-func PanicSw(msg string, fields ...zap.Field) {
-	if ce := stackLogger.Check(zap.PanicLevel, msg); ce != nil {
-		ce.Write(fields...)
-	}
-}
-
-func FatalSw(msg string, fields ...zap.Field) {
-	if ce := stackLogger.Check(zap.FatalLevel, msg); ce != nil {
 		ce.Write(fields...)
 	}
 }
