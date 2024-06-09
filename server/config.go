@@ -47,11 +47,11 @@ type Config struct {
 	Middlewares []http.HandlerFunc
 	HttpOption  HttpOption
 	// Grpc options
-	GrpcOptions                        []grpc.ServerOption
-	EnableGrpcWeb                      bool
-	GrpcWebOption                      []web.Option `json:"grpc_web"`
-	EnableTrace, EnableMetrics, GenDoc bool
-	BaseContext                        func() context.Context
+	GrpcOptions                          []grpc.ServerOption
+	EnableGrpcWeb                        bool
+	GrpcWebOption                        []web.Option `json:"grpc_web"`
+	EnableTracing, EnableMetrics, GenDoc bool
+	BaseContext                          func() context.Context
 }
 
 func NewConfig() *Config {
@@ -64,7 +64,7 @@ func NewConfig() *Config {
 	gin.DisableBindValidation()
 	validator.DefaultValidator = nil // 自己做校验
 	c.EnableCors = true
-	c.EnableTrace = true
+	c.EnableTracing = true
 	c.EnableMetrics = true
 	c.GenDoc = true
 	return c
