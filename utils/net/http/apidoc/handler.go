@@ -11,7 +11,7 @@ import (
 // 目录结构 ./api/mod/mod.swagger.json ./api/mod/mod.apidoc.md
 // 请求路由 /api-doc /api-doc/swagger/mod/mod.swagger.json /api-doc/markdown/mod/mod.apidoc.md
 var UriPrefix = "/api-doc"
-var ApiDocDir = "./api/"
+var ApiDocDir = "./apidoc/"
 
 const TypeSwagger = "swagger"
 const TypeMarkdown = "markdown"

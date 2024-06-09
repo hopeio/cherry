@@ -13,11 +13,11 @@ func protoc(plugins []string, file, mod, modDir string) {
 		genpath := config.genpath
 
 		if strings.HasPrefix(plugin, "gql_out") {
-			genpath += "/api/" + mod
+			genpath += "/apidoc/" + mod
 		}
 		if strings.HasPrefix(plugin, "openapiv2_out") {
 			plugin += mod
-			genpath += "/api/" + modDir
+			genpath += "/apidoc/" + modDir
 		}
 		args += " --" + plugin + ":" + genpath + "\""
 
