@@ -16,8 +16,7 @@ import (
 type UploadMode uint8
 
 const (
-	UModeNormal         UploadMode = iota
-	UModeNotExistUpload            // 二段上传,先给服务器个md5
+	UModeNormal UploadMode = iota
 	UModeChunk
 	UModeStream
 )
@@ -90,6 +89,49 @@ func uploadChunk(url, paramName, filePath string, chunkNum int, chunkTotal int) 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("upload failed with status code: %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
+// uploadChunk 上传单个文件分块
+func uploadChunk2(ctx context.Context, url, filePath string, startByte, endByte int64) error {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = file.Seek(startByte, io.SeekStart)
+	if err != nil {
+		return err
+	}
+
+	requestBody := &bytes.Buffer{}
+	reader := io.LimitReader(file, endByte-startByte+1)
+	_, err = io.Copy(requestBody, reader)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "PUT", url, requestBody)
+	if err != nil {
+		return err
+	}
+
+	// 设置Range头部
+	req.Header.Set("Content-Range", fmt.Sprintf("bytes %d-%d/*", startByte, endByte))
+	req.Header.Set("Content-Length", strconv.FormatInt(endByte-startByte+1, 10))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusPartialContent && resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("upload failed with status code: %d", resp.StatusCode)
 	}
 

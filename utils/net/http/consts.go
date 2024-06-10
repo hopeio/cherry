@@ -67,9 +67,12 @@ const (
 )
 
 const (
-	HeaderDeviceInfo                  = "Device-AuthInfo"
-	HeaderLocation                    = "Location"
-	HeaderArea                        = "Area"
+	HeaderDeviceInfo = "Device-AuthInfo"
+	HeaderLocation   = "Location"
+	HeaderArea       = "Area"
+)
+
+const (
 	HeaderUserAgent                   = "User-Agent"
 	HeaderXForwardedFor               = "X-Forwarded-For"
 	HeaderAuth                        = "HeaderAuth"
@@ -79,8 +82,8 @@ const (
 	HeaderTraceBin                    = "Tracing-Bin"
 	HeaderAuthorization               = "Authorization"
 	HeaderCookie                      = "Cookie"
-	HeaderCookieToken                 = "token"
-	HeaderCookieDel                   = "del"
+	HeaderCookieValueToken            = "token"
+	HeaderCookieValueDel              = "del"
 	HeaderContentDisposition          = "Content-Disposition"
 	HeaderContentEncoding             = "Content-Encoding"
 	HeaderReferer                     = "Referer"
