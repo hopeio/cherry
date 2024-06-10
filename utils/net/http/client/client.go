@@ -21,9 +21,9 @@ import (
 // 不是并发安全的
 
 var (
-	defaultClient = newHttpClient()
-	globalLevel   = LogLevelError
-	headerMap     = sync.Map{}
+	DefaultClient   = newHttpClient()
+	DefaultLogLevel = LogLevelError
+	headerMap       = sync.Map{}
 )
 
 var timeout = time.Minute
@@ -45,28 +45,28 @@ func newHttpClient() *http.Client {
 }
 
 func SetTimeout(timeout time.Duration) {
-	defaultClient.Timeout = timeout
+	DefaultClient.Timeout = timeout
 }
 
 func DisableLog() {
-	globalLevel = LogLevelSilent
+	DefaultLogLevel = LogLevelSilent
 }
 
-func SetDefaultLog(log AccessLog) {
+func SetAccessLog(log AccessLog) {
 	defaultLog = log
 }
 
 func SetProxy(url string) {
 	purl, _ := stdurl.Parse(url)
-	setProxy(defaultClient, http.ProxyURL(purl))
+	setProxy(DefaultClient, http.ProxyURL(purl))
 }
 
 func ResetProxy() {
-	defaultClient.Transport.(*http.Transport).Proxy = http.ProxyFromEnvironment
+	DefaultClient.Transport.(*http.Transport).Proxy = http.ProxyFromEnvironment
 }
 
-func SetDefaultClient(client *http.Client) {
-	defaultClient = client
+func SetHttpClient(client *http.Client) {
+	DefaultClient = client
 }
 
 // Request ...
@@ -110,7 +110,7 @@ func NewRequest(url, method string) *Request {
 }
 
 func newRequest(url, method string) *Request {
-	return &Request{ctx: context.Background(), client: defaultClient, url: url, method: method, header: make([]string, 0, 2), logger: defaultLog, logLevel: globalLevel, retryInterval: 200 * time.Millisecond}
+	return &Request{ctx: context.Background(), client: DefaultClient, url: url, method: method, header: make([]string, 0, 2), logger: defaultLog, logLevel: DefaultLogLevel, retryInterval: 200 * time.Millisecond}
 }
 
 func DefaultHeaderRequest() *Request {
@@ -244,16 +244,11 @@ func (req *Request) addHeader(request *http.Request) {
 	if req.authUser != "" && req.authPass != "" {
 		request.SetBasicAuth(req.authUser, req.authPass)
 	}
-	if req.contentType == ContentTypeJson {
-		request.Header.Set(httpi.HeaderContentType, httpi.ContentJsonHeaderValue)
-	} else if req.contentType == ContentTypeFormData {
-		request.Header.Set(httpi.HeaderContentType, httpi.ContentFormHeaderValue)
-	} else {
-		request.Header.Set(httpi.HeaderContentType, httpi.ContentFormMultipartHeaderValue)
-	}
+	request.Header.Set(httpi.HeaderContentType, req.contentType.String())
 }
 
 // Do create a HTTP request
+// param: 请求参数 目前只支持编码为json 或 url-encoded
 func (req *Request) Do(param, response interface{}) error {
 	if req.method == "" {
 		return errors.New("没有设置请求方法")
@@ -264,7 +259,7 @@ func (req *Request) Do(param, response interface{}) error {
 	}
 	url := req.url
 	if req.client == nil {
-		req.client = defaultClient
+		req.client = DefaultClient
 	}
 	if req.timeout != 0 && req.timeout != req.client.Timeout {
 		defer setTimeout(req.client, req.client.Timeout)
@@ -291,24 +286,28 @@ func (req *Request) Do(param, response interface{}) error {
 	}(reqTime)
 
 	if method == http.MethodGet {
-		url = UrlAppendParam(req.url, param)
+		url = UrlAppendQueryParam(req.url, param)
 	} else {
 		reqBody = &Body{}
 		if param != nil {
-			switch paramt := param.(type) {
+			switch paramType := param.(type) {
 			case string:
-				body = strings.NewReader(paramt)
-				reqBody.Data = stringsi.ToBytes(paramt)
+				body = strings.NewReader(paramType)
+				reqBody.Data = stringsi.ToBytes(paramType)
 			case []byte:
-				body = bytes.NewReader(paramt)
-				reqBody.Data = paramt
+				body = bytes.NewReader(paramType)
+				reqBody.Data = paramType
 			case io.Reader:
 				var reqBytes []byte
-				reqBytes, err = io.ReadAll(paramt)
+				reqBytes, err = io.ReadAll(paramType)
 				body = bytes.NewReader(reqBytes)
 				reqBody.Data = reqBytes
 			default:
-				if req.contentType == ContentTypeJson {
+				if req.contentType == ContentTypeForm {
+					params := QueryParam(param)
+					reqBody.Data = stringsi.ToBytes(params)
+					body = strings.NewReader(params)
+				} else {
 					var reqBytes []byte
 					reqBytes, err = json.Marshal(param)
 					if err != nil {
@@ -317,10 +316,6 @@ func (req *Request) Do(param, response interface{}) error {
 					body = bytes.NewReader(reqBytes)
 					reqBody.Data = reqBytes
 					reqBody.ContentType = ContentTypeJson
-				} else {
-					params := UrlParam(param)
-					reqBody.Data = stringsi.ToBytes(params)
-					body = strings.NewReader(params)
 				}
 			}
 		}

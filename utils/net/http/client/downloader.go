@@ -43,7 +43,7 @@ func NewDownloader(url string) (*Downloader, error) {
 	req.Header.Set(httpi.HeaderConnection, "keep-alive")
 	req.Header.Set(httpi.HeaderUserAgent, UserAgentChrome117)
 	return &Downloader{
-		Client:  defaultClient,
+		Client:  DefaultClient,
 		Request: req,
 	}, nil
 }
@@ -109,7 +109,7 @@ func (d *Downloader) GetResponse() (*http.Response, error) {
 		return nil, errors.New("client 或 request 为 nil")
 	}
 	if d.Client == nil {
-		d.Client = defaultClient
+		d.Client = DefaultClient
 	}
 
 	var resp *http.Response

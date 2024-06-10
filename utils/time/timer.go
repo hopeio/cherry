@@ -9,6 +9,7 @@ type Ticker interface {
 	Reset(time.Duration) bool
 	Stop() bool
 	Wait()
+	Channel() <-chan time.Time
 }
 
 type FixTicker time.Ticker
@@ -25,6 +26,10 @@ func (t *FixTicker) Reset(d time.Duration) bool {
 
 func (t *FixTicker) Wait() {
 	<-t.C
+}
+
+func (t *FixTicker) Channel() <-chan time.Time {
+	return t.C
 }
 
 func NewTicker(interval time.Duration) Ticker {
@@ -60,12 +65,21 @@ func (t *RandTicker) Stop() bool {
 	return t.timer.Stop()
 }
 
+func (t *RandTicker) Channel() <-chan time.Time {
+	return t.timer.C
+}
+
 // minInterval:最小等待时间
 // maxInterval：最大等待时间
 // maxInterval-minInterval: 等待范围
-func NewRandTicker(minInterval, maxInterval time.Duration) *RandTicker {
+func NewRandTicker(minInterval, maxInterval time.Duration) Ticker {
 	limitRange := maxInterval - minInterval
-
+	if limitRange == 0 {
+		return NewTicker(maxInterval)
+	}
+	if limitRange < 0 {
+		minInterval, maxInterval = maxInterval, minInterval
+	}
 	return &RandTicker{
 		timer:      time.NewTimer(minInterval + time.Duration(rand.Intn(int(limitRange)))),
 		limitBase:  minInterval,

@@ -6,15 +6,24 @@ import (
 	stringsi "github.com/hopeio/cherry/utils/strings"
 	"net/http"
 	"net/url"
-	"os"
-	"path"
 	"reflect"
 	"strconv"
 	"strings"
-	"time"
 )
 
-func UrlParam(param interface{}) string {
+// TODO
+// tag :`request:"uri:xxx;query:xxx;header:xxx;body:xxx"`
+func setRequest(p any, req *http.Request) {
+
+}
+
+var tag = "json"
+
+func SetTag(t string) {
+	tag = t
+}
+
+func QueryParam(param any) string {
 	if param == nil {
 		return ""
 	}
@@ -23,7 +32,7 @@ func UrlParam(param interface{}) string {
 	return query.Encode()
 }
 
-func parseParam(param interface{}, query url.Values) {
+func parseParam(param any, query url.Values) {
 	v := reflect.ValueOf(param)
 	if v.Kind() == reflect.Interface || v.Kind() == reflect.Ptr {
 		v = v.Elem()
@@ -38,7 +47,7 @@ func parseParam(param interface{}, query url.Values) {
 
 		if kind == reflect.Slice || kind == reflect.Array {
 			for i := 0; i < filed.Len(); i++ {
-				query.Add(t.Field(i).Tag.Get("json"), getFieldValue(filed.Index(i)))
+				query.Add(t.Field(i).Tag.Get(tag), getFieldValue(filed.Index(i)))
 			}
 			continue
 		}
@@ -50,7 +59,7 @@ func parseParam(param interface{}, query url.Values) {
 		}
 		value := getFieldValue(filed)
 		if value != "" {
-			query.Set(t.Field(i).Tag.Get("json"), getFieldValue(v.Field(i)))
+			query.Set(t.Field(i).Tag.Get(tag), getFieldValue(v.Field(i)))
 		}
 	}
 
@@ -72,7 +81,7 @@ func getFieldValue(v reflect.Value) string {
 	return ""
 }
 
-func UrlAppendParam(url string, param interface{}) string {
+func UrlAppendQueryParam(url string, param interface{}) string {
 	if param == nil {
 		return url
 	}
@@ -86,41 +95,8 @@ func UrlAppendParam(url string, param interface{}) string {
 	case []byte:
 		url += sep + stringsi.BytesToString(paramt)
 	default:
-		params := UrlParam(param)
+		params := QueryParam(param)
 		url += sep + params
 	}
 	return url
-}
-
-func SetProxyEnv(url string) {
-	os.Setenv("HTTP_PROXY", url)
-	os.Setenv("HTTPS_PROXY", url)
-}
-
-func ResolveURL(u *url.URL, p string) string {
-	if strings.HasPrefix(p, "https://") || strings.HasPrefix(p, "http://") {
-		return p
-	}
-	var baseURL string
-	if strings.Index(p, "/") == 0 {
-		baseURL = u.Scheme + "://" + u.Host
-	} else {
-		tU := u.String()
-		baseURL = tU[0:strings.LastIndex(tU, "/")]
-	}
-	return baseURL + path.Join("/", p)
-}
-
-func setTimeout(client *http.Client, timeout time.Duration) {
-	if client == nil {
-		client = defaultClient
-	}
-	if timeout < time.Second {
-		timeout = timeout * time.Second
-	}
-	client.Timeout = timeout
-}
-
-func setProxy(client *http.Client, proxy func(*http.Request) (*url.URL, error)) {
-	client.Transport.(*http.Transport).Proxy = proxy
 }

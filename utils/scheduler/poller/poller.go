@@ -22,13 +22,14 @@ func (task *Poller) Times() uint {
 
 func (task *Poller) Run(ctx context.Context, interval time.Duration, do TaskFunc) {
 	timer := time.NewTicker(interval)
+	task.times++
+	do(ctx)
 	for {
 		select {
 		case <-ctx.Done():
 			timer.Stop()
 			return
-		default:
-			<-timer.C
+		case <-timer.C:
 			task.times++
 			do(ctx)
 		}
@@ -36,17 +37,17 @@ func (task *Poller) Run(ctx context.Context, interval time.Duration, do TaskFunc
 }
 
 func (task *Poller) RandRun(ctx context.Context, minInterval, maxInterval time.Duration, do TaskFunc) {
-
 	timer := time2.NewRandTicker(minInterval, maxInterval)
+	task.times++
+	do(ctx)
 	for {
 		select {
 		case <-ctx.Done():
 			timer.Stop()
 			return
-		default:
+		case <-timer.Channel():
 			task.times++
 			do(ctx)
-			timer.Wait()
 		}
 	}
 }

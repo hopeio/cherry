@@ -9,7 +9,7 @@ type ContentType uint8
 
 func (c ContentType) String() string {
 	if c < ContentTypeApplication {
-		return contentTypeArr[c] + ";charset=UTF-8"
+		return contentTypes[c] + ";charset=UTF-8"
 	}
 	return httpi.ContentBinaryHeaderValue + ";charset=UTF-8"
 }
@@ -50,7 +50,7 @@ const (
 	contentTypeUnSupport
 )
 
-var contentTypeArr = []string{
+var contentTypes = []string{
 	httpi.ContentJsonHeaderValue,
 	httpi.ContentFormHeaderValue,
 	httpi.ContentFormMultipartHeaderValue,
