@@ -11,43 +11,43 @@ func DefaultHeaderRequest() *Request {
 	return req
 }
 
-func NewGetRequest(url string) *Request {
+func NewGet(url string) *Request {
 	return newRequest(http.MethodGet, url)
 }
 
-func NewPostRequest(url string) *Request {
+func NewPost(url string) *Request {
 	return newRequest(http.MethodPost, url)
 }
 
-func NewPutRequest(url string) *Request {
+func NewPut(url string) *Request {
 	return newRequest(http.MethodPut, url)
 }
 
-func NewDeleteRequest(url string) *Request {
+func NewDelete(url string) *Request {
 	return newRequest(http.MethodDelete, url)
 }
 
-func DoGet(url string, response any) error {
-	return NewGetRequest(url).DisableLog().DoWithNoParam(response)
+func Get(url string, response any) error {
+	return NewGet(url).DisableLog().DoNoParam(response)
 }
 
-func DoGetStream(url string) (io.ReadCloser, error) {
+func GetStream(url string) (io.ReadCloser, error) {
 	var resp *http.Response
-	err := DoGet(url, &resp)
+	err := Get(url, &resp)
 	if err != nil {
 		return nil, err
 	}
 	return resp.Body, nil
 }
 
-func DoPost(url string, param, response interface{}) error {
-	return NewPostRequest(url).DisableLog().Do(param, response)
+func Post(url string, param, response interface{}) error {
+	return NewPost(url).DisableLog().Do(param, response)
 }
 
-func DoPut(url string, param, response interface{}) error {
-	return NewPutRequest(url).DisableLog().Do(param, response)
+func Put(url string, param, response interface{}) error {
+	return NewPut(url).DisableLog().Do(param, response)
 }
 
-func DoDelete(url string, param, response interface{}) error {
-	return NewDeleteRequest(url).DisableLog().Do(param, response)
+func Delete(url string, param, response interface{}) error {
+	return NewDelete(url).DisableLog().Do(param, response)
 }

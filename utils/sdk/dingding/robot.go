@@ -28,7 +28,7 @@ func SendRobotMessage(accessToken, secret, title, content string, msgType MsgTyp
 	}
 	body := strings.NewReader(msgType.Body(title, content))
 
-	return client.DoPost(ROOT+signUrl, body, nil)
+	return client.Post(ROOT+signUrl, body, nil)
 }
 
 func RobotUrl(accessToken, secret string) (string, error) {

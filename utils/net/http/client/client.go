@@ -213,11 +213,11 @@ type ResponseBodyCheck interface {
 
 type RawBytes = []byte
 
-func (req *Request) DoWithNoParam(response interface{}) error {
+func (req *Request) DoNoParam(response interface{}) error {
 	return req.Do(nil, response)
 }
 
-func (req *Request) DoWithNoResponse(param interface{}) error {
+func (req *Request) DoNoResponse(param interface{}) error {
 	return req.Do(param, nil)
 }
 
