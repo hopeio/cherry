@@ -5,55 +5,27 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/runtime/protoimpl"
-	"log"
-	"reflect"
 )
 
 // 这泛型真别扭
 type BaseType interface {
 }
 
-func GetOption[T any](desc protoreflect.Descriptor, xt protoreflect.ExtensionType, def T) T {
+func GetOption[T any](desc protoreflect.Descriptor, xt protoreflect.ExtensionType) (T, bool) {
 	if desc == nil {
-		log.Println("desc is nil")
-		return def
+		return *new(T), false
 	}
 	if !proto.HasExtension(desc.Options(), xt) {
-		return def
+		return *new(T), false
 	}
 
 	v, ok := proto.GetExtension(desc.Options(), xt).(T)
-
-	if !ok {
-		return def
-	}
-	rv := reflect.ValueOf(v)
-
-	if rv.IsValid() {
-		return v
-	}
-	return def
+	return v, ok
 }
 
-func GetBaseTypeOption[T any](desc protoreflect.Descriptor, xt protoreflect.ExtensionType, def T) T {
-	if desc == nil {
-		return def
-	}
-
-	v, ok := proto.GetExtension(desc.Options(), xt).(T)
+func GetOptionWithDefault[T any](desc protoreflect.Descriptor, xt protoreflect.ExtensionType, def T) T {
+	v, ok := GetOption[T](desc, xt)
 	if !ok {
-		return def
-	}
-	return v
-}
-
-func GetStructTypeOption[T any](desc protoreflect.Descriptor, xt protoreflect.ExtensionType, def *T) *T {
-	if desc == nil {
-		return def
-	}
-
-	v, ok := proto.GetExtension(desc.Options(), xt).(*T)
-	if !ok && v != nil {
 		return def
 	}
 	return v

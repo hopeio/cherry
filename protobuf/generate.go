@@ -50,7 +50,7 @@ const (
 	DepProtopatch  = "github.com/alta/protopatch"
 )
 
-var model = []string{goOut, grpcOut}
+var model = []string{goOut, grpcOut, enumOut}
 
 func generate(dir string) {
 	fileInfos, err := os.ReadDir(dir)
@@ -73,7 +73,6 @@ func protoc(dir string) {
 	var args string
 	for _, plugin := range model {
 		args += " --" + plugin + ":" + libcherryDir + "/.."
-
 	}
 	execi.Run(cmd + args)
 }

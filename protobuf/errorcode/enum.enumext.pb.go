@@ -67,19 +67,6 @@ func (x ErrCode) String() string {
 	return ""
 }
 
-func (x ErrCode) MarshalJSON() ([]byte, error) {
-	return strings.QuoteToBytes(x.String()), nil
-}
-
-func (x *ErrCode) UnmarshalJSON(data []byte) error {
-	value, ok := ErrCode_value[string(data)]
-	if ok {
-		*x = ErrCode(value)
-		return nil
-	}
-	return errors.New("invalidErrCode")
-}
-
 func (x ErrCode) MarshalGQL(w io.Writer) {
 	w.Write(strings.QuoteToBytes(x.String()))
 }
