@@ -2,7 +2,7 @@ package gin
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/cherry/protobuf/errorcode"
+	"github.com/hopeio/cherry/protobuf/errcode"
 	"github.com/hopeio/cherry/utils/encoding/protobuf/jsonpb"
 	httpi "github.com/hopeio/cherry/utils/net/http"
 	"github.com/hopeio/cherry/utils/net/http/grpc/reconn"
@@ -31,7 +31,7 @@ func HttpError(ctx *gin.Context, err error) {
 	contentType := jsonpb.JsonPb.ContentType(nil)
 	ctx.Header(httpi.HeaderContentType, contentType)
 
-	se := &errorcode.ErrRep{Code: errorcode.ErrCode(s.Code()), Message: s.Message()}
+	se := &errcode.ErrRep{Code: errcode.ErrCode(s.Code()), Message: s.Message()}
 
 	buf, merr := jsonpb.JsonPb.Marshal(se)
 	if merr != nil {

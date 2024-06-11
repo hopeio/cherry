@@ -15,28 +15,28 @@ const (
 )
 
 type Builder struct {
-	plugin          *protogen.Plugin
-	importStatus    protogen.GoImportPath
-	importCodes     protogen.GoImportPath
-	importLog       protogen.GoImportPath
-	importStrings   protogen.GoImportPath
-	importStrconv   protogen.GoImportPath
-	importErrorcode protogen.GoImportPath
-	importErrors    protogen.GoImportPath
-	importIo        protogen.GoImportPath
+	plugin        *protogen.Plugin
+	importStatus  protogen.GoImportPath
+	importCodes   protogen.GoImportPath
+	importLog     protogen.GoImportPath
+	importStrings protogen.GoImportPath
+	importStrconv protogen.GoImportPath
+	importErrcode protogen.GoImportPath
+	importErrors  protogen.GoImportPath
+	importIo      protogen.GoImportPath
 }
 
 func NewBuilder(gen *protogen.Plugin) *Builder {
 	return &Builder{
-		plugin:          gen,
-		importStatus:    "google.golang.org/grpc/status",
-		importCodes:     "google.golang.org/grpc/codes",
-		importLog:       "github.com/hopeio/cherry/utils/log",
-		importStrings:   "github.com/hopeio/cherry/utils/strings",
-		importStrconv:   "strconv",
-		importErrorcode: "github.com/hopeio/cherry/protobuf/errorcode",
-		importErrors:    "errors",
-		importIo:        "io",
+		plugin:        gen,
+		importStatus:  "google.golang.org/grpc/status",
+		importCodes:   "google.golang.org/grpc/codes",
+		importLog:     "github.com/hopeio/cherry/utils/log",
+		importStrings: "github.com/hopeio/cherry/utils/strings",
+		importStrconv: "strconv",
+		importErrcode: "github.com/hopeio/cherry/protobuf/errcode",
+		importErrors:  "errors",
+		importIo:      "io",
 	}
 }
 
@@ -106,8 +106,8 @@ func (b *Builder) generate(f *protogen.File, e *protogen.Enum, g *protogen.Gener
 	if EnabledEnumJsonMarshal(f, e) {
 		b.generateJsonMarshal(e, g)
 	}
-	if EnabledEnumErrorCode(e) {
-		b.generateErrorCode(e, g)
+	if EnabledEnumErrCode(e) {
+		b.generateErrCode(e, g)
 	}
 	if EnabledEnumGqlGen(f, e) {
 		b.generateGQLMarshal(e, g)
@@ -205,7 +205,7 @@ func (b *Builder) generateJsonMarshal(e *protogen.Enum, g *protogen.GeneratedFil
 	g.P()
 }
 
-func (b *Builder) generateErrorCode(e *protogen.Enum, g *protogen.GeneratedFile) {
+func (b *Builder) generateErrCode(e *protogen.Enum, g *protogen.GeneratedFile) {
 	ccTypeName := e.GoIdent
 
 	g.P("func (x ", ccTypeName, ") Error() string {")
@@ -214,22 +214,22 @@ func (b *Builder) generateErrorCode(e *protogen.Enum, g *protogen.GeneratedFile)
 
 	g.P("}")
 	g.P()
-	g.P("func (x ", ccTypeName, ") ErrRep() *", b.importErrorcode.Ident("ErrRep"), " {")
+	g.P("func (x ", ccTypeName, ") ErrRep() *", b.importErrcode.Ident("ErrRep"), " {")
 
-	g.P(`return &errorcode.ErrRep{Code: errorcode.ErrCode(x), Message: x.String()}`)
+	g.P(`return &errcode.ErrRep{Code: errcode.ErrCode(x), Message: x.String()}`)
 
 	g.P("}")
 	g.P()
 	g.P("func (x ", ccTypeName, ") Message(msg string) error {")
 
-	g.P(`return &errorcode.ErrRep{Code: errorcode.ErrCode(x), Message: msg}`)
+	g.P(`return &errcode.ErrRep{Code: errcode.ErrCode(x), Message: msg}`)
 
 	g.P("}")
 	g.P()
 	g.P("func (x ", ccTypeName, ") ErrorLog(err error) error {")
 
 	g.P(b.importLog.Ident("Error"), `(err)`)
-	g.P(`return &errorcode.ErrRep{Code: errorcode.ErrCode(x), Message: x.String()}`)
+	g.P(`return &errcode.ErrRep{Code: errcode.ErrCode(x), Message: x.String()}`)
 
 	g.P("}")
 	g.P()

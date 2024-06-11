@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hopeio/cherry/utils/datastructure/cache/gcache"
+	"github.com/hopeio/cherry/utils/structure/cache/gcache"
 )
 
 func main() {

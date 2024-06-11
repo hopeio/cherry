@@ -75,6 +75,7 @@ const (
 const (
 	HeaderUserAgent                   = "User-Agent"
 	HeaderXForwardedFor               = "X-Forwarded-For"
+	HeaderXAccelBuffering             = "X-Accel-Buffering"
 	HeaderAuth                        = "HeaderAuth"
 	HeaderContentType                 = "Content-Type"
 	HeaderTrace                       = "Tracing"

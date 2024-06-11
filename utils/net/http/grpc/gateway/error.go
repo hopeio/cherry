@@ -2,7 +2,7 @@ package gateway
 
 import (
 	"fmt"
-	"github.com/hopeio/cherry/protobuf/errorcode"
+	"github.com/hopeio/cherry/protobuf/errcode"
 	httpi "github.com/hopeio/cherry/utils/net/http"
 	"github.com/hopeio/cherry/utils/net/http/grpc"
 	"google.golang.org/grpc/grpclog"
@@ -11,42 +11,42 @@ import (
 	"net/textproto"
 )
 
-func HTTPStatusFromCode(code errorcode.ErrCode) int {
+func HttpStatusFromCode(code errcode.ErrCode) int {
 	switch code {
-	case errorcode.Success:
+	case errcode.Success:
 		return http.StatusOK
-	case errorcode.Canceled:
+	case errcode.Canceled:
 		return http.StatusRequestTimeout
-	case errorcode.Unknown:
+	case errcode.Unknown:
 		return http.StatusInternalServerError
-	case errorcode.InvalidArgument:
+	case errcode.InvalidArgument:
 		return http.StatusBadRequest
-	case errorcode.DeadlineExceeded:
+	case errcode.DeadlineExceeded:
 		return http.StatusGatewayTimeout
-	case errorcode.NotFound:
+	case errcode.NotFound:
 		return http.StatusNotFound
-	case errorcode.AlreadyExists:
+	case errcode.AlreadyExists:
 		return http.StatusConflict
-	case errorcode.PermissionDenied:
+	case errcode.PermissionDenied:
 		return http.StatusForbidden
-	case errorcode.Unauthenticated:
+	case errcode.Unauthenticated:
 		return http.StatusUnauthorized
-	case errorcode.ResourceExhausted:
+	case errcode.ResourceExhausted:
 		return http.StatusTooManyRequests
-	case errorcode.FailedPrecondition:
+	case errcode.FailedPrecondition:
 		// Note, this deliberately doesn't translate to the similarly named '412 Precondition Failed' HTTP response status.
 		return http.StatusBadRequest
-	case errorcode.Aborted:
+	case errcode.Aborted:
 		return http.StatusConflict
-	case errorcode.OutOfRange:
+	case errcode.OutOfRange:
 		return http.StatusBadRequest
-	case errorcode.Unimplemented:
+	case errcode.Unimplemented:
 		return http.StatusNotImplemented
-	case errorcode.Internal:
+	case errcode.Internal:
 		return http.StatusInternalServerError
-	case errorcode.Unavailable:
+	case errcode.Unavailable:
 		return http.StatusServiceUnavailable
-	case errorcode.DataLoss:
+	case errcode.DataLoss:
 		return http.StatusInternalServerError
 	}
 

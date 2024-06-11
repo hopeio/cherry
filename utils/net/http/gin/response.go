@@ -2,11 +2,11 @@ package gin
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/cherry/protobuf/errorcode"
+	"github.com/hopeio/cherry/protobuf/errcode"
 	httpi "github.com/hopeio/cherry/utils/net/http"
 )
 
-func RespErrcode(ctx *gin.Context, code errorcode.ErrCode) {
+func RespErrcode(ctx *gin.Context, code errcode.ErrCode) {
 	httpi.RespErrcode(ctx.Writer, code)
 }
 
@@ -18,10 +18,10 @@ func RespErrMsg(ctx *gin.Context, msg string) {
 	httpi.RespErrMsg(ctx.Writer, msg)
 }
 
-func RespErrRep(ctx *gin.Context, rep *errorcode.ErrRep) {
+func RespErrRep(ctx *gin.Context, rep *errcode.ErrRep) {
 	httpi.RespErrRep(ctx.Writer, rep)
 }
 
-func Response(ctx *gin.Context, code errorcode.ErrCode, msg string, data interface{}) {
+func Response(ctx *gin.Context, code errcode.ErrCode, msg string, data interface{}) {
 	httpi.Response(ctx.Writer, code, msg, data)
 }

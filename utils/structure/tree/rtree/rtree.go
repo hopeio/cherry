@@ -1,7 +1,7 @@
 package rtree
 
 import (
-	"github.com/hopeio/cherry/utils/datastructure/tree/rtree/base"
+	"github.com/hopeio/cherry/utils/structure/tree/rtree/base"
 	"math"
 	"sync"
 )

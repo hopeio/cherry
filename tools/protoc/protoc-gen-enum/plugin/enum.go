@@ -37,8 +37,8 @@ func EnabledEnumJsonMarshal(f *protogen.File, e *protogen.Enum) bool {
 	return protogeni.GetOptionWithDefault[bool](f.Desc, enum.E_EnumJsonmarshalAll, false)
 }
 
-func EnabledEnumErrorCode(e *protogen.Enum) bool {
-	return protogeni.GetOptionWithDefault[bool](e.Desc, enum.E_EnumErrorcode, false)
+func EnabledEnumErrCode(e *protogen.Enum) bool {
+	return protogeni.GetOptionWithDefault[bool](e.Desc, enum.E_EnumErrcode, false)
 }
 
 func EnabledEnumGqlGen(f *protogen.File, e *protogen.Enum) bool {

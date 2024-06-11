@@ -5,7 +5,7 @@
 package stack
 
 import (
-	"github.com/hopeio/cherry/utils/datastructure/sync"
+	"github.com/hopeio/cherry/utils/structure/sync"
 	"sync/atomic"
 	"unsafe"
 )

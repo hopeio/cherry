@@ -6,7 +6,7 @@ import (
 	"fmt"
 	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/validator"
 	"github.com/hopeio/cherry/context/httpctx"
-	"github.com/hopeio/cherry/protobuf/errorcode"
+	"github.com/hopeio/cherry/protobuf/errcode"
 	"github.com/hopeio/cherry/utils/log"
 	runtimei "github.com/hopeio/cherry/utils/runtime"
 	stringsi "github.com/hopeio/cherry/utils/strings"
@@ -77,7 +77,7 @@ func UnaryAccess(conf *Config) grpc.UnaryServerInterceptor {
 			if r := recover(); r != nil {
 				frame := debug.Stack()
 				log.Errorw(fmt.Sprintf("panic: %v", r), zap.ByteString(log.FieldStack, frame))
-				err = errorcode.SysError.ErrRep()
+				err = errcode.SysError.ErrRep()
 			}
 		}()
 
@@ -86,8 +86,8 @@ func UnaryAccess(conf *Config) grpc.UnaryServerInterceptor {
 		//不能添加错误处理，除非所有返回的结构相同
 		if err != nil {
 			if v, ok := err.(interface{ GrpcStatus() *status.Status }); !ok {
-				err = errorcode.Unknown.Message(err.Error())
-				code = int(errorcode.Unknown)
+				err = errcode.Unknown.Message(err.Error())
+				code = int(errcode.Unknown)
 			} else {
 				code = int(v.GrpcStatus().Code())
 			}
@@ -115,12 +115,12 @@ func StreamAccess(srv interface{}, stream grpc.ServerStream, info *grpc.StreamSe
 		if r := recover(); r != nil {
 			frame, _ := runtimei.GetCallerFrame(2)
 			log.Errorw(fmt.Sprintf("panic: %v", r), zap.String(log.FieldStack, fmt.Sprintf("%s:%d (%#x)\n\t%s\n", frame.File, frame.Line, frame.PC, frame.Function)))
-			err = errorcode.SysError.ErrRep()
+			err = errcode.SysError.ErrRep()
 		}
 		//不能添加错误处理，除非所有返回的结构相同
 		if err != nil {
 			if _, ok := err.(interface{ GrpcStatus() *status.Status }); !ok {
-				err = errorcode.Unknown.Message(err.Error())
+				err = errcode.Unknown.Message(err.Error())
 			}
 		}
 	}()
@@ -138,7 +138,7 @@ func (s *recvWrapper) SendMsg(m interface{}) error {
 
 func (s *recvWrapper) RecvMsg(m interface{}) error {
 	if err := validator.Validator.Struct(m); err != nil {
-		return errorcode.InvalidArgument.Message(validator.Trans(err))
+		return errcode.InvalidArgument.Message(validator.Trans(err))
 	}
 	if err := s.ServerStream.RecvMsg(m); err != nil {
 		return err
@@ -153,7 +153,7 @@ func UnaryValidator(
 ) (resp interface{}, err error) {
 
 	if err = validator.Validator.Struct(req); err != nil {
-		return nil, errorcode.InvalidArgument.Message(validator.Trans(err))
+		return nil, errcode.InvalidArgument.Message(validator.Trans(err))
 	}
 	return handler(ctx, req)
 }

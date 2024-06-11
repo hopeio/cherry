@@ -17,8 +17,8 @@ extend google.protobuf.EnumOptions {
   //生成JsonMarshal
   optional bool enum_jsonmarshal = 62028;
 
-  //是errorcode
-  optional bool enum_errorcode = 62029;
+  //是errcode
+  optional bool enum_errcode = 62029;
 
   optional bool enum_gqlgen = 62030;
 

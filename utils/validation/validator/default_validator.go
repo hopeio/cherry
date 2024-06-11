@@ -5,7 +5,7 @@
 package validator
 
 import (
-	"github.com/hopeio/cherry/protobuf/errorcode"
+	"github.com/hopeio/cherry/protobuf/errcode"
 	"sync"
 
 	"github.com/go-playground/validator/v10"
@@ -39,7 +39,7 @@ var _ StructValidator = &defaultValidator{}
 func (v *defaultValidator) ValidateStruct(obj interface{}) error {
 	v.lazyinit()
 	if err := v.validate.Struct(obj); err != nil {
-		return errorcode.InvalidArgument.Message(Trans(err))
+		return errcode.InvalidArgument.Message(Trans(err))
 	}
 	return nil
 }

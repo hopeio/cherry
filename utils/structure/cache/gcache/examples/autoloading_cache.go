@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/hopeio/cherry/utils/datastructure/cache/gcache"
+	"github.com/hopeio/cherry/utils/structure/cache/gcache"
 )
 
 func main() {

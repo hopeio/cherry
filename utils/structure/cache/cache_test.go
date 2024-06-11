@@ -3,7 +3,7 @@ package cache
 import (
 	"fmt"
 	"github.com/coocood/freecache"
-	gocache "github.com/hopeio/cherry/utils/datastructure/cache/go-cache"
+	gocache "github.com/hopeio/cherry/utils/structure/cache/go-cache"
 	"runtime/debug"
 	"sync"
 	"testing"
@@ -11,7 +11,7 @@ import (
 
 	"github.com/dgraph-io/ristretto"
 
-	"github.com/hopeio/cherry/utils/datastructure/cache/gcache"
+	"github.com/hopeio/cherry/utils/structure/cache/gcache"
 )
 
 func BenchmarkFree(b *testing.B) {

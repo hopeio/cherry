@@ -3,7 +3,7 @@ package pickrouter
 import (
 	contexti "github.com/hopeio/cherry/context"
 	"github.com/hopeio/cherry/context/httpctx"
-	"github.com/hopeio/cherry/protobuf/errorcode"
+	"github.com/hopeio/cherry/protobuf/errcode"
 	"github.com/hopeio/cherry/utils/encoding/json"
 	httpi "github.com/hopeio/cherry/utils/net/http"
 	"github.com/hopeio/cherry/utils/net/http/binding"
@@ -58,7 +58,7 @@ func commonHandler(w http.ResponseWriter, req *http.Request, handle *reflect.Val
 
 func ResHandler[T any](c *contexti.RequestContext[T], w http.ResponseWriter, result []reflect.Value) {
 	if !result[1].IsNil() {
-		err := errorcode.ErrHandle(result[1].Interface())
+		err := errcode.ErrHandle(result[1].Interface())
 		c.HandleError(err)
 		json.NewEncoder(w).Encode(err)
 		return

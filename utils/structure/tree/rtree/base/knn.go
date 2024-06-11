@@ -1,7 +1,7 @@
 package base
 
 import (
-	"github.com/hopeio/cherry/utils/datastructure/queue"
+	"github.com/hopeio/cherry/utils/structure/queue"
 )
 
 type queueItem struct {

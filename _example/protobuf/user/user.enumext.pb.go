@@ -2,7 +2,7 @@ package user
 
 import (
 	errors "errors"
-	errorcode "github.com/hopeio/cherry/protobuf/errorcode"
+	"github.com/hopeio/cherry/protobuf/errcode"
 	log "github.com/hopeio/cherry/utils/log"
 	strings "github.com/hopeio/cherry/utils/strings"
 	codes "google.golang.org/grpc/codes"
@@ -215,17 +215,17 @@ func (x UserErr) Error() string {
 	return x.String()
 }
 
-func (x UserErr) ErrRep() *errorcode.ErrRep {
-	return &errorcode.ErrRep{Code: errorcode.ErrCode(x), Message: x.String()}
+func (x UserErr) ErrRep() *errcode.ErrRep {
+	return &errcode.ErrRep{Code: errcode.ErrCode(x), Message: x.String()}
 }
 
 func (x UserErr) Message(msg string) error {
-	return &errorcode.ErrRep{Code: errorcode.ErrCode(x), Message: msg}
+	return &errcode.ErrRep{Code: errcode.ErrCode(x), Message: msg}
 }
 
 func (x UserErr) ErrorLog(err error) error {
 	log.Error(err)
-	return &errorcode.ErrRep{Code: errorcode.ErrCode(x), Message: x.String()}
+	return &errcode.ErrRep{Code: errcode.ErrCode(x), Message: x.String()}
 }
 
 func (x UserErr) GrpcStatus() *status.Status {

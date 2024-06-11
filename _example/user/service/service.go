@@ -11,7 +11,7 @@ import (
 	"github.com/hopeio/cherry/_example/protobuf/user"
 	"github.com/hopeio/cherry/_example/user/confdao"
 	"github.com/hopeio/cherry/context/httpctx"
-	"github.com/hopeio/cherry/protobuf/errorcode"
+	"github.com/hopeio/cherry/protobuf/errcode"
 )
 
 type UserService struct {
@@ -23,7 +23,7 @@ func (u *UserService) Signup(ctx context.Context, req *user.SignupReq) (*wrapper
 	defer span.End()
 	ctx = ctxi.Context()
 	if req.Mail == "" && req.Phone == "" {
-		return nil, errorcode.DBError.Message("请填写邮箱或手机号")
+		return nil, errcode.DBError.Message("请填写邮箱或手机号")
 	}
 
 	formatNow := ctxi.TimeString
@@ -42,7 +42,7 @@ func (u *UserService) Signup(ctx context.Context, req *user.SignupReq) (*wrapper
 	db := gormi.NewTraceDB(confdao.Dao.GORMDB.DB, ctx, ctxi.TraceID)
 	err := db.Create(&user).Error
 	if err != nil {
-		return nil, ctxi.ErrorLog(errorcode.DBError.Message("新建出错"), err, "UserService.Creat")
+		return nil, ctxi.ErrorLog(errcode.DBError.Message("新建出错"), err, "UserService.Creat")
 	}
 	return &wrapperspb.StringValue{Value: "注册成功"}, nil
 }
