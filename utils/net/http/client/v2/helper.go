@@ -2,6 +2,14 @@ package client
 
 import "github.com/hopeio/cherry/utils/net/http/client"
 
+func NewFromRequest[RES any](req *client.Request) *Request[RES] {
+	return (*Request[RES])(req)
+}
+
+func NewGetRequest[RES any](url string) *Request[RES] {
+	return (*Request[RES])(client.NewGetRequest(url))
+}
+
 func DoGet[RES any](url string) (*RES, error) {
 	return NewGetRequest[RES](url).Do(nil)
 }

@@ -32,7 +32,7 @@ func (b *Body) IsProtobuf() bool {
 	return b.ContentType == ContentTypeGrpc
 }
 
-type AccessLog func(url, method, auth string, reqBody, respBody *Body, status int, process time.Duration, err error)
+type AccessLog func(method, url, auth string, reqBody, respBody *Body, status int, process time.Duration, err error)
 
 type Logger interface {
 	SetPrefix(string)
@@ -42,7 +42,7 @@ type Logger interface {
 
 var defaultLog = DefaultLogger
 
-func DefaultLogger(url, method, auth string, reqBody, respBody *Body, status int, process time.Duration, err error) {
+func DefaultLogger(method, url, auth string, reqBody, respBody *Body, status int, process time.Duration, err error) {
 	reqField, respField := zap.Skip(), zap.Skip()
 	if reqBody != nil {
 		key := "param"

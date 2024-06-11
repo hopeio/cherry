@@ -5,20 +5,26 @@ import (
 	"net/http"
 )
 
+func DefaultHeaderRequest() *Request {
+	req := newRequest("", "")
+	req.Header(DefaultHeader())
+	return req
+}
+
 func NewGetRequest(url string) *Request {
-	return newRequest(url, http.MethodGet)
+	return newRequest(http.MethodGet, url)
 }
 
 func NewPostRequest(url string) *Request {
-	return newRequest(url, http.MethodPost)
+	return newRequest(http.MethodPost, url)
 }
 
 func NewPutRequest(url string) *Request {
-	return newRequest(url, http.MethodPut)
+	return newRequest(http.MethodPut, url)
 }
 
 func NewDeleteRequest(url string) *Request {
-	return newRequest(url, http.MethodDelete)
+	return newRequest(http.MethodDelete, url)
 }
 
 func DoGet(url string, response any) error {

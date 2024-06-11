@@ -1,20 +1,19 @@
 package client
 
-import "fmt"
+import (
+	"fmt"
+	httpi "github.com/hopeio/cherry/utils/net/http"
+)
 
-type ResponseBody struct {
-	Status  int    `json:"status"`
-	Data    any    `json:"data"`
-	Message string `json:"message"`
-}
+type ResponseBody httpi.ResAnyData
 
 func CommonResponse(response interface{}) ResponseBodyCheck {
-	return &ResponseBody{Data: response}
+	return &ResponseBody{Details: response}
 }
 
 func (res *ResponseBody) CheckError() error {
-	if res.Status != 0 {
-		return fmt.Errorf("status:%d,message:%s", res.Status, res.Message)
+	if res.Code != 0 {
+		return fmt.Errorf("code: %d, message: %s", res.Code, res.Message)
 	}
 	return nil
 }
@@ -39,3 +38,20 @@ func (res *ResponseBody2) CheckError() error {
 var (
 	ErrNotFound = fmt.Errorf("not found")
 )
+
+type ResponseBody3 struct {
+	Status  int    `json:"status"`
+	Data    any    `json:"data"`
+	Message string `json:"message"`
+}
+
+func CommonResponse3(response interface{}) ResponseBodyCheck {
+	return &ResponseBody3{Data: response}
+}
+
+func (res *ResponseBody3) CheckError() error {
+	if res.Status != 0 {
+		return fmt.Errorf("status:%d,message:%s", res.Status, res.Message)
+	}
+	return nil
+}

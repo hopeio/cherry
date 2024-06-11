@@ -82,11 +82,10 @@ type Request struct {
 	tag         string // 默认json
 
 	// request
-	url, method        string
+	method, url        string
 	contentType        ContentType
 	authUser, authPass string
 	header             Header
-	cachedHeaderKey    string
 
 	// response
 	responseHandler func(response *http.Response) (retry bool, data []byte, err error)
@@ -105,18 +104,12 @@ func New() *Request {
 	return newRequest("", "")
 }
 
-func NewRequest(url, method string) *Request {
-	return newRequest(url, strings.ToUpper(method))
+func NewRequest(method, url string) *Request {
+	return newRequest(strings.ToUpper(method), url)
 }
 
-func newRequest(url, method string) *Request {
-	return &Request{ctx: context.Background(), client: DefaultClient, url: url, method: method, header: make([]string, 0, 2), logger: defaultLog, logLevel: DefaultLogLevel, retryInterval: 200 * time.Millisecond}
-}
-
-func DefaultHeaderRequest() *Request {
-	req := newRequest("", "")
-	req.Header(DefaultHeader())
-	return req
+func newRequest(method, url string) *Request {
+	return &Request{ctx: context.Background(), client: DefaultClient, method: method, url: url, header: make([]string, 0, 2), logger: defaultLog, logLevel: DefaultLogLevel, retryInterval: 200 * time.Millisecond}
 }
 
 func (req *Request) Context(ctx context.Context) *Request {
@@ -146,11 +139,6 @@ func (req *Request) Header(header Header) *Request {
 
 func (req *Request) AddHeader(k, v string) *Request {
 	req.header = append(req.header, k, v)
-	return req
-}
-
-func (req *Request) CachedHeader(key string) *Request {
-	req.cachedHeaderKey = key
 	return req
 }
 
@@ -281,7 +269,7 @@ func (req *Request) Do(param, response interface{}) error {
 	// 日志记录
 	defer func(now time.Time) {
 		if req.logLevel == LogLevelInfo || (err != nil && req.logLevel == LogLevelError) {
-			req.logger(url, method, req.authUser, reqBody, respBody, statusCode, time.Since(now), err)
+			req.logger(method, url, req.authUser, reqBody, respBody, statusCode, time.Since(now), err)
 		}
 	}(reqTime)
 
@@ -326,17 +314,7 @@ func (req *Request) Do(param, response interface{}) error {
 		return err
 	}
 
-	// 缓存header
-	if req.cachedHeaderKey != "" {
-		if header, ok := headerMap.Load(req.cachedHeaderKey); ok {
-			request.Header = header.(http.Header)
-		} else {
-			req.addHeader(request)
-			headerMap.Store(req.cachedHeaderKey, request.Header)
-		}
-	} else {
-		req.addHeader(request)
-	}
+	req.addHeader(request)
 
 	var resp *http.Response
 Retry:
@@ -359,7 +337,7 @@ Retry:
 			return err
 		} else {
 			if req.logLevel > LogLevelSilent {
-				req.logger(url, method, req.authUser, reqBody, respBody, statusCode, time.Since(reqTime), errors.New(err.Error()+";will retry"))
+				req.logger(method, url, req.authUser, reqBody, respBody, statusCode, time.Since(reqTime), errors.New(err.Error()+";will retry"))
 			}
 			goto Retry
 		}
@@ -420,7 +398,7 @@ Retry:
 
 		if retry {
 			if req.logLevel > LogLevelSilent {
-				req.logger(url, method, req.authUser, reqBody, respBody, statusCode, time.Since(reqTime), err)
+				req.logger(method, url, req.authUser, reqBody, respBody, statusCode, time.Since(reqTime), err)
 			}
 			goto Retry
 		} else if err != nil {

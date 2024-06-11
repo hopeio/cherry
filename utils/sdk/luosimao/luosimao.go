@@ -41,7 +41,7 @@ func Verify(reqURL, apiKey, response string) error {
 	}
 	result := new(Result)
 
-	err := client.NewRequest(reqURL, http.MethodPost).
+	err := client.NewRequest(http.MethodPost, reqURL).
 		ContentType(client.ContentTypeForm).Do(&req, result)
 	if err != nil {
 		return err
