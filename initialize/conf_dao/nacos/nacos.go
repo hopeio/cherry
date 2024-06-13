@@ -1,7 +1,6 @@
 package nacos
 
 import (
-	"github.com/hopeio/cherry/utils/log"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/config_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
@@ -18,12 +17,8 @@ func (c *Config) InitBeforeInject() {
 func (c *Config) Init() {
 }
 
-func (c *Config) Build() config_client.IConfigClient {
-	client, err := clients.NewConfigClient(c.NacosClientParam)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return client
+func (c *Config) Build() (config_client.IConfigClient, error) {
+	return clients.NewConfigClient(c.NacosClientParam)
 }
 
 type ConfigClient struct {
@@ -35,8 +30,10 @@ func (m *ConfigClient) Config() any {
 	return &m.Conf
 }
 
-func (m *ConfigClient) Set() {
-	m.Client = m.Conf.Build()
+func (m *ConfigClient) Set() error {
+	var err error
+	m.Client, err = m.Conf.Build()
+	return err
 }
 
 func (m *ConfigClient) Close() error {

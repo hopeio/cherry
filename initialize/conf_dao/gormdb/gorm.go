@@ -24,7 +24,7 @@ func (c *Config) Init() {
 	(*gormi.Config)(c).Init()
 }
 
-func (c *Config) Build(dialector gorm.Dialector) *gorm.DB {
+func (c *Config) Build(dialector gorm.Dialector) (*gorm.DB, error) {
 
 	dbConfig := &c.Gorm
 	dbConfig.NamingStrategy = c.NamingStrategy
@@ -39,7 +39,7 @@ func (c *Config) Build(dialector gorm.Dialector) *gorm.DB {
 
 	db, err := gorm.Open(dialector, dbConfig)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	if c.EnablePrometheus {
@@ -64,19 +64,19 @@ func (c *Config) Build(dialector gorm.Dialector) *gorm.DB {
 		}
 		err = db.Use(prometheus.New(c.Prometheus))
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 	}
 
 	rawDB, err := db.DB()
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	rawDB.SetMaxIdleConns(c.MaxIdleConns)
 	rawDB.SetMaxOpenConns(c.MaxOpenConns)
 	rawDB.SetConnMaxLifetime(c.ConnMaxLifetime)
 	rawDB.SetConnMaxIdleTime(c.ConnMaxIdleTime)
-	return db
+	return db, nil
 }
 
 type DB struct {

@@ -1,7 +1,6 @@
 package rocksdb
 
 import (
-	"github.com/hopeio/cherry/utils/log"
 	"github.com/linxGnu/grocksdb"
 )
 
@@ -22,7 +21,7 @@ func (c *Config) InitBeforeInject() {
 func (c *Config) Init() {
 }
 
-func (c *Config) Build() *grocksdb.DB {
+func (c *Config) Build() (*grocksdb.DB, error) {
 	bbto := grocksdb.NewDefaultBlockBasedTableOptions()
 	bbto.SetBlockCache(grocksdb.NewLRUCache(c.Capacity))
 
@@ -33,11 +32,7 @@ func (c *Config) Build() *grocksdb.DB {
 	opts.SetParanoidChecks(c.ParanoidChecks)
 	opts.SetDBPaths(grocksdb.NewDBPathsFromData(c.Paths, c.TargetSizes))
 
-	db, err := grocksdb.OpenDb(opts, c.Path)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return db
+	return grocksdb.OpenDb(opts, c.Path)
 }
 
 type DB struct {
@@ -49,8 +44,10 @@ func (m *DB) Config() any {
 	return &m.Conf
 }
 
-func (m *DB) Set() {
-	m.DB = m.Conf.Build()
+func (m *DB) Set() error {
+	var err error
+	m.DB, err = m.Conf.Build()
+	return err
 }
 
 func (m *DB) Close() error {

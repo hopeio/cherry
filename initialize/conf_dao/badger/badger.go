@@ -2,7 +2,6 @@ package badger
 
 import (
 	"github.com/dgraph-io/badger/v3"
-	"github.com/hopeio/cherry/utils/log"
 )
 
 type Config badger.Options
@@ -12,13 +11,9 @@ func (c *Config) InitBeforeInject() {
 func (c *Config) Init() {
 
 }
-func (c *Config) Build() *badger.DB {
+func (c *Config) Build() (*badger.DB, error) {
 	c.Init()
-	db, err := badger.Open(badger.Options(*c))
-	if err != nil {
-		log.Fatal(err)
-	}
-	return db
+	return badger.Open(badger.Options(*c))
 }
 
 type DB struct {
@@ -30,8 +25,10 @@ func (c *DB) Config() any {
 	return &c.Conf
 }
 
-func (c *DB) Set() {
-	c.DB = c.Conf.Build()
+func (c *DB) Set() error {
+	var err error
+	c.DB, err = c.Conf.Build()
+	return err
 }
 
 func (c *DB) Close() error {

@@ -2,7 +2,6 @@ package elasticsearch
 
 import (
 	"github.com/elastic/go-elasticsearch/v7"
-	"github.com/hopeio/cherry/utils/log"
 	"github.com/hopeio/cherry/utils/net/http/auth"
 )
 
@@ -15,16 +14,13 @@ func (c *Config) Init() {
 
 }
 
-func (c *Config) Build() *elasticsearch.Client {
+func (c *Config) Build() (*elasticsearch.Client, error) {
 	c.Init()
 	if c.Username != "" && c.Password != "" {
 		auth.SetBasicAuth(c.Header, c.Username, c.Password)
 	}
-	client, err := elasticsearch.NewClient((elasticsearch.Config)(*c))
-	if err != nil {
-		log.Fatal(err)
-	}
-	return client
+
+	return elasticsearch.NewClient((elasticsearch.Config)(*c))
 }
 
 type Client struct {
@@ -36,8 +32,10 @@ func (es *Client) Config() any {
 	return &es.Conf
 }
 
-func (es *Client) Set() {
-	es.Client = es.Conf.Build()
+func (es *Client) Set() error {
+	var err error
+	es.Client, err = es.Conf.Build()
+	return err
 }
 
 func (es *Client) Close() error {

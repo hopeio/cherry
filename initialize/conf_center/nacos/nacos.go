@@ -33,7 +33,11 @@ func (cc *Nacos) Config() any {
 
 func (cc *Nacos) HandleConfig(handle func([]byte)) error {
 	if cc.Client == nil {
-		cc.Client = cc.Conf.Config.Build()
+		var err error
+		cc.Client, err = cc.Conf.Config.Build()
+		if err != nil {
+			return err
+		}
 	}
 
 	config, err := cc.Client.GetConfig(cc.Conf.ConfigParam)

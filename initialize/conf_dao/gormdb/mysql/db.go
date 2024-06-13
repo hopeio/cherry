@@ -14,7 +14,7 @@ func (c *Config) InitBeforeInjectWithInitConfig(conf *initconf.InitConfig) {
 	(*pkdb.Config)(c).InitBeforeInjectWithInitConfig(conf)
 }
 
-func (c *Config) Build() *gorm.DB {
+func (c *Config) Build() (*gorm.DB, error) {
 	(*pkdb.Config)(c).Init()
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=%s&loc=%s",
 		c.User, c.Password, c.Host,
@@ -28,8 +28,10 @@ func (db *DB) Config() any {
 	return (*Config)(&db.Conf)
 }
 
-func (db *DB) SetEntity(entity interface{}) {
-	db.DB = (*Config)(&db.Conf).Build()
+func (db *DB) Set() error {
+	var err error
+	db.DB, err = (*Config)(&db.Conf).Build()
+	return err
 }
 
 func (db *DB) Close() error {

@@ -1,8 +1,8 @@
 package pebble
 
 import (
+	"errors"
 	"github.com/cockroachdb/pebble"
-	"github.com/hopeio/cherry/utils/log"
 )
 
 type Config struct {
@@ -13,18 +13,14 @@ type Config struct {
 func (c *Config) InitBeforeInject() {
 }
 func (c *Config) Init() {
-	if c.DirName == "" {
-		log.Fatal("pebble config not set dirname")
-	}
 }
 
-func (c *Config) Build() *pebble.DB {
+func (c *Config) Build() (*pebble.DB, error) {
 	c.Init()
-	db, err := pebble.Open(c.DirName, &c.Options)
-	if err != nil {
-		log.Fatal(err)
+	if c.DirName == "" {
+		return nil, errors.New("pebble dir name is empty")
 	}
-	return db
+	return pebble.Open(c.DirName, &c.Options)
 }
 
 type DB struct {
@@ -36,10 +32,10 @@ func (p *DB) Config() any {
 	return &p.Conf
 }
 
-func (p *DB) SetEntity(entity interface{}) {
-	if client, ok := entity.(*pebble.DB); ok {
-		p.DB = client
-	}
+func (p *DB) Set() error {
+	var err error
+	p.DB, err = p.Conf.Build()
+	return err
 }
 
 func (p *DB) Close() error {

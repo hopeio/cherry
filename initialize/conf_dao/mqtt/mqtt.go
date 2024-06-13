@@ -35,13 +35,13 @@ func (c *Config) Init() {
 	configor.DurationNotify("WriteTimeout", c.WriteTimeout, time.Second)
 }
 
-func (c *Config) Build() mqtt.Client {
+func (c *Config) Build() (mqtt.Client, error) {
 	c.Init()
 	client := mqtt.NewClient(c.ClientOptions)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
-		log.Fatal(token.Error())
+		return client, token.Error()
 	}
-	return client
+	return client, nil
 }
 
 type Client struct {
@@ -53,8 +53,10 @@ func (c *Client) Config() any {
 	return &c.Conf
 }
 
-func (c *Client) Set() {
-	c.Client = c.Conf.Build()
+func (c *Client) Set() error {
+	var err error
+	c.Client, err = c.Conf.Build()
+	return err
 }
 
 func (c *Client) Close() error {

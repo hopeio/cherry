@@ -1,7 +1,7 @@
 package mail
 
 import (
-	"github.com/hopeio/cherry/utils/log"
+	"errors"
 	"net/smtp"
 	"strings"
 )
@@ -32,18 +32,18 @@ func (c *Config) InitBeforeInject() {
 func (c *Config) Init() {
 }
 
-func (c *Config) Build() smtp.Auth {
+func (c *Config) Build() (smtp.Auth, error) {
 	c.Init()
 	if strings.ToUpper(c.AuthType) == "PLAINAUTH" {
 		pc := c.PlainAuth
-		return smtp.PlainAuth(pc.Identity, pc.From, pc.Password, pc.Host)
+		return smtp.PlainAuth(pc.Identity, pc.From, pc.Password, pc.Host), nil
 	}
 	if strings.ToUpper(c.AuthType) == "CRAMMD5AUTH" {
 		cc := c.CRAMMD5Auth
-		return smtp.CRAMMD5Auth(cc.UserName, cc.Secret)
+		return smtp.CRAMMD5Auth(cc.UserName, cc.Secret), nil
 	}
-	log.Fatal("邮箱配置AuthType必填")
-	return nil
+
+	return nil, errors.New("邮箱配置AuthType必填")
 }
 
 type Mail struct {
@@ -55,8 +55,10 @@ func (m *Mail) Config() any {
 	return &m.Conf
 }
 
-func (m *Mail) Set() {
-	m.Auth = m.Conf.Build()
+func (m *Mail) Set() error {
+	var err error
+	m.Auth, err = m.Conf.Build()
+	return err
 }
 
 func (m *Mail) Close() error {

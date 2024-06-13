@@ -4,10 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
-	"github.com/hopeio/cherry/utils/log"
 	"github.com/marcboeker/go-duckdb"
 )
 
+// https://github.com/marcboeker/go-duckdb/issues/115
+// CGO_ENABLED=1 CGO_LDFLAGS="-L/path/to/duckdb.dll" go build -tags=duckdb_use_lib,go1.22 main.go
+// LD_LIBRARY_PATH=/path/to/libs ./main
 type Config struct {
 	DSN         string
 	Path        string
@@ -27,21 +29,17 @@ func (c *Config) InitBeforeInject() {
 func (c *Config) Init() {
 }
 
-func (c *Config) Build() *sql.DB {
+func (c *Config) Build() (*sql.DB, error) {
 	connector, err := duckdb.NewConnector(c.DSN, func(execer driver.ExecerContext) error {
 		for _, query := range c.BootQueries {
 			_, err := execer.ExecContext(context.Background(), query.Query, query.Args)
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 		}
 		return nil
 	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	db := sql.OpenDB(connector)
-	return db
+	return sql.OpenDB(connector), err
 }
 
 type DB struct {
@@ -53,8 +51,10 @@ func (m *DB) Config() any {
 	return &m.Conf
 }
 
-func (m *DB) Set() {
-	m.DB = m.Conf.Build()
+func (m *DB) Set() error {
+	var err error
+	m.DB, err = m.Conf.Build()
+	return err
 }
 
 func (m *DB) Close() error {

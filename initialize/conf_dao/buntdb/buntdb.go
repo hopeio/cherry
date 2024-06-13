@@ -1,7 +1,6 @@
 package buntdb
 
 import (
-	"github.com/hopeio/cherry/utils/log"
 	"github.com/tidwall/buntdb"
 )
 
@@ -17,16 +16,12 @@ func (c *Config) InitBeforeInject() {
 func (c *Config) Init() {
 }
 
-func (c *Config) Build() *buntdb.DB {
+func (c *Config) Build() (*buntdb.DB, error) {
 	db, err := buntdb.Open(c.Path)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	err = db.SetConfig(c.Config)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return db
+	return db, db.SetConfig(c.Config)
 }
 
 type DB struct {
@@ -38,8 +33,10 @@ func (m *DB) Config() any {
 	return &m.Conf
 }
 
-func (m *DB) Set() {
-	m.DB = m.Conf.Build()
+func (m *DB) Set() error {
+	var err error
+	m.DB, err = m.Conf.Build()
+	return err
 }
 
 func (m *DB) Close() error {

@@ -1,7 +1,6 @@
 package client
 
 import (
-	"github.com/hopeio/cherry/utils/log"
 	grpci "github.com/hopeio/cherry/utils/net/http/grpc"
 	"google.golang.org/grpc"
 )
@@ -19,20 +18,13 @@ func (c *Config) Init() {
 
 }
 
-func (c *Config) Build() *grpc.ClientConn {
+func (c *Config) Build() (*grpc.ClientConn, error) {
 	c.Init()
-	var conn *grpc.ClientConn
-	var err error
 	if c.TLS {
-		conn, err = grpci.NewTLSClient(c.Addr, c.Options...)
-	} else {
-		conn, err = grpci.NewClient(c.Addr, c.Options...)
+		return grpci.NewTLSClient(c.Addr, c.Options...)
 	}
-	if err != nil {
-		log.Fatal(err)
-	}
+	return grpci.NewClient(c.Addr, c.Options...)
 
-	return conn
 }
 
 type Client struct {
@@ -44,8 +36,10 @@ func (c *Client) Config() any {
 	return &c.Conf
 }
 
-func (c *Client) Set() {
-	c.Conn = c.Conf.Build()
+func (c *Client) Set() error {
+	var err error
+	c.Conn, err = c.Conf.Build()
+	return err
 }
 
 func (c *Client) Close() error {

@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"github.com/IBM/sarama"
-	"github.com/hopeio/cherry/utils/log"
 )
 
 type ConsumerConfig Config
@@ -14,13 +13,9 @@ func (c *ConsumerConfig) Init() {
 	(*Config)(c).Init()
 }
 
-func (c *ConsumerConfig) Build() sarama.Consumer {
+func (c *ConsumerConfig) Build() (sarama.Consumer, error) {
 	c.Init()
-	consumer, err := sarama.NewConsumer(c.Addrs, c.Config)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return consumer
+	return sarama.NewConsumer(c.Addrs, c.Config)
 
 }
 
@@ -34,8 +29,10 @@ func (c *Consumer) Config() any {
 	return &c.Conf
 }
 
-func (c *Consumer) Set() {
-	c.Consumer = c.Conf.Build()
+func (c *Consumer) Set() error {
+	var err error
+	c.Consumer, err = c.Conf.Build()
+	return err
 }
 
 func (c *Consumer) Close() error {

@@ -1,7 +1,6 @@
 package elastic
 
 import (
-	"github.com/hopeio/cherry/utils/log"
 	"github.com/olivere/elastic/v7"
 	"github.com/olivere/elastic/v7/config"
 )
@@ -15,13 +14,9 @@ func (c *Config) Init() {
 
 }
 
-func (c *Config) Build() *elastic.Client {
+func (c *Config) Build() (*elastic.Client, error) {
 	c.Init()
-	client, err := elastic.NewClientFromConfig((*config.Config)(c))
-	if err != nil {
-		log.Fatal(err)
-	}
-	return client
+	return elastic.NewClientFromConfig((*config.Config)(c))
 }
 
 type Client struct {
@@ -33,8 +28,10 @@ func (es *Client) Config() any {
 	return &es.Conf
 }
 
-func (es *Client) Set() {
-	es.Client = es.Conf.Build()
+func (es *Client) Set() error {
+	var err error
+	es.Client, err = es.Conf.Build()
+	return err
 }
 
 func (es *Client) Close() error {

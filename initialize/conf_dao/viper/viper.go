@@ -1,7 +1,6 @@
 package viper
 
 import (
-	"github.com/hopeio/cherry/utils/log"
 	"github.com/spf13/viper"
 	_ "github.com/spf13/viper/remote"
 	"gopkg.in/ini.v1"
@@ -44,14 +43,13 @@ func (c *Config) InitAfterInject() {
 	c.build(viper.GetViper())
 }
 
-func (c *Config) Build() *viper.Viper {
+func (c *Config) Build() (*viper.Viper, error) {
 	c.Init()
 	var runtimeViper = viper.New()
-	c.build(runtimeViper)
-	return runtimeViper
+	return runtimeViper, c.build(runtimeViper)
 }
 
-func (c *Config) build(runtimeViper *viper.Viper) {
+func (c *Config) build(runtimeViper *viper.Viper) error {
 	if c.Debug {
 		runtimeViper.Debug()
 	}
@@ -65,19 +63,19 @@ func (c *Config) build(runtimeViper *viper.Viper) {
 				err = runtimeViper.AddRemoteProvider(conf.Provider, conf.Endpoint, conf.Path)
 			}
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 		}
 
 		// read from remote Config the first time.
 		err = runtimeViper.ReadRemoteConfig()
 		if err != nil {
-			log.Error(err)
+			return err
 		}
 		if c.Watch {
 			err = runtimeViper.WatchRemoteConfig()
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 		}
 
@@ -89,7 +87,7 @@ func (c *Config) build(runtimeViper *viper.Viper) {
 		}
 		err := runtimeViper.ReadInConfig()
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		if c.Watch {
 			runtimeViper.WatchConfig()
@@ -100,7 +98,7 @@ func (c *Config) build(runtimeViper *viper.Viper) {
 	if len(c.EnvVars) > 0 {
 		err := runtimeViper.BindEnv(c.EnvVars...)
 		if err != nil {
-			log.Error(err)
+			return err
 		}
 	}
 
@@ -125,6 +123,7 @@ func (c *Config) build(runtimeViper *viper.Viper) {
 			log.Debug(cCopy)
 		}
 	}()*/
+	return nil
 }
 
 // 不建议使用,请使用viper全局变量
@@ -137,10 +136,12 @@ func (v *Viper) Config() any {
 	return &v.Conf
 }
 
-func (v *Viper) Set() {
-	v.Viper = v.Conf.Build()
+func (v *Viper) Set() error {
+	var err error
+	v.Viper, err = v.Conf.Build()
+	return err
 }
 
 func (v *Viper) Close() error {
-	return nil
+	return v.Close()
 }

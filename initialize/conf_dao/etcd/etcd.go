@@ -1,7 +1,6 @@
 package etcd
 
 import (
-	"github.com/hopeio/cherry/utils/log"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
@@ -13,13 +12,9 @@ func (c *Config) InitBeforeInject() {
 func (c *Config) Init() {
 }
 
-func (c *Config) Build() *clientv3.Client {
+func (c *Config) Build() (*clientv3.Client, error) {
 	c.Init()
-	client, err := clientv3.New((clientv3.Config)(*c))
-	if err != nil {
-		log.Fatal(err)
-	}
-	return client
+	return clientv3.New((clientv3.Config)(*c))
 }
 
 type Client struct {
@@ -31,8 +26,10 @@ func (e *Client) Config() any {
 	return &e.Conf
 }
 
-func (e *Client) Set() {
-	e.Client = e.Conf.Build()
+func (e *Client) Set() error {
+	var err error
+	e.Client, err = e.Conf.Build()
+	return err
 }
 
 func (e *Client) Close() error {

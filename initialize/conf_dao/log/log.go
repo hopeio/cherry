@@ -29,8 +29,9 @@ func (l *Logger) Config() any {
 	return &l.Conf
 }
 
-func (l *Logger) Set() {
+func (l *Logger) Set() error {
 	l.Logger = l.Conf.Build()
+	return nil
 }
 
 func (l *Logger) Close() error {

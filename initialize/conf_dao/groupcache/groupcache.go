@@ -30,8 +30,9 @@ func (m *Group) Config() any {
 	return &m.Conf
 }
 
-func (m *Group) Set() {
+func (m *Group) Set() error {
 	m.Group = m.Conf.Build()
+	return nil
 }
 
 func (m *Group) Close() error {

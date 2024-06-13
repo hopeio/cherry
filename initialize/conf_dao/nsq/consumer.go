@@ -1,8 +1,6 @@
 package nsq
 
 import (
-	"log"
-
 	"github.com/nsqio/go-nsq"
 )
 
@@ -20,25 +18,25 @@ func (c *ConsumerConfig) InitBeforeInject() {
 func (c *ConsumerConfig) Init() {
 }
 
-func (c *ConsumerConfig) Build() *nsq.Consumer {
+func (c *ConsumerConfig) Build() (*nsq.Consumer, error) {
 	c.Init()
 	consumer, err := nsq.NewConsumer(c.Topic, c.Channel, c.Config)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	if len(c.NSQLookupdAddrs) > 0 {
 		if err := consumer.ConnectToNSQLookupds(c.NSQLookupdAddrs); err != nil {
-			log.Fatal(err)
+			return consumer, err
 		}
 	}
 	if len(c.NSQdAddrs) > 0 {
 		if err = consumer.ConnectToNSQDs(c.NSQdAddrs); err != nil {
-			log.Fatal(err)
+			return consumer, err
 		}
 
 	}
-	return consumer
+	return consumer, nil
 
 }
 
@@ -52,8 +50,10 @@ func (c *Consumer) Config() any {
 	return &c.Conf
 }
 
-func (c *Consumer) Set() {
-	c.Consumer = c.Conf.Build()
+func (c *Consumer) Set() error {
+	var err error
+	c.Consumer, err = c.Conf.Build()
+	return err
 }
 
 func (c *Consumer) Close() error {

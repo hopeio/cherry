@@ -7,7 +7,6 @@ import (
 	"github.com/hopeio/cherry/initialize/conf_dao/gormdb/postgres"
 	"github.com/hopeio/cherry/initialize/conf_dao/log"
 	"github.com/hopeio/cherry/initialize/conf_dao/mail"
-	"github.com/hopeio/cherry/initialize/conf_dao/pebble"
 	"github.com/hopeio/cherry/initialize/conf_dao/redis"
 	"github.com/hopeio/cherry/initialize/conf_dao/ristretto"
 	"github.com/hopeio/cherry/initialize/conf_dao/server"
@@ -62,9 +61,8 @@ func (c *config) InitAfterInject() {
 // dao dao.
 type dao struct {
 	// GORMDB 数据库连接
-	GORMDB   postgres.DB
-	StdDB    *sql.DB
-	PebbleDB pebble.DB
+	GORMDB postgres.DB
+	StdDB  *sql.DB
 	// RedisPool Redis连接池
 	Redis redis.Client
 	Cache ristretto.Cache[string, any]

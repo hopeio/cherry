@@ -1,14 +1,13 @@
 package common
 
 import (
+	"errors"
 	pkdb "github.com/hopeio/cherry/initialize/conf_dao/gormdb"
 	"github.com/hopeio/cherry/initialize/conf_dao/gormdb/mysql"
 	"github.com/hopeio/cherry/initialize/conf_dao/gormdb/postgres"
 	"github.com/hopeio/cherry/initialize/conf_dao/gormdb/sqlite"
 	"github.com/hopeio/cherry/initialize/initconf"
 	dbi "github.com/hopeio/cherry/utils/dao/database"
-	"github.com/hopeio/cherry/utils/log"
-
 	"gorm.io/gorm"
 )
 
@@ -19,18 +18,17 @@ func (c *Config) InitBeforeInjectWithInitConfig(conf *initconf.InitConfig) {
 	(*pkdb.Config)(c).InitBeforeInjectWithInitConfig(conf)
 }
 
-func (c *Config) Build() *gorm.DB {
+func (c *Config) Build() (*gorm.DB, error) {
 	(*pkdb.Config)(c).Init()
 	if c.Type == dbi.Mysql {
-		(*mysql.Config)(c).Build()
+		return (*mysql.Config)(c).Build()
 	} else if c.Type == dbi.Postgres {
-		(*postgres.Config)(c).Build()
+		return (*postgres.Config)(c).Build()
 	} else if c.Type == dbi.Sqlite {
-		(*sqlite.Config)(c).Build()
+		return (*sqlite.Config)(c).Build()
 	}
 
-	log.Fatal("只支持" + dbi.Mysql + "," + dbi.Postgres + "." + dbi.Sqlite)
-	return nil
+	return nil, errors.New("只支持" + dbi.Mysql + "," + dbi.Postgres + "." + dbi.Sqlite)
 }
 
 type DB pkdb.DB
@@ -40,7 +38,9 @@ func (db *DB) Config() any {
 }
 
 func (db *DB) Set() {
-	db.DB = (*Config)(&db.Conf).Build()
+	var err error
+	db.DB, err = (*Config)(&db.Conf).Build()
+	return err
 }
 
 func (db *DB) Close() error {

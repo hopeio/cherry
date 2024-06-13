@@ -2,7 +2,6 @@ package ristretto
 
 import (
 	"github.com/dgraph-io/ristretto"
-	"github.com/hopeio/cherry/utils/log"
 )
 
 type Config[K ristretto.Key, V any] ristretto.Config[K, V]
@@ -21,13 +20,9 @@ func (c *Config[K, V]) Init() {
 	}
 }
 
-func (c *Config[K, V]) Build() *ristretto.Cache[K, V] {
+func (c *Config[K, V]) Build() (*ristretto.Cache[K, V], error) {
 	c.Init()
-	cache, err := ristretto.NewCache((*ristretto.Config[K, V])(c))
-	if err != nil {
-		log.Fatal(err)
-	}
-	return cache
+	return ristretto.NewCache((*ristretto.Config[K, V])(c))
 }
 
 // 考虑换cache，ristretto存一个值，循环取居然还会miss(没开IgnoreInternalCost的原因),某个issue提要内存占用过大，直接初始化1.5MB
@@ -43,8 +38,10 @@ func (c *Cache[K, V]) Config() any {
 	return &c.Conf
 }
 
-func (c *Cache[K, V]) Set() {
-	c.Cache = c.Conf.Build()
+func (c *Cache[K, V]) Set() error {
+	var err error
+	c.Cache, err = c.Conf.Build()
+	return err
 }
 
 func (e *Cache[K, V]) Close() error {

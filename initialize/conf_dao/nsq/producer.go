@@ -12,14 +12,9 @@ func (c *ProducerConfig) InitBeforeInject() {
 func (c *ProducerConfig) Init() {
 }
 
-func (c *ProducerConfig) Build() *nsq.Producer {
+func (c *ProducerConfig) Build() (*nsq.Producer, error) {
 	c.Init()
-	producer, err := nsq.NewProducer(c.Addr, c.Config)
-	if err != nil {
-		panic(err)
-	}
-
-	return producer
+	return nsq.NewProducer(c.Addr, c.Config)
 }
 
 type Producer struct {
@@ -32,8 +27,10 @@ func (p *Producer) Config() any {
 	return &p.Conf
 }
 
-func (p *Producer) Set() {
-	p.Producer = p.Conf.Build()
+func (p *Producer) Set() error {
+	var err error
+	p.Producer, err = p.Conf.Build()
+	return err
 }
 
 func (p *Producer) Close() error {

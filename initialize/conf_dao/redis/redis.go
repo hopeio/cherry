@@ -28,14 +28,10 @@ func (c *Config) Init() {
 	configor.DurationNotify("IdleTimeout", c.IdleTimeout, time.Second)
 }
 
-func (c *Config) Build() *redis.Client {
+func (c *Config) Build() (*redis.Client, error) {
 	c.Init()
 	client := redis.NewClient(&c.Options)
-	err := client.Ping(context.Background()).Err()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return client
+	return client, client.Ping(context.Background()).Err()
 }
 
 type Client struct {
@@ -47,8 +43,10 @@ func (db *Client) Config() any {
 	return &db.Conf
 }
 
-func (db *Client) Set() {
-	db.Client = db.Conf.Build()
+func (db *Client) Set() error {
+	var err error
+	db.Client, err = db.Conf.Build()
+	return err
 }
 
 func (db *Client) Close() error {
