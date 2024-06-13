@@ -53,13 +53,13 @@ func (gc *globalConfig) setEnvConfig() {
 			envMap[fixedFieldNameConfigCenter] = ccMap
 			for name, v := range conf_center.GetRegisteredConfigCenter() {
 				cc := make(map[string]any)
-				struct2Map(v, cc)
+				struct2Map(v.Config(), cc)
 				ccMap[name] = cc
 			}
 			// unsafe
 			encoderRegistry := reflect.ValueOf(gc.Viper).Elem().FieldByName(fixedFieldNameEncoderRegistry).Elem()
 			fieldValue := reflect.NewAt(encoderRegistry.Type(), unsafe.Pointer(encoderRegistry.UnsafeAddr()))
-			data, err := fieldValue.Interface().(Encoder).Encode(string(format), confMap)
+			data, err := fieldValue.Interface().(Encoder).Encode(format, confMap)
 
 			dir := gc.InitConfig.EnvConfig.ConfigTemplateDir
 			if dir[len(dir)-1] != '/' {
@@ -97,7 +97,7 @@ func (gc *globalConfig) setEnvConfig() {
 		return
 	}
 
-	applyFlagConfig(gc.Viper, configCenter)
+	applyFlagConfig(gc.Viper, configCenter.Config())
 	gc.InitConfig.EnvConfig.ConfigCenter.ConfigCenter = configCenter
 
 	configCenterConfig, ok := gc.Viper.Get(gc.InitConfig.Env + ".configCenter." + gc.InitConfig.EnvConfig.ConfigCenter.Type).(map[string]any)
@@ -105,7 +105,7 @@ func (gc *globalConfig) setEnvConfig() {
 		log.Warn("lack of configCenter config, try single config file")
 		return
 	}
-	err = mtos.Unmarshal(configCenter, configCenterConfig)
+	err = mtos.Unmarshal(configCenter.Config(), configCenterConfig)
 	if err != nil {
 		log.Fatal(err)
 	}

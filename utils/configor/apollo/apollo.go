@@ -78,9 +78,7 @@ func New(addr, appId, cluster, ip string, namespaces []string) (*Client, error) 
 
 	}
 
-	go func() {
-		s.UpdateConfig(s.AppId, s.Cluster)
-	}()
+	go s.UpdateConfig(s.AppId, s.Cluster)
 
 	return s, nil
 }

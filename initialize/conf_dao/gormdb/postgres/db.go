@@ -17,9 +17,9 @@ func (c *Config) InitBeforeInjectWithInitConfig(conf *initconf.InitConfig) {
 
 func (c *Config) Build() *gorm.DB {
 	(*pkdb.Config)(c).Init()
-	url := fmt.Sprintf("host=%s user=%s dbname=%s port=%d sslmode=%s password=%s TimeZone=%s",
+	dsn := fmt.Sprintf("host=%s user=%s dbname=%s port=%d sslmode=%s password=%s TimeZone=%s",
 		c.Host, c.User, c.Database, c.Port, c.Postgres.SSLMode, c.Password, c.TimeZone)
-	return (*pkdb.Config)(c).Build(postgres.Open(url))
+	return (*pkdb.Config)(c).Build(postgres.Open(dsn))
 }
 
 type DB pkdb.DB

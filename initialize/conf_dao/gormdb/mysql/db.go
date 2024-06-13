@@ -16,10 +16,10 @@ func (c *Config) InitBeforeInjectWithInitConfig(conf *initconf.InitConfig) {
 
 func (c *Config) Build() *gorm.DB {
 	(*pkdb.Config)(c).Init()
-	url := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=%s&loc=%s",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=%s&loc=%s",
 		c.User, c.Password, c.Host,
 		c.Port, c.Database, c.Charset, c.Mysql.ParseTime, c.Mysql.Loc)
-	return (*pkdb.Config)(c).Build(mysql.Open(url))
+	return (*pkdb.Config)(c).Build(mysql.Open(dsn))
 }
 
 type DB pkdb.DB

@@ -3,12 +3,15 @@ package conf_center
 import (
 	"github.com/hopeio/cherry/utils/log"
 	stringsi "github.com/hopeio/cherry/utils/strings"
+	"io"
 	"strings"
 )
 
 type ConfigType string
 
 type ConfigCenter interface {
+	Config() any
+	io.Closer
 	HandleConfig(func([]byte)) error
 	Type() string
 }

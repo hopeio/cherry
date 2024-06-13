@@ -2,7 +2,6 @@ package initialize
 
 import (
 	"github.com/hopeio/cherry/initialize/initconf"
-	"io"
 	"reflect"
 )
 
@@ -56,20 +55,3 @@ func (u EmbeddedPresets) InitAfterInject() {
 }
 
 var EmbeddedPresetsType = reflect.TypeOf((*EmbeddedPresets)(nil)).Elem()
-
-var DaoFieldType = reflect.TypeOf((*DaoField)(nil)).Elem()
-
-type DaoField interface {
-	Config() any
-	Set()
-	io.Closer
-}
-
-// TODO
-type DaoFieldCloseE = io.Closer
-type DaoFieldCloser interface {
-	Close()
-}
-
-type Marshal = func(any) ([]byte, error)
-type Unmarshal = func([]byte, any) error

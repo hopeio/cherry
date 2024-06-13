@@ -3,6 +3,7 @@ package initialize
 import (
 	"github.com/hopeio/cherry/initialize/conf_center"
 	"github.com/hopeio/cherry/initialize/conf_center/local"
+	"github.com/hopeio/cherry/initialize/conf_dao"
 	"github.com/hopeio/cherry/initialize/initconf"
 	"github.com/hopeio/cherry/utils/errors/multierr"
 	"github.com/hopeio/cherry/utils/io/fs"
@@ -160,7 +161,9 @@ func (gc *globalConfig) loadConfig() {
 		}
 		// 单配置文件
 		gc.InitConfig.ConfigCenter.ConfigCenter = &local.Local{
-			ConfigPath: gc.InitConfig.ConfUrl,
+			Conf: local.Config{
+				ConfigPath: gc.InitConfig.ConfUrl,
+			},
 		}
 		applyFlagConfig(gc.Viper, gc.InitConfig.ConfigCenter.ConfigCenter)
 	}
@@ -211,7 +214,7 @@ func closeDao(dao Dao) error {
 			continue
 		}
 		inter := fieldV.Interface()
-		if daofield, ok := inter.(DaoField); ok {
+		if daofield, ok := inter.(conf_dao.DaoField); ok {
 			if err := daofield.Close(); err != nil {
 				errs.Append(err)
 			}

@@ -8,20 +8,29 @@ import (
 var ConfigCenter = &Apollo{}
 
 type Apollo struct {
-	apollo.Config
+	Conf   apollo.Config
+	Client *apollo.Client
 }
 
 func (e *Apollo) Type() string {
 	return "apollo"
 }
 
+func (cc *Apollo) Config() any {
+	return &cc.Conf
+}
+
 // TODD: 更改监听
 func (e *Apollo) HandleConfig(handle func([]byte)) error {
-	client, err := e.NewClient()
-	if err != nil {
-		return err
+	var err error
+	if e.Client == nil {
+		e.Client, err = e.Conf.NewClient()
+		if err != nil {
+			return err
+		}
 	}
-	config, err := client.GetDefaultConfig()
+
+	config, err := e.Client.GetDefaultConfig()
 	if err != nil {
 		return err
 	}
@@ -30,5 +39,9 @@ func (e *Apollo) HandleConfig(handle func([]byte)) error {
 		return err
 	}
 	handle(data)
+	return nil
+}
+
+func (cc *Apollo) Close() error {
 	return nil
 }

@@ -3,6 +3,7 @@ package initialize
 import (
 	"bytes"
 	"errors"
+	"github.com/hopeio/cherry/initialize/conf_dao"
 	"github.com/hopeio/cherry/utils/log"
 	"github.com/hopeio/cherry/utils/slices"
 	stringsi "github.com/hopeio/cherry/utils/strings"
@@ -23,7 +24,6 @@ func (gc *globalConfig) UnmarshalAndSet(data []byte) {
 	}
 
 	tmpConfig := gc.newStruct()
-
 	err = gc.Viper.Unmarshal(tmpConfig, decoderConfigOptions...)
 	if err != nil {
 		if gc.editTimes == 0 {
@@ -34,7 +34,6 @@ func (gc *globalConfig) UnmarshalAndSet(data []byte) {
 		}
 	}
 	applyFlagConfig(gc.Viper, tmpConfig)
-
 	gc.inject(tmpConfig)
 	gc.editTimes++
 	gc.lock.Unlock()
@@ -134,7 +133,7 @@ func (gc *globalConfig) newStruct() any {
 			}
 			if field.CanInterface() {
 				inter := field.Interface()
-				if daoField, ok := inter.(DaoField); ok {
+				if daoField, ok := inter.(conf_dao.DaoField); ok {
 
 					structField := daoType.Field(i)
 
@@ -252,7 +251,7 @@ func (gc *globalConfig) injectDao() {
 			}
 
 			// 根据DaoField接口实现获取配置和要注入的类型
-			if daofield, ok := inter.(DaoField); ok {
+			if daofield, ok := inter.(conf_dao.DaoField); ok {
 				daofield.Set()
 			}
 		}
@@ -279,6 +278,13 @@ func (gc *globalConfig) Inject(conf Config, dao Dao) error {
 			c.InitBeforeInjectWithInitConfig(&gc.InitConfig)
 		}
 	}
-	cfgcenter := gc.InitConfig.ConfigCenter.ConfigCenter
-	return cfgcenter.HandleConfig(gc.UnmarshalAndSet)
+	tmpConfig := gc.newStruct()
+	err := gc.Viper.Unmarshal(tmpConfig, decoderConfigOptions...)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+	applyFlagConfig(gc.Viper, tmpConfig)
+	gc.inject(tmpConfig)
+	return nil
 }

@@ -15,7 +15,7 @@ func (c *Config) InitBeforeInjectWithInitConfig(conf *initconf.InitConfig) {
 
 func (c *Config) Build() *gorm.DB {
 	(*pkdb.Config)(c).Init()
-	return (*pkdb.Config)(c).Build(sqlite.Open(c.Sqlite.Path))
+	return (*pkdb.Config)(c).Build(sqlite.Open(c.Sqlite.DSN))
 }
 
 type DB pkdb.DB

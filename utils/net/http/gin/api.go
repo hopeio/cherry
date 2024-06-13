@@ -3,6 +3,7 @@ package gin
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/cherry/utils/net/http/apidoc"
+	_ "github.com/ugorji/go"
 )
 
 func OpenApi(mux *gin.Engine, filePath string) {

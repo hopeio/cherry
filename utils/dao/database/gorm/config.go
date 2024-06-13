@@ -45,7 +45,7 @@ type Mysql struct {
 }
 
 type Sqlite struct {
-	Path string
+	DSN string
 }
 
 type PrometheusConfig struct {
@@ -90,7 +90,7 @@ func (c *Config) Init() {
 		}
 	}
 
-	if c.Sqlite.Path == "" {
-		c.Sqlite.Path = "./sqlite.db"
+	if c.Sqlite.DSN == "" {
+		c.Sqlite.DSN = "./sqlite.db"
 	}
 }

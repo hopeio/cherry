@@ -1,12 +1,14 @@
-package buntdb
+package flightsql
 
 import (
+	"database/sql"
+	_ "github.com/apache/arrow-adbc/go/adbc/sqldriver/flightsql"
 	"github.com/hopeio/cherry/utils/log"
 	"github.com/tidwall/buntdb"
 )
 
 type Config struct {
-	Path string
+	DNS string
 	buntdb.Config
 }
 
@@ -17,12 +19,8 @@ func (c *Config) InitBeforeInject() {
 func (c *Config) Init() {
 }
 
-func (c *Config) Build() *buntdb.DB {
-	db, err := buntdb.Open(c.Path)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = db.SetConfig(c.Config)
+func (c *Config) Build() *sql.DB {
+	db, err := sql.Open("flightsql", c.DNS)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -30,7 +28,7 @@ func (c *Config) Build() *buntdb.DB {
 }
 
 type DB struct {
-	*buntdb.DB
+	*sql.DB
 	Conf Config
 }
 

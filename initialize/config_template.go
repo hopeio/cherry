@@ -1,6 +1,7 @@
 package initialize
 
 import (
+	"github.com/hopeio/cherry/initialize/conf_dao"
 	"github.com/hopeio/cherry/utils/log"
 	stringsi "github.com/hopeio/cherry/utils/strings"
 	"os"
@@ -50,7 +51,7 @@ func daoConfig2Map(value reflect.Value, confMap map[string]any) {
 	typ := value.Type()
 	for i := 0; i < value.NumField(); i++ {
 		field := value.Field(i)
-		if field.Addr().Type().Implements(DaoFieldType) {
+		if field.Addr().Type().Implements(conf_dao.DaoFieldType) {
 			newconfMap := make(map[string]any)
 			fieldType := typ.Field(i)
 			name := fieldType.Name
@@ -60,7 +61,7 @@ func daoConfig2Map(value reflect.Value, confMap map[string]any) {
 			}
 
 			confMap[name] = newconfMap
-			struct2Map(field.Addr().Interface().(DaoField).Config(), newconfMap)
+			struct2Map(field.Addr().Interface().(conf_dao.DaoField).Config(), newconfMap)
 		}
 	}
 }
