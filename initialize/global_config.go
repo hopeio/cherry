@@ -89,6 +89,11 @@ func Start(conf Config, dao Dao, configCenter ...conf_center.ConfigCenter) func(
 		for i := len(gConfig.defers) - 1; i > 0; i-- {
 			gConfig.defers[i]()
 		}
+		if gConfig.InitConfig.ConfigCenter.ConfigCenter != nil {
+			if err := gConfig.InitConfig.ConfigCenter.ConfigCenter.Close(); err != nil {
+				log.Errorf("close config center error: %v", err)
+			}
+		}
 		log.Sync()
 	}
 }
