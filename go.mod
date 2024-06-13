@@ -249,6 +249,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
+	github.com/linxGnu/grocksdb v1.9.1 // indirect
 	github.com/lni/vfs v0.2.1-0.20220616104132-8852fd867376 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
