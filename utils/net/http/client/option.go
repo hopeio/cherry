@@ -35,3 +35,9 @@ func SetCookie(cookie string) RequestOption {
 		req.Header.Set(httpi.HeaderCookie, cookie)
 	}
 }
+
+// TODO
+// tag :`request:"uri:xxx;query:xxx;header:xxx;body:xxx"`
+func setRequest(p any, req *http.Request) {
+
+}

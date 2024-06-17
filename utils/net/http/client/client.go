@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	httpi "github.com/hopeio/cherry/utils/net/http"
+	url2 "github.com/hopeio/cherry/utils/net/url"
 	"io"
 	"net"
 	"net/http"
@@ -274,7 +275,7 @@ func (req *Request) Do(param, response interface{}) error {
 	}(reqTime)
 
 	if method == http.MethodGet {
-		url = UrlAppendQueryParam(req.url, param)
+		url = url2.AppendQueryParam(req.url, param)
 	} else {
 		reqBody = &Body{}
 		if param != nil {
@@ -292,7 +293,7 @@ func (req *Request) Do(param, response interface{}) error {
 				reqBody.Data = reqBytes
 			default:
 				if req.contentType == ContentTypeForm {
-					params := QueryParam(param)
+					params := url2.QueryParam(param)
 					reqBody.Data = stringsi.ToBytes(params)
 					body = strings.NewReader(params)
 				} else {

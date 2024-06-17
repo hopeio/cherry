@@ -8,14 +8,18 @@ import (
 )
 
 // https://github.com/marcboeker/go-duckdb/issues/115
-// CGO_ENABLED=1 CGO_LDFLAGS="-L/path/to/duckdb.dll" go build -tags=duckdb_use_lib,go1.22 main.go
-// LD_LIBRARY_PATH=/path/to/libs ./main
+// CGO_ENABLED=1 CGO_LDFLAGS="-L/path/to/duckdb.dll" CGO_CFLAGS="-I/path/to/duckdb.h" go build -tags=duckdb_use_lib,go1.22 main.go
+// unix: LD_LIBRARY_PATH=/path/to/libs ./main
+// win: PATH=/path/to/libs:$PATH or copy dll to run dir or C:\Windows\System32和C:\Windows\SysWOW64 ./main
+
 type Config struct {
-	DSN         string
-	Path        string
-	AccessMode  string `json:"access_mode" comment:"read_only"`
-	Threads     int    `json:"threads"`
-	BootQueries []BootQuery
+	DSN          string
+	Path         string
+	AccessMode   string `json:"access_mode" comment:"read_only"`
+	Threads      int    `json:"threads"`
+	MaxMemory    int    `json:"max_memory"`
+	DefaultOrder int    `json:"default_order"`
+	BootQueries  []BootQuery
 }
 type BootQuery struct {
 	Query string

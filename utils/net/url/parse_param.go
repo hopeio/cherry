@@ -1,21 +1,15 @@
-package client
+package url
 
 import (
 	"github.com/hopeio/cherry/utils/log"
 	"github.com/hopeio/cherry/utils/math"
 	stringsi "github.com/hopeio/cherry/utils/strings"
-	"net/http"
 	"net/url"
+	"path"
 	"reflect"
 	"strconv"
 	"strings"
 )
-
-// TODO
-// tag :`request:"uri:xxx;query:xxx;header:xxx;body:xxx"`
-func setRequest(p any, req *http.Request) {
-
-}
 
 var tag = "json"
 
@@ -23,16 +17,34 @@ func SetTag(t string) {
 	tag = t
 }
 
+func ResolveURL(u *url.URL, p string) string {
+	if strings.HasPrefix(p, "https://") || strings.HasPrefix(p, "http://") {
+		return p
+	}
+	var baseURL string
+	if strings.Index(p, "/") == 0 {
+		baseURL = u.Scheme + "://" + u.Host
+	} else {
+		tU := u.String()
+		baseURL = tU[0:strings.LastIndex(tU, "/")]
+	}
+	return baseURL + path.Join("/", p)
+}
+
 func QueryParam(param any) string {
+	return QueryParamByTag(param, tag)
+}
+
+func QueryParamByTag(param any, tag string) string {
 	if param == nil {
 		return ""
 	}
 	query := url.Values{}
-	parseParam(param, query)
+	parseParamByTag(param, query, tag)
 	return query.Encode()
 }
 
-func parseParam(param any, query url.Values) {
+func parseParamByTag(param any, query url.Values, tag string) {
 	v := reflect.ValueOf(param)
 	if v.Kind() == reflect.Interface || v.Kind() == reflect.Ptr {
 		v = v.Elem()
@@ -81,7 +93,7 @@ func getFieldValue(v reflect.Value) string {
 	return ""
 }
 
-func UrlAppendQueryParam(url string, param interface{}) string {
+func AppendQueryParamByTag(url string, param interface{}, tag string) string {
 	if param == nil {
 		return url
 	}
@@ -95,8 +107,12 @@ func UrlAppendQueryParam(url string, param interface{}) string {
 	case []byte:
 		url += sep + stringsi.BytesToString(paramt)
 	default:
-		params := QueryParam(param)
+		params := QueryParamByTag(param, tag)
 		url += sep + params
 	}
 	return url
+}
+
+func AppendQueryParam(url string, param interface{}) string {
+	return AppendQueryParamByTag(url, param, tag)
 }

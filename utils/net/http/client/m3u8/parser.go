@@ -6,6 +6,7 @@ import (
 	"github.com/hopeio/cherry/utils/crypto/aes"
 	em3u8 "github.com/hopeio/cherry/utils/encoding/m3u8"
 	"github.com/hopeio/cherry/utils/net/http/client"
+	url2 "github.com/hopeio/cherry/utils/net/url"
 	"net/url"
 )
 
@@ -32,7 +33,7 @@ func FromURL(link string) (*Result, error) {
 	}
 	if len(m3u8.MasterPlaylist) != 0 {
 		sf := m3u8.MasterPlaylist[0]
-		return FromURL(client.ResolveURL(u, sf.URI))
+		return FromURL(url2.ResolveURL(u, sf.URI))
 	}
 	if len(m3u8.Segments) == 0 {
 		return nil, errors.New("can not found any TS file description")
@@ -50,7 +51,7 @@ func FromURL(link string) (*Result, error) {
 		case key.Method == em3u8.CryptMethodAES:
 			// Request URL to extract decryption key
 			keyURL := key.URI
-			keyURL = client.ResolveURL(u, keyURL)
+			keyURL = url2.ResolveURL(u, keyURL)
 			var keyByte client.RawBytes
 			err = client.DefaultHeaderRequest().RetryTimes(20).DisableLog().Get(keyURL, &keyByte)
 			if err != nil {
@@ -73,7 +74,7 @@ func (r *Result) Download(segIndex int) ([]byte, error) {
 		return nil, fmt.Errorf("invalid segment index: %d", segIndex)
 	}
 
-	tsUrl := client.ResolveURL(r.URL, sf.URI)
+	tsUrl := url2.ResolveURL(r.URL, sf.URI)
 
 	var bytes client.RawBytes
 	err := client.DefaultHeaderRequest().DisableLog().Get(tsUrl, &bytes)
