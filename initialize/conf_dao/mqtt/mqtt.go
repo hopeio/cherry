@@ -53,7 +53,7 @@ func (c *Client) Config() any {
 	return &c.Conf
 }
 
-func (c *Client) Set() error {
+func (c *Client) Init() error {
 	var err error
 	c.Client, err = c.Conf.Build()
 	return err

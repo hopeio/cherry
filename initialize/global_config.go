@@ -188,7 +188,7 @@ func (gc *globalConfig) loadConfig() {
 	gc.genConfigTemplate(singleTemplateFileConfig)
 
 	cfgcenter := gc.InitConfig.ConfigCenter.ConfigCenter
-	err := cfgcenter.HandleConfig(gc.UnmarshalAndSet)
+	err := cfgcenter.Handle(gc.UnmarshalAndSet)
 	if err != nil {
 		log.Fatalf("配置错误: %v", err)
 	}

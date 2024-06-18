@@ -55,7 +55,7 @@ func (m *Mail) Config() any {
 	return &m.Conf
 }
 
-func (m *Mail) Set() error {
+func (m *Mail) Init() error {
 	var err error
 	m.Auth, err = m.Conf.Build()
 	return err

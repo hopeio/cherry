@@ -29,7 +29,7 @@ func (l *Logger) Config() any {
 	return &l.Conf
 }
 
-func (l *Logger) Set() error {
+func (l *Logger) Init() error {
 	l.Logger = l.Conf.Build()
 	return nil
 }

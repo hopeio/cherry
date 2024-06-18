@@ -22,7 +22,7 @@ func (c *Client) Config() any {
 	return c.Conf
 }
 
-func (c *Client) Set() error {
+func (c *Client) Init() error {
 	c.Client = c.Conf.Build()
 	return nil
 }

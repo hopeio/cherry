@@ -1,4 +1,4 @@
-package client
+package grpc
 
 import (
 	grpci "github.com/hopeio/cherry/utils/net/http/grpc"
@@ -36,7 +36,7 @@ func (c *Client) Config() any {
 	return &c.Conf
 }
 
-func (c *Client) Set() error {
+func (c *Client) Init() error {
 	var err error
 	c.Conn, err = c.Conf.Build()
 	return err

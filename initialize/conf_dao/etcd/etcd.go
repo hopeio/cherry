@@ -26,7 +26,7 @@ func (e *Client) Config() any {
 	return &e.Conf
 }
 
-func (e *Client) Set() error {
+func (e *Client) Init() error {
 	var err error
 	e.Client, err = e.Conf.Build()
 	return err

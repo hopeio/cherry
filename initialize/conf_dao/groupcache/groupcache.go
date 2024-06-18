@@ -30,7 +30,7 @@ func (m *Group) Config() any {
 	return &m.Conf
 }
 
-func (m *Group) Set() error {
+func (m *Group) Init() error {
 	m.Group = m.Conf.Build()
 	return nil
 }

@@ -252,7 +252,7 @@ func (gc *globalConfig) injectDao() {
 
 			// 根据DaoField接口实现获取配置和要注入的类型
 			if daofield, ok := inter.(conf_dao.DaoField); ok {
-				err := daofield.Set()
+				err := daofield.Init()
 				if err != nil {
 					log.Fatal(err)
 				}

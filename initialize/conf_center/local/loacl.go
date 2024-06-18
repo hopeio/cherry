@@ -26,7 +26,7 @@ func (cc *Local) Config() any {
 }
 
 // 本地配置
-func (cc *Local) HandleConfig(handle func([]byte)) error {
+func (cc *Local) Handle(handle func([]byte)) error {
 	if cc.Conf.ConfigPath == "" {
 		return errors.New("empty local config path")
 	}

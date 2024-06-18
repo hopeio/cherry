@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -265,4 +266,12 @@ func DownloadImage(filepath, url string) error {
 
 func ImageOption(req *http.Request) {
 	req.Header.Set(httpi.HeaderAccept, "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8")
+}
+
+func Download(dir, url string) error {
+	d, err := NewDownloader(url)
+	if err != nil {
+		return err
+	}
+	return d.DownloadFile(dir + fs.PathSeparator + path.Base(url))
 }

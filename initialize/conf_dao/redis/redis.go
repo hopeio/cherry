@@ -43,7 +43,7 @@ func (db *Client) Config() any {
 	return &db.Conf
 }
 
-func (db *Client) Set() error {
+func (db *Client) Init() error {
 	var err error
 	db.Client, err = db.Conf.Build()
 	return err

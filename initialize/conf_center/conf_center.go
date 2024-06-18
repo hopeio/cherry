@@ -12,7 +12,7 @@ type ConfigType string
 type ConfigCenter interface {
 	Config() any
 	io.Closer
-	HandleConfig(func([]byte)) error
+	Handle(func([]byte)) error
 	Type() string
 }
 

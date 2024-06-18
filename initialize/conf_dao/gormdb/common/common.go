@@ -37,7 +37,7 @@ func (db *DB) Config() any {
 	return (*Config)(&db.Conf)
 }
 
-func (db *DB) Set() {
+func (db *DB) Init() error {
 	var err error
 	db.DB, err = (*Config)(&db.Conf).Build()
 	return err

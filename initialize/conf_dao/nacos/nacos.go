@@ -30,7 +30,7 @@ func (m *ConfigClient) Config() any {
 	return &m.Conf
 }
 
-func (m *ConfigClient) Set() error {
+func (m *ConfigClient) Init() error {
 	var err error
 	m.Client, err = m.Conf.Build()
 	return err

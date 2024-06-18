@@ -31,7 +31,7 @@ func (cc *Nacos) Config() any {
 	return &cc.Conf
 }
 
-func (cc *Nacos) HandleConfig(handle func([]byte)) error {
+func (cc *Nacos) Handle(handle func([]byte)) error {
 	if cc.Client == nil {
 		var err error
 		cc.Client, err = cc.Conf.Config.Build()

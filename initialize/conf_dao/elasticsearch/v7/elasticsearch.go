@@ -32,7 +32,7 @@ func (es *Client) Config() any {
 	return &es.Conf
 }
 
-func (es *Client) Set() error {
+func (es *Client) Init() error {
 	var err error
 	es.Client, err = es.Conf.Build()
 	return err

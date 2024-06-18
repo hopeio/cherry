@@ -50,7 +50,7 @@ func (c *Consumer) Config() any {
 	return &c.Conf
 }
 
-func (c *Consumer) Set() error {
+func (c *Consumer) Init() error {
 	var err error
 	c.Consumer, err = c.Conf.Build()
 	return err

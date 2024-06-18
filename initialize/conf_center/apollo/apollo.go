@@ -21,7 +21,7 @@ func (cc *Apollo) Config() any {
 }
 
 // TODD: 更改监听
-func (e *Apollo) HandleConfig(handle func([]byte)) error {
+func (e *Apollo) Handle(handle func([]byte)) error {
 	var err error
 	if e.Client == nil {
 		e.Client, err = e.Conf.NewClient()

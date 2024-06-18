@@ -26,7 +26,7 @@ func (cc *Etcd) Config() any {
 }
 
 // TODO: 监听更改
-func (e *Etcd) HandleConfig(handle func([]byte)) error {
+func (e *Etcd) Handle(handle func([]byte)) error {
 	var err error
 	if e.Client == nil {
 		e.Client, err = clientv3.New(e.Conf.Config)

@@ -32,7 +32,7 @@ func (p *DB) Config() any {
 	return &p.Conf
 }
 
-func (p *DB) Set() error {
+func (p *DB) Init() error {
 	var err error
 	p.DB, err = p.Conf.Build()
 	return err

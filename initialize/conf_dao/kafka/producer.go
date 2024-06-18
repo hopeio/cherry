@@ -29,7 +29,7 @@ func (p *Producer) Config() any {
 	return &p.Conf
 }
 
-func (p *Producer) Set() error {
+func (p *Producer) Init() error {
 	var err error
 	p.SyncProducer, err = p.Conf.Build()
 	return err

@@ -38,7 +38,7 @@ func (c *Cache[K, V]) Config() any {
 	return &c.Conf
 }
 
-func (c *Cache[K, V]) Set() error {
+func (c *Cache[K, V]) Init() error {
 	var err error
 	c.Cache, err = c.Conf.Build()
 	return err

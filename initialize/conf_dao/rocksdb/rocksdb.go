@@ -44,7 +44,7 @@ func (m *DB) Config() any {
 	return &m.Conf
 }
 
-func (m *DB) Set() error {
+func (m *DB) Init() error {
 	var err error
 	m.DB, err = m.Conf.Build()
 	return err

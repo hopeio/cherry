@@ -136,7 +136,7 @@ func (v *Viper) Config() any {
 	return &v.Conf
 }
 
-func (v *Viper) Set() error {
+func (v *Viper) Init() error {
 	var err error
 	v.Viper, err = v.Conf.Build()
 	return err

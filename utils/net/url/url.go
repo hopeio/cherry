@@ -156,12 +156,12 @@ func bufApp(buf *[]byte, s string, w int, c byte) {
 
 // 获取url中非参数部分
 func Base(url string) string {
-	return stringsi.CutPart(url, "?")
+	return stringsi.CutPart(stringsi.CutPart(url, "#"), "?")
 }
 
 // 获取url中的文件名
-func FileName(url string) string {
-	return stringsi.ReverseCutPart(stringsi.CutPart(url, "?"), "/")
+func PathBase(url string) string {
+	return stringsi.ReverseCutPart(Base(url), "/")
 }
 
 // RelativeURLToAbsoluteURL 相对URL转绝对URL
