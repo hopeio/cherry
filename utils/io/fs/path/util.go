@@ -1,5 +1,7 @@
 package path
 
+// 该文件仅供示例
+
 import (
 	"github.com/hopeio/cherry/utils/io/fs"
 	stringsi "github.com/hopeio/cherry/utils/strings"
@@ -13,33 +15,33 @@ type Path interface {
 	Path() string
 }
 
-// userId/year/date_userId_key_filename
-type ByIdUId struct {
+// userId/year/time_userId_key_filename
+type ByUId struct {
 	UserId    int       `json:"userId"`
 	UserIdStr string    `json:"userIdStr"`
 	Id        int       `json:"id"`
 	IdStr     string    `json:"idStr"`
+	Time      time.Time `json:"pubAt" gorm:"type:timestamptz(0);default:0001-01-01 00:00:00"`
+	TimeStr   string    `json:"pubAtStr" comment:"20230321"`
 	FileName  string    `json:"fileName"`
-	PubAt     time.Time `json:"pubAt" gorm:"type:timestamptz(0);default:0001-01-01 00:00:00"`
-	PubAtStr  string    `json:"pubAtStr" comment:"20230321"`
 }
 
-func (d *ByIdUId) PreHandle() {
+func (d *ByUId) PreHandle() {
 	if d.IdStr == "" {
 		d.IdStr = strconv.Itoa(d.Id)
 	}
-	if d.PubAtStr == "" {
-		d.PubAtStr = d.PubAt.Format(timei.LayoutCompactTime)
+	if d.TimeStr == "" {
+		d.TimeStr = d.Time.Format(timei.LayoutCompactTime)
 	}
 	if d.UserIdStr == "" {
 		d.UserIdStr = strconv.Itoa(d.UserId)
 	}
-	d.PubAtStr = stringsi.ReplaceRunesEmpty(d.PubAtStr, '-', ' ', ':')
+	d.TimeStr = stringsi.ReplaceRunesEmpty(d.TimeStr, '-', ' ', ':')
 }
 
-func (d *ByIdUId) Path() string {
+func (d *ByUId) Path() string {
 	d.PreHandle()
-	filepath := strings.Join([]string{d.UserIdStr, d.PubAtStr[:4], strings.Join([]string{d.PubAtStr, d.UserIdStr, d.IdStr, d.FileName}, "_")}, fs.PathSeparator)
+	filepath := strings.Join([]string{d.UserIdStr, d.TimeStr[:4], strings.Join([]string{d.TimeStr, d.UserIdStr, d.IdStr, d.FileName}, "_")}, fs.PathSeparator)
 	return filepath
 }
 
@@ -49,7 +51,7 @@ type ById struct {
 	IdStr string `json:"idStr"`
 	Title string
 	//PrePath   string    `json:"prePath" comment:""`
-	DateStr  string
+	TimeStr  string
 	FileName string `json:"fileName"`
 }
 
@@ -57,26 +59,26 @@ func (d *ById) Path() string {
 	if d.IdStr == "" {
 		d.IdStr = strconv.Itoa(d.Id)
 	}
-	filepath := strings.Join([]string{d.DateStr[:4], d.IdStr + "_" + d.DateStr + "_" + d.Title, d.FileName}, "/")
+	filepath := strings.Join([]string{d.TimeStr[:4], d.IdStr + "_" + d.TimeStr + "_" + d.Title, d.FileName}, "/")
 	return filepath
 }
 
-// filename
+// path
 type ByPath string
 
 func (d ByPath) Path() string {
 	return string(d)
 }
 
-// userId/date_key_title/date_userId_key_filename
-type ByIdUIdTitle struct {
-	ByIdUId
+// userId/date_key_title/time_userId_key_filename
+type ByUIdTitle struct {
+	ByUId
 	Title string
 	//PrePath   string    `json:"prePath" comment:""`
 }
 
-func (d *ByIdUIdTitle) Path() string {
+func (d *ByUIdTitle) Path() string {
 	d.PreHandle()
-	filepath := strings.Join([]string{d.UserIdStr, d.PubAtStr + "_" + d.Title + "_" + d.IdStr, strings.Join([]string{d.PubAtStr, d.UserIdStr, d.IdStr, d.FileName}, "_")}, "/")
+	filepath := strings.Join([]string{d.UserIdStr, d.TimeStr + "_" + d.Title + "_" + d.IdStr, strings.Join([]string{d.TimeStr, d.UserIdStr, d.IdStr, d.FileName}, "_")}, "/")
 	return filepath
 }
