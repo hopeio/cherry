@@ -2,126 +2,131 @@ package client
 
 import (
 	"bytes"
-	"errors"
+	"context"
 	"fmt"
 	"github.com/hopeio/cherry/utils/io/fs"
 	"github.com/hopeio/cherry/utils/log"
 	httpi "github.com/hopeio/cherry/utils/net/http"
+	urli "github.com/hopeio/cherry/utils/net/url"
 	"io"
 	"net/http"
 	"os"
-	"path"
 	"strconv"
 	"strings"
 	"time"
 )
 
-type DownloadMode uint8
+type DownloadMode uint16
 
 const (
-	DModeForceOverwrite DownloadMode = iota
-	DModeNotExistDownload
-	DModeContinueDownload
-	DModeMultipartDownload // TODO
+	DModeOverwrite DownloadMode = iota
+	DModeNotExist
+	DModeContinue          = DModeNotExist << 1
+	DModeMultipartDownload = DModeNotExist << 2 // TODO
 )
 
 // TODO: Range Status(206) PartialContent 下载
 type Downloader struct {
-	Client          *http.Client
-	Request         *http.Request
-	Mode            DownloadMode // 模式，0-强制覆盖，1-不存在下载，2-断续下载
-	ResponseHandler func(response []byte) ([]byte, error)
+	ctx                context.Context
+	client             *http.Client
+	defaultClient      bool
+	proxyUrl           string
+	timeout            time.Duration
+	authUser, authPass string
+	header             http.Header
+	mode               DownloadMode // 模式，0-强制覆盖，1-不存在下载，2-断续下载
+	responseHandler    func(response []byte) ([]byte, error)
+	retryTimes         int
+	retryInterval      time.Duration
+	requestOptions     []RequestOption
 }
 
-func NewDownloader(url string) (*Downloader, error) {
+func NewDownloader() *Downloader {
+	return &Downloader{
+		retryTimes:    3,
+		retryInterval: time.Second,
+	}
+}
+
+func (d *Downloader) HttpClient(c *http.Client) *Downloader {
+	d.client = c
+	return d
+}
+
+func (d *Downloader) Options(opts ...RequestOption) *Downloader {
+	d.requestOptions = append(d.requestOptions, opts...)
+	return d
+}
+
+func (d *Downloader) ResponseHandler(responseHandler func(response []byte) ([]byte, error)) *Downloader {
+	d.responseHandler = responseHandler
+	return d
+}
+
+func (d *Downloader) Header(header http.Header) *Downloader {
+	d.header = header
+	return nil
+}
+
+func (d *Downloader) AddHeader(header, value string) *Downloader {
+	d.header.Add(header, value)
+	return d
+}
+
+func (d *Downloader) Range(begin, end string) *Downloader {
+	d.header.Add(httpi.HeaderRange, "bytes="+begin+"-"+end)
+	return d
+}
+
+func (d *Downloader) Mode(mode DownloadMode) *Downloader {
+	d.mode = mode
+	return d
+}
+
+func (d *Downloader) GetMode() DownloadMode {
+	return d.mode
+}
+
+// 如果文件已存在，不下载覆盖
+func (d *Downloader) ExistsSkipMode() *Downloader {
+	d.mode |= DModeNotExist
+	return d
+}
+
+func (d *Downloader) GetResponse(url string) (*http.Response, error) {
+	if d.client == nil {
+		d.client = DefaultHttpClient
+		d.defaultClient = true
+	}
+
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
+	}
+	if d.header != nil {
+		req.Header = d.header
 	}
 	// 如果自己设置了接受编码，http库不会自动gzip解压，需要自己处理，不加Accept-Encoding和Range头会自动设置gzip
 	//req.Header.Set("Accept-Encoding", "gzip, deflate")
 	req.Header.Set(httpi.HeaderAcceptLanguage, "zh-CN,zh;q=0.9;charset=utf-8")
 	req.Header.Set(httpi.HeaderConnection, "keep-alive")
 	req.Header.Set(httpi.HeaderUserAgent, UserAgentChrome117)
-	return &Downloader{
-		Client:  DefaultClient,
-		Request: req,
-	}, nil
-}
 
-func (d *Downloader) WithClient(c *http.Client) *Downloader {
-	d.Client = c
-	return d
-}
-
-func (d *Downloader) SetClient(set func(*http.Client)) *Downloader {
-	set(d.Client)
-	return d
-}
-
-func (d *Downloader) WithRequest(c *http.Request) *Downloader {
-	d.Request = c
-	return d
-}
-
-func (d *Downloader) SetRequest(set RequestOption) *Downloader {
-	set(d.Request)
-	return d
-}
-
-func (d *Downloader) WithOptions(opts ...RequestOption) *Downloader {
-	for _, opt := range opts {
-		opt(d.Request)
-	}
-	return d
-}
-
-func (d *Downloader) WithResponseHandler(responseHandler func(response []byte) ([]byte, error)) *Downloader {
-	d.ResponseHandler = responseHandler
-	return d
-}
-
-func (d *Downloader) SetHeader(header Header) *Downloader {
-	return d.WithOptions(SetHeader(header))
-}
-
-func (d *Downloader) AddHeader(header, value string) *Downloader {
-	return d.WithOptions(SetHeader(Header{header, value}))
-}
-
-func (d *Downloader) WithRange(begin, end string) *Downloader {
-	d.Request.Header.Set(httpi.HeaderRange, "bytes="+begin+"-"+end)
-	return d
-}
-
-func (d *Downloader) WithMode(mode DownloadMode) *Downloader {
-	d.Mode = mode
-	return d
-}
-
-// 如果文件已存在，不下载覆盖
-func (d *Downloader) ExistsSkipMode() *Downloader {
-	d.Mode = DModeNotExistDownload
-	return d
-}
-
-func (d *Downloader) GetResponse() (*http.Response, error) {
-	if d.Request == nil {
-		return nil, errors.New("client 或 request 为 nil")
-	}
-	if d.Client == nil {
-		d.Client = DefaultClient
+	for _, opt := range d.requestOptions {
+		opt(req)
 	}
 
 	var resp *http.Response
-	var err error
-	for i := 0; i < 3; i++ {
+	if d.retryTimes == 0 {
+		d.retryTimes = 1
+	}
+	for i := range d.retryTimes {
 		if i > 0 {
-			time.Sleep(time.Second)
+			time.Sleep(d.retryInterval)
 		}
-		resp, err = d.Client.Do(d.Request)
+		resp, err = d.client.Do(req)
 		if err != nil {
-			log.Warn(err, "url:", d.Request.URL.Path)
+			log.Warn(err, "url:", req.URL.Path)
 			if strings.HasPrefix(err.Error(), "dial tcp: lookup") {
 				return nil, err
 			}
@@ -132,7 +137,7 @@ func (d *Downloader) GetResponse() (*http.Response, error) {
 			if resp.StatusCode == http.StatusNotFound {
 				return nil, ErrNotFound
 			}
-			return nil, fmt.Errorf("返回错误,状态码:%d,url:%s", resp.StatusCode, d.Request.URL.Path)
+			return nil, fmt.Errorf("返回错误,状态码:%d,url:%s", resp.StatusCode, req.URL.Path)
 		} else {
 			return resp, nil
 		}
@@ -140,26 +145,26 @@ func (d *Downloader) GetResponse() (*http.Response, error) {
 	return nil, err
 }
 
-func (d *Downloader) DownloadFile(filepath string) error {
-	if d.Mode == DModeNotExistDownload && fs.Exist(filepath) {
+func (d *Downloader) Download(filepath, url string) error {
+	if d.mode&DModeNotExist != 0 && fs.Exist(filepath) {
 		return nil
 	}
 
-	if d.Mode == DModeContinueDownload {
-		return d.ContinuationDownloadFile(filepath)
+	if d.mode&DModeContinue != 0 {
+		return d.ContinuationDownload(filepath, url)
 	}
 
-	resp, err := d.GetResponse()
+	resp, err := d.GetResponse(url)
 	if err != nil {
 		return err
 	}
 	var reader io.Reader = resp.Body
-	if d.ResponseHandler != nil {
+	if d.responseHandler != nil {
 		data, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
-		data, err = d.ResponseHandler(data)
+		data, err = d.responseHandler(data)
 		if err != nil {
 			return err
 		}
@@ -175,7 +180,7 @@ func (d *Downloader) DownloadFile(filepath string) error {
 
 const DownloadKey = fs.DownloadKey
 
-func (d *Downloader) ContinuationDownloadFile(filepath string) error {
+func (d *Downloader) ContinuationDownload(filepath, url string) error {
 	f, err := fs.OpenFile(filepath+DownloadKey, os.O_RDWR|os.O_APPEND, 0666)
 	if err != nil {
 		return err
@@ -187,9 +192,9 @@ func (d *Downloader) ContinuationDownloadFile(filepath string) error {
 
 	offset := fileinfo.Size()
 	for {
-		d.Request.Header.Set(httpi.HeaderRange, "bytes="+strconv.FormatInt(offset, 10)+"-")
+		d.header.Set(httpi.HeaderRange, "bytes="+strconv.FormatInt(offset, 10)+"-")
 
-		resp, err := d.GetResponse()
+		resp, err := d.GetResponse(url)
 		if err != nil {
 			return err
 		}
@@ -220,8 +225,8 @@ func (d *Downloader) ContinuationDownloadFile(filepath string) error {
 const defaultRange = "bytes=0-8388608" // 1024*1024*8
 
 // TODO: 利用简单任务调度实现
-func (d *Downloader) ConcurrencyDownloadFile(filepath string, concurrencyNum int) error {
-	if d.Mode == 1 && fs.Exist(filepath) {
+func (d *Downloader) ConcurrencyDownload(filepath string, concurrencyNum int) error {
+	if d.mode == 1 && fs.Exist(filepath) {
 		return nil
 	}
 	panic("TODO")
@@ -233,23 +238,18 @@ func GetFile(url string) (io.ReadCloser, error) {
 }
 
 func GetFileWithReqOption(url string, opts ...RequestOption) (io.ReadCloser, error) {
-	d, err := NewDownloader(url)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := d.WithOptions(opts...).GetResponse()
+	d := NewDownloader()
+
+	resp, err := d.Options(opts...).GetResponse(url)
 	if err != nil {
 		return nil, err
 	}
 	return resp.Body, nil
 }
 
-func DownloadFile(filepath, url string) error {
-	d, err := NewDownloader(url)
-	if err != nil {
-		return err
-	}
-	return d.DownloadFile(filepath)
+func Download(filepath, url string) error {
+	d := NewDownloader()
+	return d.Download(filepath, url)
 }
 
 func GetImage(url string) (io.ReadCloser, error) {
@@ -268,10 +268,7 @@ func ImageOption(req *http.Request) {
 	req.Header.Set(httpi.HeaderAccept, "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8")
 }
 
-func Download(dir, url string) error {
-	d, err := NewDownloader(url)
-	if err != nil {
-		return err
-	}
-	return d.DownloadFile(dir + fs.PathSeparator + path.Base(url))
+func DownloadToDir(dir, url string) error {
+	d := NewDownloader()
+	return d.Download(dir+fs.PathSeparator+urli.PathBase(url), url)
 }

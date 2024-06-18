@@ -3,13 +3,15 @@ package path
 // 该文件仅供示例
 
 import (
-	"github.com/hopeio/cherry/utils/io/fs"
 	stringsi "github.com/hopeio/cherry/utils/strings"
 	timei "github.com/hopeio/cherry/utils/time"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 )
+
+const PathSeparator = string(os.PathSeparator)
 
 type Path interface {
 	Path() string
@@ -41,7 +43,7 @@ func (d *ByUId) PreHandle() {
 
 func (d *ByUId) Path() string {
 	d.PreHandle()
-	filepath := strings.Join([]string{d.UserIdStr, d.TimeStr[:4], strings.Join([]string{d.TimeStr, d.UserIdStr, d.IdStr, d.FileName}, "_")}, fs.PathSeparator)
+	filepath := strings.Join([]string{d.UserIdStr, d.TimeStr[:4], strings.Join([]string{d.TimeStr, d.UserIdStr, d.IdStr, d.FileName}, "_")}, PathSeparator)
 	return filepath
 }
 

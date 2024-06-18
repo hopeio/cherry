@@ -19,18 +19,18 @@ func (req *SubDataRequest[RES, T]) Origin() *client.Request {
 }
 
 // Do create a HTTP request
-func (r *SubDataRequest[RES, T]) Do(req any) (T, error) {
+func (r *SubDataRequest[RES, T]) Do(param any) (T, error) {
 	var response RES
-	err := (*client.Request)(r).Do(req, response)
+	err := (*client.Request)(r).Do(param, response)
 	if err != nil {
 		return response.GetData(), err
 	}
 	return response.GetData(), err
 }
 
-func (req *SubDataRequest[RES, T]) Get(url string) (T, error) {
+func (req *SubDataRequest[RES, T]) Get(param any) (T, error) {
 	var response RES
-	err := (*client.Request)(req).Url(url).Do(req, &response)
+	err := (*client.Request)(req).Do(param, &response)
 	if err != nil {
 		return response.GetData(), err
 	}

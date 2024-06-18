@@ -2,9 +2,8 @@ package luosimao
 
 import (
 	"errors"
-	"net/http"
-
 	"github.com/hopeio/cherry/utils/net/http/client"
+	"net/http"
 )
 
 var Error = errors.New("人机识别验证失败")
@@ -41,8 +40,8 @@ func Verify(reqURL, apiKey, response string) error {
 	}
 	result := new(Result)
 
-	err := client.NewRequest(http.MethodPost, reqURL).
-		ContentType(client.ContentTypeForm).Do(&req, result)
+	err := client.NewRequest().
+		ContentType(client.ContentTypeForm).Do(http.MethodPost, reqURL, &req, result)
 	if err != nil {
 		return err
 	}

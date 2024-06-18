@@ -5,16 +5,13 @@ import (
 	"net/http"
 )
 
-type Option func(req *Request) *Request
+type Option func(req *Client) *Client
 
 type RequestOption func(req *http.Request)
 
-func SetHeader(header Header) RequestOption {
+func AddHeader(k, v string) RequestOption {
 	return func(req *http.Request) {
-		for i := 0; i < len(header)-1; i += 2 {
-			req.Header.Set(header[i], header[i+1])
-		}
-
+		req.Header.Set(k, v)
 	}
 }
 
@@ -41,3 +38,6 @@ func SetCookie(cookie string) RequestOption {
 func setRequest(p any, req *http.Request) {
 
 }
+
+type ClientOption func(client *http.Client)
+type ResponseHandler func(client *http.Response)

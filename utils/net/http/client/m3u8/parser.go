@@ -10,6 +10,8 @@ import (
 	"net/url"
 )
 
+var reqClient = client.DefaultHeaderRequest().RetryTimes(20).DisableLog()
+
 type Result struct {
 	URL  *url.URL
 	M3u8 *em3u8.M3u8
@@ -23,7 +25,7 @@ func FromURL(link string) (*Result, error) {
 	}
 	link = u.String()
 	var body client.RawBytes
-	err = client.DefaultHeaderRequest().RetryTimes(20).DisableLog().Get(link, &body)
+	err = reqClient.Get(link, nil, &body)
 	if err != nil {
 		return nil, fmt.Errorf("request m3u8 URL failed: %s", err.Error())
 	}
@@ -53,7 +55,7 @@ func FromURL(link string) (*Result, error) {
 			keyURL := key.URI
 			keyURL = url2.ResolveURL(u, keyURL)
 			var keyByte client.RawBytes
-			err = client.DefaultHeaderRequest().RetryTimes(20).DisableLog().Get(keyURL, &keyByte)
+			err = reqClient.Get(keyURL, nil, &keyByte)
 			if err != nil {
 				return nil, fmt.Errorf("request m3u8 URL failed: %s", err.Error())
 			}
@@ -77,7 +79,7 @@ func (r *Result) Download(segIndex int) ([]byte, error) {
 	tsUrl := url2.ResolveURL(r.URL, sf.URI)
 
 	var bytes client.RawBytes
-	err := client.DefaultHeaderRequest().DisableLog().Get(tsUrl, &bytes)
+	err := reqClient.Get(tsUrl, nil, &bytes)
 	if err != nil {
 		return nil, fmt.Errorf("request %s, %s", tsUrl, err.Error())
 	}

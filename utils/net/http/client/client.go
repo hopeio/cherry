@@ -22,9 +22,9 @@ import (
 // 不是并发安全的
 
 var (
-	DefaultClient   = newHttpClient()
-	DefaultLogLevel = LogLevelError
-	headerMap       = sync.Map{}
+	DefaultHttpClient = newHttpClient()
+	DefaultLogLevel   = LogLevelError
+	headerMap         = sync.Map{}
 )
 
 var timeout = time.Minute
@@ -46,7 +46,7 @@ func newHttpClient() *http.Client {
 }
 
 func SetTimeout(timeout time.Duration) {
-	DefaultClient.Timeout = timeout
+	DefaultHttpClient.Timeout = timeout
 }
 
 func DisableLog() {
@@ -59,34 +59,33 @@ func SetAccessLog(log AccessLog) {
 
 func SetProxy(url string) {
 	purl, _ := stdurl.Parse(url)
-	setProxy(DefaultClient, http.ProxyURL(purl))
+	setProxy(DefaultHttpClient, http.ProxyURL(purl))
 }
 
 func ResetProxy() {
-	DefaultClient.Transport.(*http.Transport).Proxy = http.ProxyFromEnvironment
+	DefaultHttpClient.Transport.(*http.Transport).Proxy = http.ProxyFromEnvironment
 }
 
 func SetHttpClient(client *http.Client) {
-	DefaultClient = client
+	DefaultHttpClient = client
 }
 
-// Request ...
-type Request struct {
+// Client ...
+type Client struct {
 	ctx context.Context
 	// client settings
-	client *http.Client
+	client        *http.Client
+	defaultClient bool
 	// 适用于单次配置不同的请求,如果设置是固定,建议设置0值，直接设置client
 	timeout time.Duration
-	// 内部使用标志性字段,用于判断是否重复设置代理,为空时代表从环境变量获取
-	clientProxy string
-	proxyUrl    string
-	tag         string // 默认json
+
+	proxyUrl string
+	parseTag string // 默认json
 
 	// request
-	method, url        string
 	contentType        ContentType
 	authUser, authPass string
-	header             Header
+	header             http.Header
 
 	// response
 	responseHandler func(response *http.Response) (retry bool, data []byte, err error)
@@ -98,52 +97,41 @@ type Request struct {
 	// retry
 	retryTimes    int
 	retryInterval time.Duration
-	retryHandler  func(*Request)
+	retryHandler  func(*Client)
 }
 
-func New() *Request {
-	return newRequest("", "")
+func New() *Client {
+	return newClient()
 }
 
-func NewRequest(method, url string) *Request {
-	return newRequest(strings.ToUpper(method), url)
+func newClient() *Client {
+	return &Client{ctx: context.Background(), client: DefaultHttpClient, logger: defaultLog, logLevel: DefaultLogLevel, retryInterval: 200 * time.Millisecond}
 }
 
-func newRequest(method, url string) *Request {
-	return &Request{ctx: context.Background(), client: DefaultClient, method: method, url: url, header: make([]string, 0, 2), logger: defaultLog, logLevel: DefaultLogLevel, retryInterval: 200 * time.Millisecond}
-}
-
-func (req *Request) Context(ctx context.Context) *Request {
+func (req *Client) Context(ctx context.Context) *Client {
 	req.ctx = ctx
 	return req
 }
 
-func (req *Request) Url(url string) *Request {
-	req.url = url
-	return req
-}
-
-func (req *Request) Method(method string) *Request {
-	req.method = strings.ToUpper(method)
-	return req
-}
-
-func (req *Request) ContentType(contentType ContentType) *Request {
+func (req *Client) ContentType(contentType ContentType) *Client {
 	req.contentType = contentType
 	return req
 }
 
-func (req *Request) Header(header Header) *Request {
+func (req *Client) Header(header http.Header) *Client {
 	req.header = header
 	return req
 }
 
-func (req *Request) AddHeader(k, v string) *Request {
-	req.header = append(req.header, k, v)
+func (req *Client) AddHeader(k, v string) *Client {
+	if req.header == nil {
+		req.header = make(http.Header)
+	}
+	req.header.Set(k, v)
 	return req
 }
 
-func (req *Request) Logger(logger AccessLog) *Request {
+func (req *Client) Logger(logger AccessLog) *Client {
 	if logger == nil {
 		return req
 	}
@@ -151,61 +139,72 @@ func (req *Request) Logger(logger AccessLog) *Request {
 	return req
 }
 
-func (req *Request) DisableLog() *Request {
+func (req *Client) DisableLog() *Client {
 	req.logLevel = LogLevelSilent
 	return req
 }
 
-func (req *Request) LogLevel(lvl LogLevel) *Request {
+func (req *Client) LogLevel(lvl LogLevel) *Client {
 	req.logLevel = lvl
 	return req
 }
 
-func (req *Request) Tag(tag string) *Request {
-	req.tag = tag
+func (req *Client) ParseTag(tag string) *Client {
+	req.parseTag = tag
 	return req
 }
 
 // handler 返回值:是否重试,返回数据,错误
-func (req *Request) ResponseHandler(handler func(response *http.Response) (retry bool, data []byte, err error)) *Request {
+func (req *Client) ResponseHandler(handler func(response *http.Response) (retry bool, data []byte, err error)) *Client {
 	req.responseHandler = handler
 	return req
 }
 
 // 设置过期时间,仅对单次请求有效
-func (req *Request) Timeout(timeout time.Duration) *Request {
+func (req *Client) Timeout(timeout time.Duration) *Client {
 	req.timeout = timeout
 	return req
 }
 
-func (req *Request) Client(client *http.Client) *Request {
+func (req *Client) HttpClient(client *http.Client) *Client {
 	req.client = client
 	return req
 }
 
-func (req *Request) RetryTimes(retryTimes int) *Request {
+func (req *Client) RetryTimes(retryTimes int) *Client {
 	req.retryTimes = retryTimes
 	return req
 }
 
-func (req *Request) RetryTimesWithInterval(retryTimes int, retryInterval time.Duration) *Request {
+func (req *Client) RetryTimesWithInterval(retryTimes int, retryInterval time.Duration) *Client {
 	req.retryTimes = retryTimes
 	req.retryInterval = retryInterval
 	return req
 }
 
-func (req *Request) RetryHandler(handle func(*Request)) *Request {
+func (req *Client) RetryHandler(handle func(*Client)) *Client {
 	req.retryHandler = handle
 	return req
 }
 
-func (req *Request) Proxy(url string) *Request {
+func (req *Client) Proxy(url string) *Client {
 	req.proxyUrl = url
 	return req
 }
 
-func (req *Request) BasicAuth(authUser, authPass string) {
+func (req *Client) BasicAuth(authUser, authPass string) *Client {
 	req.authUser, req.authPass = authUser, authPass
+	return req
+}
+
+func (req *Client) Request(method, url string) *Request {
+	return &Request{
+		method: method, url: url, Client: req,
+	}
+}
+
+func (req *Client) Clone() *Client {
+	return &(*req)
 }
 
 type ResponseBodyCheck interface {
@@ -214,22 +213,19 @@ type ResponseBodyCheck interface {
 
 type RawBytes = []byte
 
-func (req *Request) DoNoParam(response interface{}) error {
-	return req.Do(nil, response)
+func (req *Client) DoNoParam(method, url string, response interface{}) error {
+	return req.Do(method, url, nil, response)
 }
 
-func (req *Request) DoNoResponse(param interface{}) error {
-	return req.Do(param, nil)
+func (req *Client) DoNoResponse(method, url string, param interface{}) error {
+	return req.Do(method, url, param, nil)
 }
 
-func (req *Request) DoEmpty() error {
-	return req.Do(nil, nil)
+func (req *Client) DoEmpty(method, url string) error {
+	return req.Do(method, url, nil, nil)
 }
 
-func (req *Request) addHeader(request *http.Request) {
-	for i := 0; i+1 < len(req.header); i += 2 {
-		request.Header.Set(req.header[i], req.header[i+1])
-	}
+func (req *Client) addHeader(request *http.Request) {
 	if req.authUser != "" && req.authPass != "" {
 		request.SetBasicAuth(req.authUser, req.authPass)
 	}
@@ -238,29 +234,36 @@ func (req *Request) addHeader(request *http.Request) {
 
 // Do create a HTTP request
 // param: 请求参数 目前只支持编码为json 或 url-encoded
-func (req *Request) Do(param, response interface{}) error {
-	if req.method == "" {
+func (req *Client) Do(method, url string, param, response interface{}) error {
+	if method == "" {
 		return errors.New("没有设置请求方法")
 	}
-	method := req.method
-	if req.url == "" {
+
+	if url == "" {
 		return errors.New("没有设置url")
 	}
-	url := req.url
+
 	if req.client == nil {
-		req.client = DefaultClient
+		req.client = DefaultHttpClient
+		req.defaultClient = true
 	}
 	if req.timeout != 0 && req.timeout != req.client.Timeout {
-		defer setTimeout(req.client, req.client.Timeout)
+		if req.defaultClient {
+			req.client = newHttpClient()
+			req.defaultClient = false
+		}
 		setTimeout(req.client, req.timeout)
 	}
-	if req.proxyUrl != "" && req.proxyUrl != req.clientProxy {
-		purl, _ := stdurl.Parse(url)
-		setProxy(req.client, http.ProxyURL(purl))
-		req.clientProxy = url
-	} else if req.clientProxy != "" {
-		setProxy(req.client, http.ProxyFromEnvironment)
-		req.clientProxy = ""
+	if req.proxyUrl != "" {
+		purl, _ := req.client.Transport.(*http.Transport).Proxy(nil)
+		if req.proxyUrl != purl.String() {
+			if req.defaultClient {
+				req.client = newHttpClient()
+				req.defaultClient = false
+			}
+			purl, _ = stdurl.Parse(url)
+			setProxy(req.client, http.ProxyURL(purl))
+		}
 	}
 	var body io.Reader
 	var reqBody, respBody *Body
@@ -275,7 +278,7 @@ func (req *Request) Do(param, response interface{}) error {
 	}(reqTime)
 
 	if method == http.MethodGet {
-		url = url2.AppendQueryParam(req.url, param)
+		url = url2.AppendQueryParam(url, param)
 	} else {
 		reqBody = &Body{}
 		if param != nil {
@@ -439,44 +442,40 @@ Retry:
 	return err
 }
 
-func (req *Request) DoRaw(param interface{}) (RawBytes, error) {
+func (req *Client) DoRaw(method, url string, param interface{}) (RawBytes, error) {
 	var raw RawBytes
-	err := req.Do(param, &raw)
+	err := req.Do(method, url, param, &raw)
 	if err != nil {
 		return raw, err
 	}
 	return raw, nil
 }
 
-func (req *Request) DoStream(param interface{}) (io.ReadCloser, error) {
+func (req *Client) DoStream(method, url string, param interface{}) (io.ReadCloser, error) {
 	var resp *http.Response
-	err := req.Do(param, &resp)
+	err := req.Do(method, url, param, &resp)
 	if err != nil {
 		return nil, err
 	}
 	return resp.Body, nil
 }
 
-func (req *Request) Get(url string, response interface{}) error {
-	req.url = url
-	req.method = http.MethodGet
-	return req.Do(nil, response)
+func (req *Client) Get(url string, param, response interface{}) error {
+	return req.Do(http.MethodGet, url, param, response)
 }
 
-func (req *Request) Post(url string, param, response interface{}) error {
-	req.url = url
-	req.method = http.MethodPost
-	return (req).Do(param, response)
+func (req *Client) GetNP(url string, response interface{}) error {
+	return req.Do(http.MethodGet, url, nil, response)
 }
 
-func (req *Request) Put(url string, param, response interface{}) error {
-	req.url = url
-	req.method = http.MethodPut
-	return req.Do(param, response)
+func (req *Client) Post(url string, param, response interface{}) error {
+	return req.Do(http.MethodPost, url, param, response)
 }
 
-func (req *Request) Delete(url string, param, response interface{}) error {
-	req.url = url
-	req.method = http.MethodDelete
-	return req.Do(param, response)
+func (req *Client) Put(url string, param, response interface{}) error {
+	return req.Do(http.MethodPut, url, param, response)
+}
+
+func (req *Client) Delete(url string, param, response interface{}) error {
+	return req.Do(http.MethodDelete, url, param, response)
 }

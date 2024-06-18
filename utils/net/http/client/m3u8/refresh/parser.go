@@ -13,6 +13,10 @@ import (
 	"net/url"
 )
 
+var reqClient = client.DefaultHeaderRequest().RetryTimes(20).DisableLog()
+var reqClient2 = reqClient.Clone()
+var reqClient3 = reqClient.Clone()
+
 type Result struct {
 	URL  *url.URL
 	M3u8 *em3u8.M3u8
@@ -26,7 +30,7 @@ func FromURL(link string) (*Result, error) {
 	}
 	link = u.String()
 	var body client.RawBytes
-	err = client.DefaultHeaderRequest().RetryTimes(20).DisableLog().Get(link, &body)
+	err = reqClient.Get(link, nil, &body)
 	if err != nil {
 		return nil, fmt.Errorf("request m3u8 URL failed: %s", err.Error())
 	}
@@ -56,7 +60,7 @@ func FromURL(link string) (*Result, error) {
 			keyURL := key.URI
 			keyURL = url2.ResolveURL(u, keyURL)
 			var keyByte client.RawBytes
-			err = client.DefaultHeaderRequest().RetryTimes(20).DisableLog().ResponseHandler(func(response *http.Response) (retry bool, data []byte, err error) {
+			err = reqClient2.ResponseHandler(func(response *http.Response) (retry bool, data []byte, err error) {
 				data, err = io.ReadAll(response.Body)
 				if err != nil {
 					return false, nil, err
@@ -68,7 +72,7 @@ func FromURL(link string) (*Result, error) {
 					return false, nil, fmt.Errorf("no key")
 				}
 				return false, data, err
-			}).Get(keyURL, &keyByte)
+			}).Get(keyURL, nil, &keyByte)
 			if err != nil {
 				return nil, fmt.Errorf("request m3u8 URL failed: %s", err.Error())
 			}
@@ -91,7 +95,7 @@ func (r *Result) Download(segIndex int) ([]byte, error) {
 	tsUrl := url2.ResolveURL(r.URL, sf.URI)
 
 	var bytes client.RawBytes
-	err := client.DefaultHeaderRequest().DisableLog().ResponseHandler(func(response *http.Response) (retry bool, data []byte, err error) {
+	err := reqClient3.ResponseHandler(func(response *http.Response) (retry bool, data []byte, err error) {
 		data, err = io.ReadAll(response.Body)
 		if err != nil {
 			return false, nil, err
@@ -103,7 +107,7 @@ func (r *Result) Download(segIndex int) ([]byte, error) {
 			return true, nil, nil
 		}
 		return false, data, err
-	}).Get(tsUrl, &bytes)
+	}).Get(tsUrl, nil, &bytes)
 	if err != nil {
 		return nil, fmt.Errorf("request %s, %s", tsUrl, err.Error())
 	}

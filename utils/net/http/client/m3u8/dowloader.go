@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/hopeio/cherry/utils/console"
 	fs2 "github.com/hopeio/cherry/utils/io/fs"
 	filepath2 "github.com/hopeio/cherry/utils/io/fs/path"
 	"os"
@@ -200,7 +201,7 @@ func (d *Downloader) Merge() error {
 			continue
 		}
 		mergedCount++
-		terminal.DrawProgressBar("merge",
+		console.DrawProgressBar("merge",
 			float32(mergedCount)/float32(d.segLen), progressWidth)
 	}
 	_ = writer.Flush()

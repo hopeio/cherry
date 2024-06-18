@@ -19,7 +19,7 @@ func SetProxyEnv(url string) {
 
 func setTimeout(client *http.Client, timeout time.Duration) {
 	if client == nil {
-		client = DefaultClient
+		client = DefaultHttpClient
 	}
 	if timeout < time.Second {
 		timeout = timeout * time.Second
