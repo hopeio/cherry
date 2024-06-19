@@ -38,7 +38,8 @@ type Downloader struct {
 	responseHandler    func(response []byte) ([]byte, error)
 	retryTimes         int
 	retryInterval      time.Duration
-	requestOptions     []RequestOption
+	httpRequestOptions []HttpRequestOption
+	httpClientOptions  []HttpClientOption
 }
 
 func NewDownloader() *Downloader {
@@ -53,8 +54,13 @@ func (d *Downloader) HttpClient(c *http.Client) *Downloader {
 	return d
 }
 
-func (d *Downloader) Options(opts ...RequestOption) *Downloader {
-	d.requestOptions = append(d.requestOptions, opts...)
+func (d *Downloader) SetHttpClient(opts ...HttpClientOption) *Downloader {
+	d.httpClientOptions = append(d.httpClientOptions, opts...)
+	return d
+}
+
+func (d *Downloader) Options(opts ...HttpRequestOption) *Downloader {
+	d.httpRequestOptions = append(d.httpRequestOptions, opts...)
 	return d
 }
 
@@ -93,10 +99,22 @@ func (d *Downloader) ExistsSkipMode() *Downloader {
 	return d
 }
 
+func (d *Downloader) Clone() *Downloader {
+	return &(*d)
+}
+
 func (d *Downloader) GetResponse(url string) (*http.Response, error) {
 	if d.client == nil {
-		d.client = DefaultHttpClient
-		d.defaultClient = true
+		if len(d.httpClientOptions) > 0 {
+			d.client = newHttpClient()
+		} else {
+			d.client = DefaultHttpClient
+			d.defaultClient = true
+		}
+	}
+
+	for _, opt := range d.httpClientOptions {
+		opt(d.client)
 	}
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
@@ -112,7 +130,7 @@ func (d *Downloader) GetResponse(url string) (*http.Response, error) {
 	req.Header.Set(httpi.HeaderConnection, "keep-alive")
 	req.Header.Set(httpi.HeaderUserAgent, UserAgentChrome117)
 
-	for _, opt := range d.requestOptions {
+	for _, opt := range d.httpRequestOptions {
 		opt(req)
 	}
 
@@ -237,7 +255,7 @@ func GetFile(url string) (io.ReadCloser, error) {
 	return GetFileWithReqOption(url, nil)
 }
 
-func GetFileWithReqOption(url string, opts ...RequestOption) (io.ReadCloser, error) {
+func GetFileWithReqOption(url string, opts ...HttpRequestOption) (io.ReadCloser, error) {
 	d := NewDownloader()
 
 	resp, err := d.Options(opts...).GetResponse(url)

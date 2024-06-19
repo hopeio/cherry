@@ -7,27 +7,27 @@ import (
 
 type Option func(req *Client) *Client
 
-type RequestOption func(req *http.Request)
+type HttpRequestOption func(req *http.Request)
 
-func AddHeader(k, v string) RequestOption {
+func AddHeader(k, v string) HttpRequestOption {
 	return func(req *http.Request) {
 		req.Header.Set(k, v)
 	}
 }
 
-func SetRefer(refer string) RequestOption {
+func SetRefer(refer string) HttpRequestOption {
 	return func(req *http.Request) {
 		req.Header.Set(httpi.HeaderReferer, refer)
 	}
 }
 
-func SetAccept(refer string) RequestOption {
+func SetAccept(refer string) HttpRequestOption {
 	return func(req *http.Request) {
 		req.Header.Set(httpi.HeaderAccept, refer)
 	}
 }
 
-func SetCookie(cookie string) RequestOption {
+func SetCookie(cookie string) HttpRequestOption {
 	return func(req *http.Request) {
 		req.Header.Set(httpi.HeaderCookie, cookie)
 	}
@@ -39,5 +39,5 @@ func setRequest(p any, req *http.Request) {
 
 }
 
-type ClientOption func(client *http.Client)
+type HttpClientOption func(client *http.Client)
 type ResponseHandler func(client *http.Response)

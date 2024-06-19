@@ -98,6 +98,9 @@ type Client struct {
 	retryTimes    int
 	retryInterval time.Duration
 	retryHandler  func(*Client)
+
+	httpRequestOptions []HttpRequestOption
+	httpClientOptions  []HttpClientOption
 }
 
 func New() *Client {
@@ -248,8 +251,15 @@ func (req *Client) Do(method, url string, param, response any) error {
 	}
 
 	if req.client == nil {
-		req.client = DefaultHttpClient
-		req.defaultClient = true
+		if len(req.httpClientOptions) > 0 {
+			req.client = newHttpClient()
+		} else {
+			req.client = DefaultHttpClient
+			req.defaultClient = true
+		}
+	}
+	for _, opt := range req.httpClientOptions {
+		opt(req.client)
 	}
 	if req.timeout != 0 && req.timeout != req.client.Timeout {
 		if req.defaultClient {
