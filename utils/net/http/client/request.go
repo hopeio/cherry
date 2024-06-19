@@ -43,9 +43,9 @@ func (req *Request) DoRaw(param interface{}) (RawBytes, error) {
 	return raw, nil
 }
 
-func (req *Request) DoStream(method, url string, param interface{}) (io.ReadCloser, error) {
+func (req *Request) DoStream(param interface{}) (io.ReadCloser, error) {
 	var resp *http.Response
-	err := req.Client.Do(method, url, param, &resp)
+	err := req.Client.Do(req.Method, req.Url, param, &resp)
 	if err != nil {
 		return nil, err
 	}
