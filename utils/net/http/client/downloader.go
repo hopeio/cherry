@@ -126,7 +126,7 @@ func (d *Downloader) GetResponse(url string) (*http.Response, error) {
 		}
 		resp, err = d.client.Do(req)
 		if err != nil {
-			log.Warn(err, "url:", req.URL.Path)
+			log.Warn(err, "Url:", req.URL.Path)
 			if strings.HasPrefix(err.Error(), "dial tcp: lookup") {
 				return nil, err
 			}
@@ -137,7 +137,7 @@ func (d *Downloader) GetResponse(url string) (*http.Response, error) {
 			if resp.StatusCode == http.StatusNotFound {
 				return nil, ErrNotFound
 			}
-			return nil, fmt.Errorf("返回错误,状态码:%d,url:%s", resp.StatusCode, req.URL.Path)
+			return nil, fmt.Errorf("返回错误,状态码:%d,Url:%s", resp.StatusCode, req.URL.Path)
 		} else {
 			return resp, nil
 		}

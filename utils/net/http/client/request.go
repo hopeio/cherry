@@ -6,38 +6,37 @@ import (
 )
 
 type Request struct {
-	method, url     string
-	param, response any
+	Method, Url string
 	*Client
 }
 
 func NewRequest(method, url string) *Request {
 	return &Request{
-		method: method,
-		url:    url,
+		Method: method,
+		Url:    url,
 		Client: New(),
 	}
 }
 
 func (req *Request) Do(param, response interface{}) error {
-	return req.Client.Do(req.method, req.url, param, response)
+	return req.Client.Do(req.Method, req.Url, param, response)
 }
 
 func (req *Request) DoEmpty() error {
-	return req.Client.Do(req.method, req.url, nil, nil)
+	return req.Client.Do(req.Method, req.Url, nil, nil)
 }
 
 func (req *Request) DoNoParam(response interface{}) error {
-	return req.Client.Do(req.method, req.url, nil, response)
+	return req.Client.Do(req.Method, req.Url, nil, response)
 }
 
 func (req *Request) DoNoResponse(param interface{}) error {
-	return req.Client.Do(req.method, req.url, param, nil)
+	return req.Client.Do(req.Method, req.Url, param, nil)
 }
 
 func (req *Request) DoRaw(param interface{}) (RawBytes, error) {
 	var raw RawBytes
-	err := req.Client.Do(req.method, req.url, param, &raw)
+	err := req.Client.Do(req.Method, req.Url, param, &raw)
 	if err != nil {
 		return raw, err
 	}
@@ -54,17 +53,17 @@ func (req *Request) DoStream(method, url string, param interface{}) (io.ReadClos
 }
 
 func (req *Request) Get(param, response interface{}) error {
-	return req.Client.Do(http.MethodGet, req.url, param, response)
+	return req.Client.Do(http.MethodGet, req.Url, param, response)
 }
 
 func (req *Request) Post(param, response interface{}) error {
-	return req.Client.Do(http.MethodPost, req.url, param, response)
+	return req.Client.Do(http.MethodPost, req.Url, param, response)
 }
 
 func (req *Request) Put(param, response interface{}) error {
-	return req.Client.Do(http.MethodPut, req.url, param, response)
+	return req.Client.Do(http.MethodPut, req.Url, param, response)
 }
 
 func (req *Request) Delete(param, response interface{}) error {
-	return req.Client.Do(http.MethodDelete, req.url, param, response)
+	return req.Client.Do(http.MethodDelete, req.Url, param, response)
 }

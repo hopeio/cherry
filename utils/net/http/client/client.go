@@ -199,7 +199,7 @@ func (req *Client) BasicAuth(authUser, authPass string) *Client {
 
 func (req *Client) Request(method, url string) *Request {
 	return &Request{
-		method: method, url: url, Client: req,
+		Method: method, Url: url, Client: req,
 	}
 }
 
@@ -226,6 +226,10 @@ func (req *Client) DoEmpty(method, url string) error {
 }
 
 func (req *Client) addHeader(request *http.Request) {
+	if req.header != nil {
+		request.Header = req.header
+	}
+
 	if req.authUser != "" && req.authPass != "" {
 		request.SetBasicAuth(req.authUser, req.authPass)
 	}
@@ -233,7 +237,7 @@ func (req *Client) addHeader(request *http.Request) {
 }
 
 // Do create a HTTP request
-// param: 请求参数 目前只支持编码为json 或 url-encoded
+// param: 请求参数 目前只支持编码为json 或 Url-encoded
 func (req *Client) Do(method, url string, param, response interface{}) error {
 	if method == "" {
 		return errors.New("没有设置请求方法")

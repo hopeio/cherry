@@ -1,33 +1,44 @@
 package client
 
-import "github.com/hopeio/cherry/utils/net/http/client"
-
-func NewFromClient[RES any](req *client.Client) *Client[RES] {
-	return (*Client[RES])(req)
-}
+import (
+	"github.com/hopeio/cherry/utils/net/http/client"
+	"net/http"
+)
 
 func NewGet[RES any](url string) *Request[RES] {
 	return (*Request[RES])(client.NewGet(url))
 }
 
 func Get[RES any](url string, param any) (*RES, error) {
-	return (*Request[RES])(client.NewGet(url)).Do(param)
+	return NewRequest[RES](http.MethodGet, url).Do(param)
 }
 
-func GetSubData[RES ResponseInterface[T], T any](url string) (T, error) {
-	return NewSubDataRequestParams[RES, T](client.NewGet(url)).Get(url)
+func Post[RES any](url string, param any) (*RES, error) {
+	return NewRequest[RES](http.MethodPost, url).Do(param)
 }
 
-func GetWithOption[RES ResponseInterface[T], T any](url string, options ...client.Option) (T, error) {
+func Put[RES any](url string, param any) (*RES, error) {
+	return NewRequest[RES](http.MethodPut, url).Do(param)
+}
+
+func Delete[RES any](url string, param any) (*RES, error) {
+	return NewRequest[RES](http.MethodDelete, url).Do(param)
+}
+
+func GetSubData[RES ResponseInterface[T], T any](url string, param any) (T, error) {
+	return NewSubDataRequest[RES, T](client.NewGet(url)).SubData(param)
+}
+
+func GetWithOption[RES ResponseInterface[T], T any](url string, param any, options ...client.Option) (T, error) {
 	var response RES
 	req := new(client.Client)
 	for _, opt := range options {
 		opt(req)
 	}
-	err := req.Get(url, nil, &response)
+	err := req.Get(url, param, &response)
 	if err != nil {
-		return response.GetData(), err
+		return response.SubData(), err
 	}
-	return response.GetData(), nil
+	return response.SubData(), nil
 
 }

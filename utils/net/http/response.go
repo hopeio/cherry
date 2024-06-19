@@ -91,29 +91,29 @@ func Stream(w http.ResponseWriter) {
 var ResponseSysErr = []byte(`{"code":10000,"message":"系统错误"}`)
 var ResponseOk = []byte(`{"code":0,"message":"OK"}`)
 
-type ReceivesData struct {
+type ReceiveData struct {
 	Code    errcode.ErrCode `json:"code"`
 	Message string          `json:"message,omitempty"`
 	//验证码
 	Details json.RawMessage `json:"details,omitempty"`
 }
 
-func NewReceivesData(code errcode.ErrCode, msg string, data any) *ReceivesData {
+func NewReceivesData(code errcode.ErrCode, msg string, data any) *ReceiveData {
 	jsonBytes, _ := json.Marshal(data)
-	return &ReceivesData{
+	return &ReceiveData{
 		Code:    code,
 		Message: msg,
 		Details: jsonBytes,
 	}
 }
 
-func (r *ReceivesData) Response(w http.ResponseWriter, httpcode int) {
+func (r *ReceiveData) Response(w http.ResponseWriter, httpcode int) {
 	w.WriteHeader(httpcode)
 	w.Header().Set(HeaderContentType, "application/json; charset=utf-8")
 	jsonBytes, _ := json.Marshal(r)
 	w.Write(jsonBytes)
 }
 
-func (r *ReceivesData) UnmarshalData(v any) error {
+func (r *ReceiveData) UnmarshalData(v any) error {
 	return json.Unmarshal(r.Details, v)
 }

@@ -4,13 +4,13 @@ import "github.com/hopeio/cherry/utils/net/http/client"
 
 type ResponseInterface[T any] interface {
 	client.ResponseBodyCheck
-	GetData() T
+	SubData() T
 }
 
 // 一个语法糖，一般不用
 type SubDataRequest[RES ResponseInterface[T], T any] Request[RES]
 
-func NewSubDataRequestParams[RES ResponseInterface[T], T any](req *client.Request) *SubDataRequest[RES, T] {
+func NewSubDataRequest[RES ResponseInterface[T], T any](req *client.Request) *SubDataRequest[RES, T] {
 	return (*SubDataRequest[RES, T])(req)
 }
 
@@ -23,17 +23,17 @@ func (r *SubDataRequest[RES, T]) Do(param any) (T, error) {
 	var response RES
 	err := (*client.Request)(r).Do(param, response)
 	if err != nil {
-		return response.GetData(), err
+		return response.SubData(), err
 	}
-	return response.GetData(), err
+	return response.SubData(), err
 }
 
-func (req *SubDataRequest[RES, T]) Get(param any) (T, error) {
+func (req *SubDataRequest[RES, T]) SubData(param any) (T, error) {
 	var response RES
 	err := (*client.Request)(req).Do(param, &response)
 	if err != nil {
-		return response.GetData(), err
+		return response.SubData(), err
 	}
 
-	return response.GetData(), nil
+	return response.SubData(), nil
 }
