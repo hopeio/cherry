@@ -213,11 +213,11 @@ type ResponseBodyCheck interface {
 
 type RawBytes = []byte
 
-func (req *Client) DoNoParam(method, url string, response interface{}) error {
+func (req *Client) DoNoParam(method, url string, response any) error {
 	return req.Do(method, url, nil, response)
 }
 
-func (req *Client) DoNoResponse(method, url string, param interface{}) error {
+func (req *Client) DoNoResponse(method, url string, param any) error {
 	return req.Do(method, url, param, nil)
 }
 
@@ -238,7 +238,7 @@ func (req *Client) addHeader(request *http.Request) {
 
 // Do create a HTTP request
 // param: 请求参数 目前只支持编码为json 或 Url-encoded
-func (req *Client) Do(method, url string, param, response interface{}) error {
+func (req *Client) Do(method, url string, param, response any) error {
 	if method == "" {
 		return errors.New("没有设置请求方法")
 	}
@@ -446,7 +446,7 @@ Retry:
 	return err
 }
 
-func (req *Client) DoRaw(method, url string, param interface{}) (RawBytes, error) {
+func (req *Client) DoRaw(method, url string, param any) (RawBytes, error) {
 	var raw RawBytes
 	err := req.Do(method, url, param, &raw)
 	if err != nil {
@@ -455,7 +455,7 @@ func (req *Client) DoRaw(method, url string, param interface{}) (RawBytes, error
 	return raw, nil
 }
 
-func (req *Client) DoStream(method, url string, param interface{}) (io.ReadCloser, error) {
+func (req *Client) DoStream(method, url string, param any) (io.ReadCloser, error) {
 	var resp *http.Response
 	err := req.Do(method, url, param, &resp)
 	if err != nil {
@@ -464,22 +464,30 @@ func (req *Client) DoStream(method, url string, param interface{}) (io.ReadClose
 	return resp.Body, nil
 }
 
-func (req *Client) Get(url string, param, response interface{}) error {
+func (req *Client) Get(url string, param, response any) error {
 	return req.Do(http.MethodGet, url, param, response)
 }
 
-func (req *Client) GetNP(url string, response interface{}) error {
+func (req *Client) GetNP(url string, response any) error {
 	return req.Do(http.MethodGet, url, nil, response)
 }
 
-func (req *Client) Post(url string, param, response interface{}) error {
+func (req *Client) GetStream(url string, param any) (io.ReadCloser, error) {
+	return req.DoStream(http.MethodGet, url, param)
+}
+
+func (req *Client) GetStreamNP(url string) (io.ReadCloser, error) {
+	return req.DoStream(http.MethodGet, url, nil)
+}
+
+func (req *Client) Post(url string, param, response any) error {
 	return req.Do(http.MethodPost, url, param, response)
 }
 
-func (req *Client) Put(url string, param, response interface{}) error {
+func (req *Client) Put(url string, param, response any) error {
 	return req.Do(http.MethodPut, url, param, response)
 }
 
-func (req *Client) Delete(url string, param, response interface{}) error {
+func (req *Client) Delete(url string, param, response any) error {
 	return req.Do(http.MethodDelete, url, param, response)
 }
