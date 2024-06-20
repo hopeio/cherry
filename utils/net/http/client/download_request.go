@@ -126,6 +126,9 @@ func (c *DownloadReq) GetResponse() (*http.Response, error) {
 			if resp.StatusCode == http.StatusNotFound {
 				return nil, ErrNotFound
 			}
+			if resp.StatusCode == http.StatusRequestedRangeNotSatisfiable {
+				return resp, nil
+			}
 			return nil, fmt.Errorf("返回错误,状态码:%d,Url:%s", resp.StatusCode, req.URL.Path)
 		} else {
 			return resp, nil
@@ -180,7 +183,7 @@ func (c *DownloadReq) Download(filepath string) error {
 }
 
 func (c *DownloadReq) ContinuationDownload(filepath string) error {
-	f, err := fs.OpenFile(filepath+DownloadKey, os.O_RDWR|os.O_APPEND, 0666)
+	f, err := fs.OpenFile(filepath+DownloadKey, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		return err
 	}
@@ -190,33 +193,30 @@ func (c *DownloadReq) ContinuationDownload(filepath string) error {
 	}
 
 	offset := fileinfo.Size()
-	for {
-		c.headers = append(c.headers, httpi.HeaderRange, "bytes="+strconv.FormatInt(offset, 10)+"-")
 
-		reader, err := c.GetReader()
-		if err != nil {
-			return err
-		}
+	c.headers = append(c.headers, httpi.HeaderRange, "bytes="+strconv.FormatInt(offset, 10)+"-")
 
-		written, err := io.Copy(f, reader)
-
-		err1 := reader.Close()
-		if err1 != nil {
-			log.Warn("close reader error:", err1)
-		}
-
-		if err != nil {
-			log.Warn("copy error:", err, ",will go on")
-			offset += written
-		} else {
-			err = f.Close()
-			if err != nil {
-				return err
-			}
-			return os.Rename(filepath+DownloadKey, filepath)
-		}
-
+	reader, err := c.GetReader()
+	if err != nil {
+		return err
 	}
+
+	written, err := io.Copy(f, reader)
+
+	err1 := reader.Close()
+	if err1 != nil {
+		log.Warn("close reader error:", err1)
+	}
+
+	if err != nil && err != io.EOF {
+		return err
+	}
+	offset += written
+	err = f.Close()
+	if err != nil {
+		return err
+	}
+	return os.Rename(filepath+DownloadKey, filepath)
 
 }
 
