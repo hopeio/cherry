@@ -1,7 +1,7 @@
-package types
+package interfaces
 
 import (
-	"github.com/hopeio/cherry/utils/constraints"
+	"github.com/hopeio/cherry/utils/types/constraints"
 	"time"
 )
 
@@ -19,10 +19,6 @@ type SetWithExpire[K constraints.Key, V any] interface {
 
 type Delete[K constraints.Key, V any] interface {
 	Delete(key K)
-}
-
-type Init interface {
-	Init()
 }
 
 type StoreWithExpire[K constraints.Key, V any] interface {

@@ -7,20 +7,6 @@ import (
 	"unicode/utf8"
 )
 
-type Foo struct {
-	C chan<- int `json:"c"`
-}
-
-func TestMarshal(t *testing.T) {
-	foo := Foo{C: make(chan<- int, 1)}
-	foo.C <- 1
-	data, err := json.Marshal(&foo)
-	if err != nil {
-		log.Println(err)
-	}
-	log.Println(string(data))
-}
-
 type Bar1 struct {
 	Field1 int
 	Field2 string `mock:"example:'1',type:'\\w'"`

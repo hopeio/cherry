@@ -26,3 +26,7 @@ type ID = Key
 type Basic interface {
 	Number | ~bool
 }
+
+type Ordered interface {
+	constraints.Ordered | time.Time
+}

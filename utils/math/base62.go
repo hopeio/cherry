@@ -1,7 +1,7 @@
 package math
 
 import (
-	"github.com/hopeio/cherry/utils/constraints"
+	"github.com/hopeio/cherry/utils/types/constraints"
 	"math"
 	"strconv"
 	"unsafe"

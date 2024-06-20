@@ -4,20 +4,10 @@ package clause
 
 import (
 	dbi "github.com/hopeio/cherry/utils/dao/database"
-	"github.com/hopeio/cherry/utils/types/request"
+	"github.com/hopeio/cherry/utils/types/param"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
-
-func Page(pageNo, pageSize int) clause.Limit {
-	if pageSize == 0 {
-		pageSize = 100
-	}
-	if pageNo > 1 {
-		return clause.Limit{Offset: (pageNo - 1) * pageSize, Limit: &pageSize}
-	}
-	return clause.Limit{Limit: &pageSize}
-}
 
 func NewWhereClause(field string, op dbi.Operation, args ...interface{}) clause.Expression {
 	switch op {
@@ -92,9 +82,9 @@ func DateBetween(column, dateStart, dateEnd string) clause.Expression {
 	return NewWhereClause(column, dbi.Between, dateStart, dateEnd)
 }
 
-func Sort(column string, typ request.SortType) clause.Expression {
+func SortExpr(column string, typ param.SortType) clause.Expression {
 	var desc bool
-	if typ == request.SortTypeDesc {
+	if typ == param.SortTypeDesc {
 		desc = true
 	}
 	return clause.OrderBy{Columns: []clause.OrderByColumn{{Column: clause.Column{Name: column, Raw: true}, Desc: desc}}}

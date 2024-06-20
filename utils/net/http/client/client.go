@@ -18,7 +18,7 @@ var (
 	headerMap         = sync.Map{}
 )
 
-var timeout = time.Minute
+const timeout = time.Minute
 
 func newHttpClient() *http.Client {
 	return &http.Client{

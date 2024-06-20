@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/hopeio/cherry/utils/mock"
+	"github.com/hopeio/cherry/utils/reflect/mock"
 )
 
 func Autowired(v interface{}) {

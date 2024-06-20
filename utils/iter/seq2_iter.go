@@ -1,8 +1,8 @@
 package iter
 
 import (
-	"github.com/hopeio/cherry/utils/constraints"
 	"github.com/hopeio/cherry/utils/types"
+	"github.com/hopeio/cherry/utils/types/constraints"
 	"iter"
 	"sort"
 )

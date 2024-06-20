@@ -1,4 +1,4 @@
-package request
+package param
 
 import (
 	timei "github.com/hopeio/cherry/utils/time"

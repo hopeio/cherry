@@ -2,13 +2,14 @@ package clause
 
 import (
 	dbi "github.com/hopeio/cherry/utils/dao/database"
-	"github.com/hopeio/cherry/utils/types/request"
+	"github.com/hopeio/cherry/utils/types/constraints"
+	"github.com/hopeio/cherry/utils/types/param"
 	"gorm.io/gorm/clause"
 )
 
-type RangeReq[T request.Ordered] request.RangeReq[T]
+type Range[T constraints.Ordered] param.Range[T]
 
-func (req *RangeReq[T]) Clause() clause.Expression {
+func (req *Range[T]) Clause() clause.Expression {
 	if req == nil || req.RangeField == "" {
 		return nil
 	}

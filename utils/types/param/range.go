@@ -1,7 +1,7 @@
-package request
+package param
 
 import (
-	"github.com/hopeio/cherry/utils/constraints"
+	"github.com/hopeio/cherry/utils/types/constraints"
 	"time"
 )
 
@@ -13,32 +13,32 @@ const (
 	SortTypeDesc
 )
 
-type PageSortReq struct {
-	PageReq
-	*SortReq
+type PageSort struct {
+	Page
+	*Sort
 }
 
-type PageReq struct {
+type Page struct {
 	PageNo   int `json:"pageNo"`
 	PageSize int `json:"pageSize"`
 }
 
-type SortReq struct {
+type Sort struct {
 	SortField string   `json:"sortField,omitempty"`
 	SortType  SortType `json:"sortType,omitempty"`
 }
 
-func (receiver *SortReq) Column() string {
+func (receiver *Sort) Column() string {
 	return receiver.SortField
 }
 
-func (receiver *SortReq) Type() SortType {
+func (receiver *Sort) Type() SortType {
 	return receiver.SortType
 }
 
-type DateRangeReq[T ~string | time.Time] RangeReq[T]
+type DateRange[T ~string | time.Time] Range[T]
 
-type RangeReq[T constraints.Range] struct {
+type Range[T constraints.Range] struct {
 	RangeField string `json:"rangeField,omitempty"`
 	RangeBegin T      `json:"rangeBegin,omitempty"`
 	RangeEnd   T      `json:"rangeEnd,omitempty"`

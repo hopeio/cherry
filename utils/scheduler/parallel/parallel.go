@@ -2,11 +2,11 @@ package parallel
 
 import (
 	"github.com/hopeio/cherry/utils/errors/multierr"
-	"github.com/hopeio/cherry/utils/types"
+	"github.com/hopeio/cherry/utils/types/funcs"
 	"sync"
 )
 
-func Run(tasks []types.FuncWithErr) error {
+func Run(tasks []funcs.FuncWithErr) error {
 	ch := make(chan error)
 	for _, task := range tasks {
 		task := task // 兼容!go1.22
@@ -27,13 +27,13 @@ func Run(tasks []types.FuncWithErr) error {
 }
 
 type Parallel struct {
-	taskCh  chan types.FuncWithErr
+	taskCh  chan funcs.FuncWithErr
 	workNum int
 	wg      sync.WaitGroup
 }
 
 func New(workNum int) *Parallel {
-	return &Parallel{taskCh: make(chan types.FuncWithErr, workNum), workNum: workNum, wg: sync.WaitGroup{}}
+	return &Parallel{taskCh: make(chan funcs.FuncWithErr, workNum), workNum: workNum, wg: sync.WaitGroup{}}
 }
 
 func (p *Parallel) Run() {
@@ -50,7 +50,7 @@ func (p *Parallel) Run() {
 	}
 }
 
-func (p *Parallel) AddTask(task types.FuncWithErr) {
+func (p *Parallel) AddTask(task funcs.FuncWithErr) {
 	p.wg.Add(1)
 	p.taskCh <- task
 }

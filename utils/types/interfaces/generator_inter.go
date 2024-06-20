@@ -1,7 +1,7 @@
-package types
+package interfaces
 
 import (
-	"github.com/hopeio/cherry/utils/constraints"
+	"github.com/hopeio/cherry/utils/types/constraints"
 	"time"
 )
 

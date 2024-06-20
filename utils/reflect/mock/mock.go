@@ -1,14 +1,9 @@
 package mock
 
 import (
-	"math/rand"
+	"math/rand/v2"
 	"reflect"
-	"time"
 )
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
 
 func Mock(v interface{}) {
 	value := reflect.ValueOf(v)
@@ -26,10 +21,10 @@ func mock(value reflect.Value, typMap map[reflect.Type]int) {
 	typ := value.Type()
 	switch value.Kind() {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		r := uint64(rand.Int63n(10000))
+		r := rand.Uint64N(256)
 		value.SetUint(r)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		r := rand.Int63n(10000)
+		r := rand.Int64N(128)
 		value.SetInt(r)
 	case reflect.Float32, reflect.Float64:
 		r := rand.ExpFloat64()
@@ -37,17 +32,15 @@ func mock(value reflect.Value, typMap map[reflect.Type]int) {
 	case reflect.String:
 		value.SetString(RandString())
 	case reflect.Ptr:
+		if value.IsNil() && value.CanSet() {
+			value.Set(reflect.New(typ.Elem()))
+		}
+		mock(value.Elem(), typMap)
+	case reflect.Struct:
 		if count := typMap[typ]; count == times {
 			return
 		}
 		typMap[typ] = typMap[typ] + 1
-		if value.IsNil() && value.CanSet() {
-			value.Set(reflect.New(typ.Elem()))
-		} else {
-			return
-		}
-		mock(value.Elem(), typMap)
-	case reflect.Struct:
 		for i := 0; i < value.NumField(); i++ {
 			field := value.Field(i)
 			mock(field, typMap)
@@ -82,6 +75,6 @@ func RandString() string {
 }
 
 func randRune() rune {
-	r := rand.Intn(20901)
+	r := rand.N(500)
 	return rune(r + 19968)
 }

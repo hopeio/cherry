@@ -3,8 +3,8 @@ package slices
 import (
 	"fmt"
 	"github.com/hopeio/cherry/utils/cmp"
-	"github.com/hopeio/cherry/utils/constraints"
 	reflecti "github.com/hopeio/cherry/utils/reflect"
+	"github.com/hopeio/cherry/utils/types/constraints"
 	"reflect"
 	"strings"
 	"unsafe"

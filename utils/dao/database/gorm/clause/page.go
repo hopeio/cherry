@@ -3,25 +3,26 @@
 package clause
 
 import (
-	"github.com/hopeio/cherry/utils/types/request"
+	"github.com/hopeio/cherry/utils/types/constraints"
+	"github.com/hopeio/cherry/utils/types/param"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
-type PageSortReq request.PageSortReq
+type PageSort param.PageSort
 
-func (req *PageSortReq) Clause() []clause.Expression {
+func (req *PageSort) Clause() []clause.Expression {
 	if req.PageNo == 0 && req.PageSize == 0 {
 		return nil
 	}
-	if req.SortReq == nil || req.SortReq.SortField == "" {
-		return []clause.Expression{Page(req.PageNo, req.PageSize)}
+	if req.Sort == nil || req.Sort.SortField == "" {
+		return []clause.Expression{PageExpr(req.PageNo, req.PageSize)}
 	}
 
-	return []clause.Expression{Sort(req.SortField, req.SortType), Page(req.PageNo, req.PageSize)}
+	return []clause.Expression{Sort(req.SortField, req.SortType), PageExpr(req.PageNo, req.PageSize)}
 }
 
-func List[T any, O request.Ordered](db *gorm.DB, req *request.ListReq[O]) ([]T, error) {
+func FindByList[T any, O constraints.Ordered](db *gorm.DB, req *param.List[O]) ([]T, error) {
 	var models []T
 	clauses := ListClause(req)
 	if len(clauses) > 0 {
@@ -34,17 +35,17 @@ func List[T any, O request.Ordered](db *gorm.DB, req *request.ListReq[O]) ([]T, 
 	return models, nil
 }
 
-func ListClause[O request.Ordered](req *request.ListReq[O]) []clause.Expression {
-	return (*ListReq[O])(req).Clause()
+func ListClause[O constraints.Ordered](req *param.List[O]) []clause.Expression {
+	return (*List[O])(req).Clause()
 }
 
-type ListReq[T request.Ordered] request.ListReq[T]
+type List[T constraints.Ordered] param.List[T]
 
-func (req *ListReq[O]) Clause() []clause.Expression {
-	pqc := (*PageSortReq)(&req.PageSortReq).Clause()
-	rqc := (*RangeReq[O])(req.RangeReq).Clause()
+func (req *List[O]) Clause() []clause.Expression {
+	pqc := (*PageSort)(&req.PageSort).Clause()
+	rqc := (*Range[O])(req.Range).Clause()
 	if pqc != nil && rqc != nil {
-		return append((*PageSortReq)(&req.PageSortReq).Clause(), (*RangeReq[O])(req.RangeReq).Clause())
+		return append((*PageSort)(&req.PageSort).Clause(), (*Range[O])(req.Range).Clause())
 	}
 	if rqc == nil {
 		return pqc
@@ -53,4 +54,14 @@ func (req *ListReq[O]) Clause() []clause.Expression {
 		return []clause.Expression{rqc}
 	}
 	return nil
+}
+
+func PageExpr(pageNo, pageSize int) clause.Limit {
+	if pageSize == 0 {
+		pageSize = 100
+	}
+	if pageNo > 1 {
+		return clause.Limit{Offset: (pageNo - 1) * pageSize, Limit: &pageSize}
+	}
+	return clause.Limit{Limit: &pageSize}
 }
