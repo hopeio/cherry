@@ -5,8 +5,20 @@ import (
 	"net/http"
 )
 
-func NewGet[RES any](url string) *Request[RES] {
-	return (*Request[RES])(client.NewGet(url))
+func GetRequest[RES any](url string) *Request[RES] {
+	return (*Request[RES])(client.GetRequest(url))
+}
+
+func PostRequest[RES any](url string) *Request[RES] {
+	return (*Request[RES])(client.GetRequest(url))
+}
+
+func PutRequest[RES any](url string) *Request[RES] {
+	return (*Request[RES])(client.GetRequest(url))
+}
+
+func DeleteRequest[RES any](url string) *Request[RES] {
+	return (*Request[RES])(client.GetRequest(url))
 }
 
 func Get[RES any](url string, param any) (*RES, error) {
@@ -26,7 +38,7 @@ func Delete[RES any](url string, param any) (*RES, error) {
 }
 
 func GetSubData[RES ResponseInterface[T], T any](url string, param any) (T, error) {
-	return NewSubDataRequest[RES, T](client.NewGet(url)).SubData(param)
+	return NewSubDataRequest[RES, T](client.GetRequest(url)).SubData(param)
 }
 
 func GetWithOption[RES ResponseInterface[T], T any](url string, param any, options ...client.Option) (T, error) {

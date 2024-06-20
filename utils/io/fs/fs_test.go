@@ -9,7 +9,7 @@ import (
 // 没跑基准测试
 func TestFindFile(t *testing.T) {
 	log.SetFlags(15)
-	/*	path, err := FindFile("config/add-config.toml")
+	/*	path, err := Find("config/add-config.toml")
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -164,8 +164,8 @@ func (s *Server) redirect(req *oauth.OauthReq, data map[string]interface{}) *res
 	if req.LoginURI != "" {
 		w.Body = []byte("未登录")
 	}
-	w.Header = []string{"Location", uri}
-	w.StatusCode = 302
+	w.Header = map[string]string{"Location": uri}
+	w.Status = 302
 	return w
 }
 
@@ -331,12 +331,12 @@ func (s *Server) tokenError(err error) (*response.HttpResponse, error) {
 }
 func (s *Server) token(data map[string]interface{}, header http.Header, statusCode ...int) (*response.HttpResponse, error) {
 	res := &response.HttpResponse{}
-	res.Header = []string{"Content-Type", "application/json;charset=UTF-8",
-		"Cache-Control", "no-store",
-		"Pragma", "no-cache"}
+	res.Header = map[string]string{"Content-Type": "application/json;charset=UTF-8",
+		"Cache-Control": "no-store",
+		"Pragma":        "no-cache"}
 
-	for key := range header {
-		res.Header = append(res.Header, key, header.Get(key))
+	for k, v := range header {
+		res.Header[k] = v[0]
 	}
 
 	status := http.StatusOK
@@ -344,7 +344,7 @@ func (s *Server) token(data map[string]interface{}, header http.Header, statusCo
 		status = statusCode[0]
 	}
 
-	res.StatusCode = uint32(status)
+	res.Status = uint32(status)
 	res.Body, _ = json.Marshal(data)
 	return res, nil
 }

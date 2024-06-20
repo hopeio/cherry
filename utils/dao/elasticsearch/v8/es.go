@@ -7,7 +7,7 @@ import (
 	"errors"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
-	"github.com/hopeio/cherry/utils/io/reader"
+	"github.com/hopeio/cherry/utils/io"
 	"net/http"
 )
 
@@ -48,7 +48,7 @@ func GetResponseData[T any](response *esapi.Response, err error) (*T, error) {
 	if err != nil {
 		return nil, err
 	}
-	bytes, err := reader.ReadCloser(response.Body)
+	bytes, err := io.ReadReadCloser(response.Body)
 	if err != nil {
 		return nil, err
 	}

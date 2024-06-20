@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 )
 
-type FileRangeCallback = func(dir string, entry os.DirEntry) error
+type RangeCallback = func(dir string, entry os.DirEntry) error
 
 // 遍历根目录中的每个文件，为每个文件调用callback,包括文件夹,与filepath.WalkDir不同的是回调函数的参数不同,filepath.WalkDir的第一个参数是文件完整路径,RangeFile是文件所在目录的路径
-func Range(dir string, callback FileRangeCallback) error {
+func Range(dir string, callback RangeCallback) error {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return err
@@ -35,7 +35,7 @@ func Range(dir string, callback FileRangeCallback) error {
 }
 
 // 指定遍历深度,0为只遍历一层,-1为无限遍历
-func RangeDeep(dir string, callback FileRangeCallback, deep int) error {
+func RangeDeep(dir string, callback RangeCallback, deep int) error {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return err
@@ -60,7 +60,7 @@ func RangeDeep(dir string, callback FileRangeCallback, deep int) error {
 }
 
 // 遍历根目录中的每个文件，为每个文件调用callback,不包括文件夹,与filepath.WalkDir不同的是回调函数的参数不同,filepath.WalkDir的第一个参数是文件完整路径,RangeFile是文件所在目录的路径
-func RangeFile(dir string, callback FileRangeCallback) error {
+func RangeFile(dir string, callback RangeCallback) error {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return err
@@ -86,7 +86,7 @@ func RangeFile(dir string, callback FileRangeCallback) error {
 }
 
 // 指定遍历深度,0为只遍历一层,-1为无限遍历
-func RangeFileDeep(dir string, callback FileRangeCallback, deep int) error {
+func RangeFileDeep(dir string, callback RangeCallback, deep int) error {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return err

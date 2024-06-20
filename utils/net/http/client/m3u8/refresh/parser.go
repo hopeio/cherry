@@ -13,7 +13,7 @@ import (
 	"net/url"
 )
 
-var reqClient = client.DefaultHeaderRequest().RetryTimes(20).DisableLog()
+var reqClient = client.DefaultHeaderClient().RetryTimes(20).DisableLog()
 var reqClient2 = reqClient.Clone()
 var reqClient3 = reqClient.Clone()
 

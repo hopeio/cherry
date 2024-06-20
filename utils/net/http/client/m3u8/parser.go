@@ -10,7 +10,7 @@ import (
 	"net/url"
 )
 
-var reqClient = client.DefaultHeaderRequest().RetryTimes(20).DisableLog()
+var reqClient = client.DefaultHeaderClient().RetryTimes(20).DisableLog()
 
 type Result struct {
 	URL  *url.URL

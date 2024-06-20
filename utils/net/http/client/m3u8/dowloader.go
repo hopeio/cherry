@@ -129,7 +129,7 @@ func (d *Downloader) Downloadts(segIndex int) error {
 			return err
 		}
 
-		err = fs2.DownloadFile(fPath, bytes.NewReader(data))
+		err = fs2.Download(fPath, bytes.NewReader(data))
 		if err != nil {
 			return err
 		}

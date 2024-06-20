@@ -38,7 +38,7 @@ message TinyRep {
 }
 
 message HttpResponse{
-    repeated string Header =1;
+    map<string, string> header =1;
     bytes body = 2;
-    uint32 statusCode = 3;
+    uint32 status = 3;
 }

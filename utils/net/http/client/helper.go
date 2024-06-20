@@ -6,34 +6,34 @@ import (
 )
 
 func DefaultHeaderClient() *Client {
-	return newClient().Header(DefaultHeader())
+	return New().Header(DefaultHeader())
 }
 
 func DefaultHeaderRequest() *Request {
-	return &Request{Client: newClient().Header(DefaultHeader())}
+	return &Request{client: New().Header(DefaultHeader())}
 }
 
-func NewGet(url string) *Request {
+func GetRequest(url string) *Request {
 	return NewRequest(http.MethodGet, url)
 }
 
-func NewPost(url string) *Request {
+func PostRequest(url string) *Request {
 	return NewRequest(http.MethodPost, url)
 }
 
-func NewPut(url string) *Request {
+func PutRequest(url string) *Request {
 	return NewRequest(http.MethodPut, url)
 }
 
-func NewDelete(url string) *Request {
+func DeleteRequest(url string) *Request {
 	return NewRequest(http.MethodDelete, url)
 }
 
 func Get(url string, param, response any) error {
-	return NewGet(url).Do(param, response)
+	return GetRequest(url).Do(param, response)
 }
 
-func GetNP(url string, response any) error {
+func GetX(url string, response any) error {
 	return Get(url, nil, response)
 }
 
@@ -46,7 +46,7 @@ func GetStream(url string, param any) (io.ReadCloser, error) {
 	return resp.Body, nil
 }
 
-func GetStreamNP(url string) (io.ReadCloser, error) {
+func GetStreamX(url string) (io.ReadCloser, error) {
 	return GetStream(url, nil)
 }
 

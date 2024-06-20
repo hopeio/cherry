@@ -17,10 +17,18 @@ func NewFromRequest[RES any](req *client.Request) *Request[RES] {
 }
 
 func (req *Request[RES]) WithClient(client2 *client.Client) *Request[RES] {
-	req.Client = client2
+	(*client.Request)(req).WithClient(client2)
 	return req
 }
 
+func (req *Request[RES]) SetClient(set func(c *client.Client)) *Request[RES] {
+	(*client.Request)(req).SetClient(set)
+	return req
+}
+
+func (req *Request[RES]) Client() *client.Client {
+	return (*client.Request)(req).Client()
+}
 func (r *Request[RES]) Origin() *client.Request {
 	return (*client.Request)(r)
 }
@@ -28,15 +36,6 @@ func (r *Request[RES]) Origin() *client.Request {
 // Do create a HTTP request
 func (r *Request[RES]) Do(param any) (*RES, error) {
 	response := new(RES)
-	if r.Client == nil {
-		r.Client = &client.Client{}
-	}
-	err := r.Client.Do(r.Method, r.Url, param, response)
+	err := (*client.Request)(r).Do(param, response)
 	return response, err
-}
-
-func (req *Request[RES]) Clone() *Request[RES] {
-	newReq := &(*req)
-	newReq.Client = req.Client.Clone()
-	return newReq
 }

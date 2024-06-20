@@ -14,24 +14,18 @@ type GoReply struct {
 }
 
 func (x *HttpResponse) GetContentType() string {
-	hlen := len(x.Header)
-	for i := 0; i < hlen && i+1 < hlen; i += 2 {
-		if x.Header[i] == "Content-Type" {
-			return x.Header[i+1]
-		}
-	}
-	return ""
+	return x.Header["Content-Type"]
 }
 
 func (x *HttpResponse) Response(w http.ResponseWriter) {
 	//我也是头一次知道要按顺序来的 response.wroteHeader
 	//先设置请求头，再设置状态码，再写body
 	//原因是http里每次操作都要判断wroteHeader(表示已经写过header了，不可以再写了)
-	hlen := len(x.Header)
-	for i := 0; i < hlen && i+1 < hlen; i += 2 {
-		w.Header().Set(x.Header[i], x.Header[i+1])
+
+	for k, v := range x.Header {
+		w.Header().Set(k, v)
 	}
-	w.WriteHeader(int(x.StatusCode))
+	w.WriteHeader(int(x.Status))
 	w.Write(x.Body)
 }
 

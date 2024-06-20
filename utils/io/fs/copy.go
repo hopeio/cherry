@@ -43,18 +43,18 @@ func (c mode) handle(dst string, src io.Reader) (newname string, skip bool, err 
 	return "", false, nil
 }
 
-// CopyFile : General Approach
-func CopyFile(src, dst string) error {
+// Copy : General Approach
+func Copy(src, dst string) error {
 	r, err := os.Open(src)
 	if err != nil {
 		return err
 	}
 	defer r.Close()
 
-	return CreatFileFromReader(dst, r)
+	return CreateFromReader(dst, r)
 }
 
-func CopyFileByMode(src, dst string, c mode) error {
+func CopyByMode(src, dst string, c mode) error {
 	r, err := os.Open(src)
 	if err != nil {
 		return err
@@ -67,12 +67,12 @@ func CopyFileByMode(src, dst string, c mode) error {
 	if skip {
 		return nil
 	}
-	return CreatFileFromReader(dst, r)
+	return CreateFromReader(dst, r)
 }
 
 const DownloadKey = ".downloading"
 
-func CreatFileFromReader(filepath string, reader io.Reader) error {
+func CreateFromReader(filepath string, reader io.Reader) error {
 	f, err := Create(filepath)
 	if err != nil {
 		return err
@@ -91,7 +91,7 @@ func CreatFileFromReader(filepath string, reader io.Reader) error {
 	return nil
 }
 
-func CreatFileFromReaderByMode(filepath string, reader io.Reader, c mode) error {
+func CreateFromReaderByMode(filepath string, reader io.Reader, c mode) error {
 	_, skip, err := c.handle(filepath, reader)
 	if err != nil {
 		return err
@@ -99,19 +99,19 @@ func CreatFileFromReaderByMode(filepath string, reader io.Reader, c mode) error 
 	if skip {
 		return nil
 	}
-	return CreatFileFromReader(filepath, reader)
+	return CreateFromReader(filepath, reader)
 }
 
-func DownloadFile(filepath string, reader io.Reader) error {
+func Download(filepath string, reader io.Reader) error {
 	tmpFilepath := filepath + DownloadKey
-	err := CreatFileFromReader(tmpFilepath, reader)
+	err := CreateFromReader(tmpFilepath, reader)
 	if err != nil {
 		return err
 	}
 	return os.Rename(tmpFilepath, filepath)
 }
 
-func DownloadFileByMode(filepath string, reader io.Reader, c mode) error {
+func DownloadByMode(filepath string, reader io.Reader, c mode) error {
 	_, skip, err := c.handle(filepath, reader)
 	if err != nil {
 		return err
@@ -119,7 +119,7 @@ func DownloadFileByMode(filepath string, reader io.Reader, c mode) error {
 	if skip {
 		return nil
 	}
-	return DownloadFile(filepath, reader)
+	return Download(filepath, reader)
 }
 
 // CopyDirByMode 递归复制目录
@@ -146,7 +146,7 @@ func CopyDirByMode(src, dst string, c mode) error {
 				return err
 			}
 		} else {
-			err = CopyFileByMode(src+PathSeparator+entityName, dst+PathSeparator+entityName, c)
+			err = CopyByMode(src+PathSeparator+entityName, dst+PathSeparator+entityName, c)
 			if err != nil {
 				return err
 			}

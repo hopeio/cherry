@@ -1,22 +1,13 @@
 package client
 
 import (
-	"bytes"
-	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
-	httpi "github.com/hopeio/cherry/utils/net/http"
-	url2 "github.com/hopeio/cherry/utils/net/url"
 	"io"
 	"net"
 	"net/http"
 	stdurl "net/url"
-	"strings"
 	"sync"
 	"time"
-
-	stringsi "github.com/hopeio/cherry/utils/strings"
 )
 
 // 不是并发安全的
@@ -72,23 +63,20 @@ func SetHttpClient(client *http.Client) {
 
 // Client ...
 type Client struct {
-	ctx context.Context
-	// client settings
-	client        *http.Client
-	defaultClient bool
-	// 适用于单次配置不同的请求,如果设置是固定,建议设置0值，直接设置client
-	timeout time.Duration
 
-	proxyUrl string
+	// httpClient settings
+	httpClient    *http.Client
+	newHttpClient bool
+
 	parseTag string // 默认json
 
 	// request
-	contentType        ContentType
-	authUser, authPass string
-	header             http.Header
+	httpRequestOptions []HttpRequestOption
+	header             http.Header //公共请求头
 
 	// response
 	responseHandler func(response *http.Response) (retry bool, data []byte, err error)
+	resDataHandler  func(data []byte) ([]byte, error)
 
 	// logger
 	logger   AccessLog
@@ -99,115 +87,176 @@ type Client struct {
 	retryInterval time.Duration
 	retryHandler  func(*Client)
 
-	httpRequestOptions []HttpRequestOption
-	httpClientOptions  []HttpClientOption
+	req *Request
 }
 
 func New() *Client {
-	return newClient()
+	return &Client{httpClient: DefaultHttpClient, logger: defaultLog, logLevel: DefaultLogLevel, retryInterval: 200 * time.Millisecond}
 }
 
-func newClient() *Client {
-	return &Client{ctx: context.Background(), client: DefaultHttpClient, logger: defaultLog, logLevel: DefaultLogLevel, retryInterval: 200 * time.Millisecond}
-}
-
-func (req *Client) Context(ctx context.Context) *Client {
-	req.ctx = ctx
-	return req
-}
-
-func (req *Client) ContentType(contentType ContentType) *Client {
-	req.contentType = contentType
-	return req
-}
-
-func (req *Client) Header(header http.Header) *Client {
-	req.header = header
-	return req
-}
-
-func (req *Client) AddHeader(k, v string) *Client {
-	if req.header == nil {
-		req.header = make(http.Header)
+func (c *Client) Header(header http.Header) *Client {
+	if c.header == nil {
+		c.header = make(http.Header)
 	}
-	req.header.Set(k, v)
-	return req
+	for k, v := range header {
+		c.header.Add(k, v[0])
+	}
+	return c
 }
 
-func (req *Client) Logger(logger AccessLog) *Client {
+func (c *Client) AddHeader(k, v string) *Client {
+	if c.header == nil {
+		c.header = make(http.Header)
+	}
+	c.header.Add(k, v)
+	return c
+}
+
+func (c *Client) Logger(logger AccessLog) *Client {
 	if logger == nil {
-		return req
+		return c
 	}
-	req.logger = logger
-	return req
+	c.logger = logger
+	return c
 }
 
-func (req *Client) DisableLog() *Client {
-	req.logLevel = LogLevelSilent
-	return req
+func (c *Client) DisableLog() *Client {
+	c.logLevel = LogLevelSilent
+	return c
 }
 
-func (req *Client) LogLevel(lvl LogLevel) *Client {
-	req.logLevel = lvl
-	return req
+func (c *Client) LogLevel(lvl LogLevel) *Client {
+	c.logLevel = lvl
+	return c
 }
 
-func (req *Client) ParseTag(tag string) *Client {
-	req.parseTag = tag
-	return req
+func (c *Client) ParseTag(tag string) *Client {
+	c.parseTag = tag
+	return c
 }
 
 // handler 返回值:是否重试,返回数据,错误
-func (req *Client) ResponseHandler(handler func(response *http.Response) (retry bool, data []byte, err error)) *Client {
-	req.responseHandler = handler
-	return req
+func (c *Client) ResponseHandler(handler func(response *http.Response) (retry bool, data []byte, err error)) *Client {
+	c.responseHandler = handler
+	return c
+}
+
+func (c *Client) ResDataHandler(handler func(response []byte) ([]byte, error)) *Client {
+	c.resDataHandler = handler
+	return c
 }
 
 // 设置过期时间,仅对单次请求有效
-func (req *Client) Timeout(timeout time.Duration) *Client {
-	req.timeout = timeout
-	return req
-}
-
-func (req *Client) HttpClient(client *http.Client) *Client {
-	req.client = client
-	return req
-}
-
-func (req *Client) RetryTimes(retryTimes int) *Client {
-	req.retryTimes = retryTimes
-	return req
-}
-
-func (req *Client) RetryTimesWithInterval(retryTimes int, retryInterval time.Duration) *Client {
-	req.retryTimes = retryTimes
-	req.retryInterval = retryInterval
-	return req
-}
-
-func (req *Client) RetryHandler(handle func(*Client)) *Client {
-	req.retryHandler = handle
-	return req
-}
-
-func (req *Client) Proxy(url string) *Client {
-	req.proxyUrl = url
-	return req
-}
-
-func (req *Client) BasicAuth(authUser, authPass string) *Client {
-	req.authUser, req.authPass = authUser, authPass
-	return req
-}
-
-func (req *Client) Request(method, url string) *Request {
-	return &Request{
-		Method: method, Url: url, Client: req,
+func (c *Client) Timeout(timeout time.Duration) *Client {
+	if !c.newHttpClient {
+		c.httpClient = newHttpClient()
+		c.newHttpClient = true
 	}
+	setTimeout(c.httpClient, timeout)
+	return c
 }
 
-func (req *Client) Clone() *Client {
-	return &(*req)
+func (c *Client) HttpClient(client *http.Client) *Client {
+	c.httpClient = client
+	c.newHttpClient = true
+	return c
+}
+
+func (c *Client) SetHttpClient(opt HttpClientOption) *Client {
+	if !c.newHttpClient {
+		c.httpClient = newHttpClient()
+		c.newHttpClient = true
+	}
+	opt(c.httpClient)
+	return c
+}
+
+func (c *Client) RetryTimes(retryTimes int) *Client {
+	c.retryTimes = retryTimes
+	return c
+}
+
+func (c *Client) RetryTimesWithInterval(retryTimes int, retryInterval time.Duration) *Client {
+	c.retryTimes = retryTimes
+	c.retryInterval = retryInterval
+	return c
+}
+
+func (c *Client) RetryHandler(handle func(*Client)) *Client {
+	c.retryHandler = handle
+	return c
+}
+
+func (c *Client) Proxy(proxyUrl string) *Client {
+	if !c.newHttpClient {
+		c.httpClient = newHttpClient()
+		c.newHttpClient = true
+	}
+	if proxyUrl != "" {
+		purl, _ := stdurl.Parse(proxyUrl)
+		setProxy(c.httpClient, http.ProxyURL(purl))
+	}
+	return c
+}
+
+func (c *Client) BasicAuth(authUser, authPass string) *Client {
+	c.httpRequestOptions = append(c.httpRequestOptions, func(request *http.Request) {
+		request.SetBasicAuth(authUser, authPass)
+	})
+	return c
+}
+
+func (c *Client) Clone() *Client {
+	return &(*c)
+}
+
+func (c *Client) Request(method, url string) *Request {
+	r := &Request{
+		Method: method, Url: url, client: c,
+	}
+	c.req = r
+	return r
+}
+
+func (c *Client) RequestDo(param, response any) error {
+	if c.req == nil {
+		return errors.New("request is nil")
+	}
+	req := c.req
+	c.req = nil
+	return req.Do(param, response)
+}
+
+func (c *Client) Do(r *Request, param, response any) error {
+	return r.WithClient(c).Do(param, response)
+}
+
+func (c *Client) Get(url string, param, response any) error {
+	return NewRequest(http.MethodGet, url).WithClient(c).Do(param, response)
+}
+
+func (c *Client) Post(url string, param, response any) error {
+	return NewRequest(http.MethodPost, url).WithClient(c).Do(param, response)
+}
+
+func (c *Client) Put(url string, param, response any) error {
+	return NewRequest(http.MethodPut, url).WithClient(c).Do(param, response)
+}
+
+func (c *Client) Delete(url string, param, response any) error {
+	return NewRequest(http.MethodDelete, url).WithClient(c).Do(param, response)
+}
+
+func (c *Client) GetX(url string, response any) error {
+	return NewRequest(http.MethodGet, url).WithClient(c).Do(nil, response)
+}
+
+func (c *Client) GetStream(url string, param any) (io.ReadCloser, error) {
+	return NewRequest(http.MethodGet, url).DoStream(param)
+}
+
+func (c *Client) GetStreamX(url string) (io.ReadCloser, error) {
+	return NewRequest(http.MethodGet, url).DoStream(nil)
 }
 
 type ResponseBodyCheck interface {
@@ -215,289 +264,3 @@ type ResponseBodyCheck interface {
 }
 
 type RawBytes = []byte
-
-func (req *Client) DoNoParam(method, url string, response any) error {
-	return req.Do(method, url, nil, response)
-}
-
-func (req *Client) DoNoResponse(method, url string, param any) error {
-	return req.Do(method, url, param, nil)
-}
-
-func (req *Client) DoEmpty(method, url string) error {
-	return req.Do(method, url, nil, nil)
-}
-
-func (req *Client) addHeader(request *http.Request) {
-	if req.header != nil {
-		request.Header = req.header
-	}
-
-	if req.authUser != "" && req.authPass != "" {
-		request.SetBasicAuth(req.authUser, req.authPass)
-	}
-	request.Header.Set(httpi.HeaderContentType, req.contentType.String())
-}
-
-// Do create a HTTP request
-// param: 请求参数 目前只支持编码为json 或 Url-encoded
-func (req *Client) Do(method, url string, param, response any) error {
-	if method == "" {
-		return errors.New("没有设置请求方法")
-	}
-
-	if url == "" {
-		return errors.New("没有设置url")
-	}
-
-	if req.client == nil {
-		if len(req.httpClientOptions) > 0 {
-			req.client = newHttpClient()
-		} else {
-			req.client = DefaultHttpClient
-			req.defaultClient = true
-		}
-	}
-	for _, opt := range req.httpClientOptions {
-		opt(req.client)
-	}
-	if req.timeout != 0 && req.timeout != req.client.Timeout {
-		if req.defaultClient {
-			req.client = newHttpClient()
-			req.defaultClient = false
-		}
-		setTimeout(req.client, req.timeout)
-	}
-	if req.proxyUrl != "" {
-		purl, _ := req.client.Transport.(*http.Transport).Proxy(nil)
-		if req.proxyUrl != purl.String() {
-			if req.defaultClient {
-				req.client = newHttpClient()
-				req.defaultClient = false
-			}
-			purl, _ = stdurl.Parse(url)
-			setProxy(req.client, http.ProxyURL(purl))
-		}
-	}
-	var body io.Reader
-	var reqBody, respBody *Body
-	var statusCode, reqTimes int
-	var err error
-	reqTime := time.Now()
-	// 日志记录
-	defer func(now time.Time) {
-		if req.logLevel == LogLevelInfo || (err != nil && req.logLevel == LogLevelError) {
-			req.logger(method, url, req.authUser, reqBody, respBody, statusCode, time.Since(now), err)
-		}
-	}(reqTime)
-
-	if method == http.MethodGet {
-		url = url2.AppendQueryParam(url, param)
-	} else {
-		reqBody = &Body{}
-		if param != nil {
-			switch paramType := param.(type) {
-			case string:
-				body = strings.NewReader(paramType)
-				reqBody.Data = stringsi.ToBytes(paramType)
-			case []byte:
-				body = bytes.NewReader(paramType)
-				reqBody.Data = paramType
-			case io.Reader:
-				var reqBytes []byte
-				reqBytes, err = io.ReadAll(paramType)
-				body = bytes.NewReader(reqBytes)
-				reqBody.Data = reqBytes
-			default:
-				if req.contentType == ContentTypeForm {
-					params := url2.QueryParam(param)
-					reqBody.Data = stringsi.ToBytes(params)
-					body = strings.NewReader(params)
-				} else {
-					var reqBytes []byte
-					reqBytes, err = json.Marshal(param)
-					if err != nil {
-						return err
-					}
-					body = bytes.NewReader(reqBytes)
-					reqBody.Data = reqBytes
-					reqBody.ContentType = ContentTypeJson
-				}
-			}
-		}
-	}
-	var request *http.Request
-	request, err = http.NewRequestWithContext(req.ctx, method, url, body)
-	if err != nil {
-		return err
-	}
-
-	req.addHeader(request)
-
-	var resp *http.Response
-Retry:
-	if reqTimes > 0 {
-		if req.retryInterval != 0 {
-			time.Sleep(req.retryInterval)
-		}
-		if req.retryHandler != nil {
-			req.retryHandler(req)
-		}
-		reqTime = time.Now()
-		if reqBody != nil && reqBody.Data != nil {
-			request.Body = io.NopCloser(bytes.NewReader(reqBody.Data))
-		}
-	}
-	resp, err = req.client.Do(request)
-	reqTimes++
-	if err != nil {
-		if req.retryTimes == 0 || reqTimes == req.retryTimes {
-			return err
-		} else {
-			if req.logLevel > LogLevelSilent {
-				req.logger(method, url, req.authUser, reqBody, respBody, statusCode, time.Since(reqTime), errors.New(err.Error()+";will retry"))
-			}
-			goto Retry
-		}
-	}
-
-	respBody = &Body{}
-	if resp.StatusCode < 200 || resp.StatusCode > 300 {
-		respBody.ContentType = ContentTypeText
-		if resp.StatusCode == http.StatusNotFound {
-			err = errors.New("not found")
-		} else {
-			var msg []byte
-			msg, err = io.ReadAll(resp.Body)
-			resp.Body.Close()
-			if err != nil {
-				return err
-			}
-			err = errors.New("status:" + resp.Status + " " + stringsi.ConvertUnicode(msg))
-		}
-		return err
-	}
-
-	if httpresp, ok := response.(*http.Response); ok {
-		*httpresp = *resp
-		return err
-	}
-
-	if httpresp, ok := response.(**http.Response); ok {
-		*httpresp = resp
-		return err
-	}
-
-	var reader io.Reader
-	// net/http会自动处理gzip
-	/*	if resp.Header.Get(httpi.HeaderContentEncoding) == "gzip" {
-			reader, err = gzip.NewReader(resp.Body)
-			if err != nil {
-				resp.Body.Close()
-				return err
-			}
-		} else {
-			reader = resp.Body
-		}*/
-
-	reader = resp.Body
-
-	if httpresp, ok := response.(*io.Reader); ok {
-		*httpresp = reader
-		return err
-	}
-	statusCode = resp.StatusCode
-
-	var respBytes []byte
-	if req.responseHandler != nil {
-		var retry bool
-		retry, respBytes, err = req.responseHandler(resp)
-		resp.Body.Close()
-
-		if retry {
-			if req.logLevel > LogLevelSilent {
-				req.logger(method, url, req.authUser, reqBody, respBody, statusCode, time.Since(reqTime), err)
-			}
-			goto Retry
-		} else if err != nil {
-			return err
-		}
-	} else {
-		respBytes, err = io.ReadAll(reader)
-		resp.Body.Close()
-		if err != nil {
-			return err
-		}
-	}
-	respBody.Data = respBytes
-	if len(respBytes) > 0 && response != nil {
-		contentType := resp.Header.Get(httpi.HeaderContentType)
-		respBody.ContentType.Decode(contentType)
-
-		if raw, ok := response.(*RawBytes); ok {
-			*raw = respBytes
-			return nil
-		}
-		if respBody.ContentType == ContentTypeForm {
-			// TODO
-		} else {
-			// 默认json
-			err = json.Unmarshal(respBytes, response)
-			if err != nil {
-				return fmt.Errorf("json.Unmarshal error: %v", err)
-			}
-		}
-
-		if v, ok := response.(ResponseBodyCheck); ok {
-			err = v.CheckError()
-		}
-	}
-
-	return err
-}
-
-func (req *Client) DoRaw(method, url string, param any) (RawBytes, error) {
-	var raw RawBytes
-	err := req.Do(method, url, param, &raw)
-	if err != nil {
-		return raw, err
-	}
-	return raw, nil
-}
-
-func (req *Client) DoStream(method, url string, param any) (io.ReadCloser, error) {
-	var resp *http.Response
-	err := req.Do(method, url, param, &resp)
-	if err != nil {
-		return nil, err
-	}
-	return resp.Body, nil
-}
-
-func (req *Client) Get(url string, param, response any) error {
-	return req.Do(http.MethodGet, url, param, response)
-}
-
-func (req *Client) GetNP(url string, response any) error {
-	return req.Do(http.MethodGet, url, nil, response)
-}
-
-func (req *Client) GetStream(url string, param any) (io.ReadCloser, error) {
-	return req.DoStream(http.MethodGet, url, param)
-}
-
-func (req *Client) GetStreamNP(url string) (io.ReadCloser, error) {
-	return req.DoStream(http.MethodGet, url, nil)
-}
-
-func (req *Client) Post(url string, param, response any) error {
-	return req.Do(http.MethodPost, url, param, response)
-}
-
-func (req *Client) Put(url string, param, response any) error {
-	return req.Do(http.MethodPut, url, param, response)
-}
-
-func (req *Client) Delete(url string, param, response any) error {
-	return req.Do(http.MethodDelete, url, param, response)
-}
