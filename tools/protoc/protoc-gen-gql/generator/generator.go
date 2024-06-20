@@ -2,6 +2,7 @@ package generator
 
 import (
 	"fmt"
+	stringsi "github.com/hopeio/cherry/utils/strings"
 	"strconv"
 	"strings"
 
@@ -231,13 +232,13 @@ func (s *SchemaDescriptor) uniqueName(d desc.Descriptor, input bool) (name strin
 	if _, ok := d.(*desc.MessageDescriptor); !input && ok && strings.ToUpper(d.GetName()) == "ID" {
 		suffix = "Rep"
 	}
-	name = strings.Title(CamelCaseSlice(strings.Split(strings.TrimPrefix(d.GetFullyQualifiedName(), d.GetFile().GetPackage()+packageSep), packageSep)) + suffix)
+	name = strings.Title(stringsi.CamelCaseSlice(strings.Split(strings.TrimPrefix(d.GetFullyQualifiedName(), d.GetFile().GetPackage()+packageSep), packageSep)) + suffix)
 
 	if _, ok := d.(*desc.FieldDescriptor); ok {
 		collisionPrefix = fieldPrefix
-		name = CamelCaseSlice(strings.Split(strings.Trim(d.GetParent().GetName()+packageSep+strings.Title(d.GetName()), packageSep), packageSep))
+		name = stringsi.CamelCaseSlice(strings.Split(strings.Trim(d.GetParent().GetName()+packageSep+strings.Title(d.GetName()), packageSep), packageSep))
 	} else {
-		collisionPrefix = CamelCaseSlice(strings.Split(d.GetFile().GetPackage(), packageSep))
+		collisionPrefix = stringsi.CamelCaseSlice(strings.Split(d.GetFile().GetPackage(), packageSep))
 	}
 
 	originalName := name
@@ -461,12 +462,12 @@ func (r *RootDefinition) UniqueName(svc *descriptor.ServiceDescriptorProto, rpc 
 		name = *rpcOpts.Name
 	} else if svcOpts != nil && svcOpts.Name != nil {
 		if *svcOpts.Name == "" {
-			name = ToLowerFirst(rpc.GetName())
+			name = stringsi.ToLowerFirst(rpc.GetName())
 		} else {
 			name = *svcOpts.Name + strings.Title(rpc.GetName())
 		}
 	} else {
-		name = ToLowerFirst(svc.GetName()) + strings.Title(rpc.GetName())
+		name = stringsi.ToLowerFirst(svc.GetName()) + strings.Title(rpc.GetName())
 	}
 
 	originalName := name
@@ -577,7 +578,7 @@ func (s *SchemaDescriptor) createField(field *desc.FieldDescriptor, obj *ObjectD
 
 	fieldAst := &ast.FieldDefinition{
 		Description: getDescription(field),
-		Name:        ToLowerFirst(CamelCase(field.GetName())),
+		Name:        stringsi.ToLowerFirst(stringsi.SnakeToCamel(field.GetName())),
 		Type:        &ast.Type{Position: &ast.Position{}},
 		Position:    &ast.Position{},
 	}
@@ -740,7 +741,7 @@ func (s *SchemaDescriptor) createUnion(oneof *desc.OneOfDescriptor) (*FieldDescr
 		types:      objTypes,
 	}
 	s.objects = append(s.objects, obj)
-	name := ToLowerFirst(CamelCase(oneof.GetName()))
+	name := stringsi.ToLowerFirst(stringsi.SnakeToCamel(oneof.GetName()))
 	opts := GraphqlOneofOptions(oneof.AsOneofDescriptorProto().GetOptions())
 	if opts.GetName() != "" {
 		name = opts.GetName()

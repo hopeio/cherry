@@ -166,7 +166,7 @@ func getu4(s []byte) rune {
 	return r
 }
 
-func ConvertUnicode(s []byte) string {
+func ToUnicode(s []byte) string {
 	if len(s) < 6 {
 		return BytesToString(s)
 	}
@@ -199,4 +199,11 @@ func ConvertUnicode(s []byte) string {
 	}
 	bbegin += copy(b[bbegin:], s[begin:])
 	return BytesToString(b[:bbegin])
+}
+
+func ToLowerFirst(s string) string {
+	if len(s) > 0 {
+		return string(unicode.ToLower(rune(s[0]))) + s[1:]
+	}
+	return ""
 }

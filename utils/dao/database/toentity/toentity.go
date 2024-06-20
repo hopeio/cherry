@@ -52,7 +52,7 @@ type Field struct {
 }
 
 func (f *Field) Generate() *ast.Field {
-	field := stringsi.ConvertToCamelCase(f.Field)
+	field := stringsi.SnakeToCamel(f.Field)
 	return &ast.Field{
 		Doc: nil,
 		Names: []*ast.Ident{
@@ -123,7 +123,7 @@ func ConvertByTable(c ConvertInterface, tableName string) {
 
 func genTable(c ConvertInterface, tableName string, decl *ast.GenDecl) []byte {
 	node := decl.Specs[0].(*ast.TypeSpec)
-	node.Name.Name = stringsi.ConvertToCamelCase(tableName)
+	node.Name.Name = stringsi.SnakeToCamel(tableName)
 	fields := node.Type.(*ast.StructType).Fields
 	fields.List = nil
 	dbfields := c.Fields(tableName)

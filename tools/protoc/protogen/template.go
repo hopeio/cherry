@@ -73,6 +73,8 @@ models:
     model: github.com/hopeio/cherry/utils/net/http/graphql.Header
   Date:
     model: github.com/hopeio/cherry/protobuf/time.Date
+  HttpResponse_HeaderEntry:
+    model: github.com/hopeio/cherry/protobuf/response.HeaderEntry
 `
 
 //经过一番查找，发现yaml语法对格式是非常严格的，不可以有制表符！不可以有制表符！不可以有制表符！

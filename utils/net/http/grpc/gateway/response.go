@@ -13,7 +13,8 @@ func ResponseHook(ctx context.Context, writer http.ResponseWriter, message proto
 		for i := 0; i < hlen && i+1 < hlen; i += 2 {
 			writer.Header().Set(res.Header[i], res.Header[i+1])
 		}
-		writer.WriteHeader(int(res.StatusCode))
+		writer.WriteHeader(int(res.Status))
+		writer.Write(res.Body)
 	}
 	/*	if message == nil{
 		*(&message) = &response.TinyRep{Message: "OK"}

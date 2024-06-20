@@ -39,7 +39,7 @@ func (b binding) GetBodyFieldPath() string {
 // GetBodyFieldStructName returns the binding body's struct field name.
 func (b binding) GetBodyFieldStructName() (string, error) {
 	if b.Body != nil && len(b.Body.FieldPath) != 0 {
-		return stringsi.Camel(b.Body.FieldPath.String()), nil
+		return stringsi.SnakeToCamel(b.Body.FieldPath.String()), nil
 	}
 	return "", errors.New("no body field found")
 }
@@ -123,7 +123,7 @@ func (b binding) FieldMaskField() string {
 		}
 	}
 	if fieldMaskField != nil {
-		return stringsi.Camel(fieldMaskField.GetName())
+		return stringsi.SnakeToCamel(fieldMaskField.GetName())
 	}
 	return ""
 }
@@ -156,18 +156,18 @@ func applyTemplate(p param, reg *descriptor2.Registry) (string, error) {
 	var targetServices []*descriptor2.Service
 
 	for _, msg := range p.Messages {
-		msgName := stringsi.Camel(*msg.Name)
+		msgName := stringsi.SnakeToCamel(*msg.Name)
 		msg.Name = &msgName
 	}
 
 	for _, svc := range p.Services {
 		var methodWithBindingsSeen bool
-		svcName := stringsi.Camel(*svc.Name)
+		svcName := stringsi.SnakeToCamel(*svc.Name)
 		svc.Name = &svcName
 
 		for _, meth := range svc.Methods {
 			log.Infof("Processing %s.%s", svc.GetName(), meth.GetName())
-			methName := stringsi.Camel(*meth.Name)
+			methName := stringsi.SnakeToCamel(*meth.Name)
 			meth.Name = &methName
 			for _, b := range meth.Bindings {
 				methodWithBindingsSeen = true

@@ -40,8 +40,7 @@ func Verify(reqURL, apiKey, response string) error {
 	}
 	result := new(Result)
 
-	err := client.NewRequest().
-		ContentType(client.ContentTypeForm).Do(http.MethodPost, reqURL, &req, result)
+	err := client.NewRequest(http.MethodPost, reqURL).ContentType(client.ContentTypeForm).Do(&req, result)
 	if err != nil {
 		return err
 	}

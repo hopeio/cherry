@@ -18,7 +18,7 @@ func GBKToUTF8(s string) (string, error) {
 	return ToString(b), nil
 }
 
-func BytesGBKToUTF8(s []byte) ([]byte, error) {
+func GBKBytesToUTF8(s []byte) ([]byte, error) {
 	reader := transform.NewReader(bytes.NewReader(s), simplifiedchinese.GBK.NewDecoder())
 	return io.ReadAll(reader)
 }
@@ -34,7 +34,7 @@ func UTF8ToGBK(s string) (string, error) {
 	return ToString(b), nil
 }
 
-func BytesUTF8ToGBK(s []byte) ([]byte, error) {
+func UTF8BytesToGBK(s []byte) ([]byte, error) {
 	reader := transform.NewReader(bytes.NewReader(s), simplifiedchinese.GBK.NewEncoder())
 	return io.ReadAll(reader)
 }

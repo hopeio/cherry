@@ -21,7 +21,7 @@ type Request struct {
 	ctx         context.Context
 	Method, Url string
 	contentType ContentType
-	headers     Header //请求级请求头
+	headers     httpi.Header //请求级请求头
 	client      *Client
 }
 
@@ -223,7 +223,7 @@ Retry:
 			if err != nil {
 				return err
 			}
-			err = errors.New("status:" + resp.Status + " " + stringsi.ConvertUnicode(msg))
+			err = errors.New("status:" + resp.Status + " " + stringsi.ToUnicode(msg))
 		}
 		return err
 	}

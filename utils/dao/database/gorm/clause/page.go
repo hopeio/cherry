@@ -19,7 +19,7 @@ func (req *PageSort) Clause() []clause.Expression {
 		return []clause.Expression{PageExpr(req.PageNo, req.PageSize)}
 	}
 
-	return []clause.Expression{Sort(req.SortField, req.SortType), PageExpr(req.PageNo, req.PageSize)}
+	return []clause.Expression{SortExpr(req.SortField, req.SortType), PageExpr(req.PageNo, req.PageSize)}
 }
 
 func FindByList[T any, O constraints.Ordered](db *gorm.DB, req *param.List[O]) ([]T, error) {

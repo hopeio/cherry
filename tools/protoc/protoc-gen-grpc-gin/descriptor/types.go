@@ -360,7 +360,7 @@ func (p FieldPath) AssignableExpr(msgExpr string) string {
 		if c.Target.OneofIndex != nil {
 			index := c.Target.OneofIndex
 			msg := c.Target.Message
-			oneOfName := stringsi.Camel(msg.GetOneofDecl()[*index].GetName())
+			oneOfName := stringsi.SnakeToCamel(msg.GetOneofDecl()[*index].GetName())
 			oneofFieldName := msg.GetName() + "_" + c.AssignableExpr()
 
 			if c.Target.ForcePrefixedName {
@@ -400,15 +400,15 @@ type FieldPathComponent struct {
 
 // AssignableExpr returns an assignable expression in go for this field.
 func (c FieldPathComponent) AssignableExpr() string {
-	return stringsi.Camel(c.Name)
+	return stringsi.SnakeToCamel(c.Name)
 }
 
 // ValueExpr returns an expression in go for this field.
 func (c FieldPathComponent) ValueExpr() string {
 	if c.Target.Message.File.proto2() {
-		return fmt.Sprintf("Get%s()", stringsi.Camel(c.Name))
+		return fmt.Sprintf("Get%s()", stringsi.SnakeToCamel(c.Name))
 	}
-	return stringsi.Camel(c.Name)
+	return stringsi.SnakeToCamel(c.Name)
 }
 
 var (

@@ -115,3 +115,9 @@ func TestBracketsIntervals(t *testing.T) {
 		}
 	}
 }
+
+func TestConvert(t *testing.T) {
+	for i := 'a'; i <= 'z'; i++ {
+		t.Log(string(i^' '), string(i^' '^' '))
+	}
+}
