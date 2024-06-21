@@ -3,6 +3,7 @@ package client
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	ioi "github.com/hopeio/cherry/utils/io"
 	"github.com/hopeio/cherry/utils/io/fs"
@@ -106,30 +107,17 @@ func (c *DownloadReq) GetResponse() (*http.Response, error) {
 	}
 
 	var resp *http.Response
-	if d.retryTimes == 0 {
-		d.retryTimes = 1
-	}
 	for i := range d.retryTimes {
 		if i > 0 {
 			time.Sleep(d.retryInterval)
 		}
 		resp, err = d.httpClient.Do(req)
 		if err != nil {
-			log.Warn(err, "Url:", req.URL.Path)
+			log.Warn(err, "url:", req.URL.Path)
 			if strings.HasPrefix(err.Error(), "dial tcp: lookup") {
 				return nil, err
 			}
 			continue
-		}
-		if resp.StatusCode < 200 || resp.StatusCode > 299 {
-			resp.Body.Close()
-			if resp.StatusCode == http.StatusNotFound {
-				return nil, ErrNotFound
-			}
-			if resp.StatusCode == http.StatusRequestedRangeNotSatisfiable {
-				return resp, nil
-			}
-			return nil, fmt.Errorf("返回错误,状态码:%d,Url:%s", resp.StatusCode, req.URL.Path)
 		} else {
 			return resp, nil
 		}
@@ -142,6 +130,17 @@ func (c *DownloadReq) GetReader() (io.ReadCloser, error) {
 	if err != nil {
 		return nil, err
 	}
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		resp.Body.Close()
+		if resp.StatusCode == http.StatusNotFound {
+			return nil, ErrNotFound
+		}
+		if resp.StatusCode == http.StatusRequestedRangeNotSatisfiable {
+			return nil, ErrRangeNotSatisfiable
+		}
+		return nil, fmt.Errorf("请求错误,status code:%d,url:%s", resp.StatusCode, c.Url)
+	}
+
 	d := c.downloader
 	reader := resp.Body
 	if d.resDataHandler != nil {
@@ -166,18 +165,28 @@ func (c *DownloadReq) Download(filepath string) error {
 	if c.mode&DModeOverwrite == 0 && fs.Exist(filepath) {
 		return nil
 	}
-
+	if c.downloader.retryTimes == 0 {
+		c.downloader.retryTimes = 1
+	}
 	if c.mode&DModeContinue != 0 {
 		return c.ContinuationDownload(filepath)
 	}
-	reader, err := c.GetReader()
-	if err != nil {
-		return err
-	}
-	err = fs.Download(filepath, reader)
-	err1 := reader.Close()
-	if err1 != nil {
-		log.Warn("Close Reader", err1)
+	var reader io.ReadCloser
+	var err error
+	for i := 0; i < c.downloader.retryTimes; i++ {
+		reader, err = c.GetReader()
+		if err != nil {
+			return err
+		}
+		err = fs.Download(filepath, reader)
+		err1 := reader.Close()
+		if err1 != nil {
+			log.Warn("close Reader", err1)
+		}
+		if err == nil {
+			return nil
+		}
+		log.Warn(err)
 	}
 	return err
 }
@@ -187,37 +196,43 @@ func (c *DownloadReq) ContinuationDownload(filepath string) error {
 	if err != nil {
 		return err
 	}
+
 	fileinfo, err := f.Stat()
 	if err != nil {
 		return err
 	}
 
 	offset := fileinfo.Size()
+	var reader io.ReadCloser
+	for i := 0; i < c.downloader.retryTimes; i++ {
+		c.headers = append(c.headers, httpi.HeaderRange, "bytes="+strconv.FormatInt(offset, 10)+"-")
 
-	c.headers = append(c.headers, httpi.HeaderRange, "bytes="+strconv.FormatInt(offset, 10)+"-")
+		reader, err = c.GetReader()
+		if err != nil {
+			if errors.Is(err, ErrRangeNotSatisfiable) {
+				f.Close()
+				return os.Rename(filepath+DownloadKey, filepath)
+			}
+			continue
+		}
 
-	reader, err := c.GetReader()
-	if err != nil {
-		return err
+		var written int64
+		written, err = io.Copy(f, reader)
+
+		err1 := reader.Close()
+		if err1 != nil {
+			log.Warn("close reader error:", err1)
+		}
+
+		if err == nil || err == io.EOF {
+			f.Close()
+			return os.Rename(filepath+DownloadKey, filepath)
+		}
+
+		offset += written
 	}
-
-	written, err := io.Copy(f, reader)
-
-	err1 := reader.Close()
-	if err1 != nil {
-		log.Warn("close reader error:", err1)
-	}
-
-	if err != nil && err != io.EOF {
-		return err
-	}
-	offset += written
-	err = f.Close()
-	if err != nil {
-		return err
-	}
-	return os.Rename(filepath+DownloadKey, filepath)
-
+	f.Close()
+	return err
 }
 
 // bytes xxx-xxx/xxxx

@@ -36,7 +36,8 @@ func (res *ResponseBody2) CheckError() error {
 }
 
 var (
-	ErrNotFound = fmt.Errorf("not found")
+	ErrNotFound            = fmt.Errorf("not found")
+	ErrRangeNotSatisfiable = fmt.Errorf("range not satisfiable")
 )
 
 type ResponseBody3 struct {
