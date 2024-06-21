@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	httpi "github.com/hopeio/cherry/utils/net/http"
 	"net/http"
 	"net/url"
 	"time"
@@ -164,8 +165,8 @@ func (s *Server) redirect(req *oauth.OauthReq, data map[string]interface{}) *res
 	if req.LoginURI != "" {
 		w.Body = []byte("未登录")
 	}
-	w.Header = []string{"Location", uri}
-	w.Status = 302
+	w.Header = []string{httpi.HeaderLocation, uri}
+	w.StatusCode = http.StatusFound
 	return w
 }
 
@@ -344,7 +345,7 @@ func (s *Server) token(data map[string]interface{}, header http.Header, statusCo
 		status = statusCode[0]
 	}
 
-	res.Status = uint32(status)
+	res.StatusCode = uint32(status)
 	res.Body, _ = json.Marshal(data)
 	return res, nil
 }

@@ -1,7 +1,6 @@
 package response
 
 import (
-	"context"
 	"errors"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	"io"
@@ -35,7 +34,7 @@ func (x *HttpResponse) Response(w http.ResponseWriter) {
 	for i := 0; i < hlen && i+1 < hlen; i += 2 {
 		w.Header().Set(x.Header[i], x.Header[i+1])
 	}
-	w.WriteHeader(int(x.Status))
+	w.WriteHeader(int(x.StatusCode))
 	w.Write(x.Body)
 }
 
@@ -62,13 +61,7 @@ type StringValue = wrapperspb.StringValue
 // graphql compatible
 type StringValueInput = wrapperspb.StringValue
 
-type HttpResponse2 struct {
-	Header map[string]string `json:"header"`
-	Body   []byte            `json:"body"`
-	Status uint32            `json:"status"`
-}
-
-// graphql compatible
+/*// graphql compatible
 type HeaderEntry struct {
 	Key   string
 	Value string
@@ -78,10 +71,11 @@ type HttpResponseResolver struct {
 }
 
 // graphql compatible
-func (receiver *HttpResponseResolver) Header(ctx context.Context, obj *HttpResponse2) ([]*HeaderEntry, error) {
+func (receiver *HttpResponseResolver) Header(ctx context.Context, obj *HttpResponse) ([]*HeaderEntry, error) {
 	var header []*HeaderEntry
 	for k, v := range obj.Header {
 		header = append(header, &HeaderEntry{Key: k, Value: v})
 	}
 	return header, nil
 }
+*/

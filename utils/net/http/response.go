@@ -117,3 +117,15 @@ func (r *ReceiveData) Response(w http.ResponseWriter, httpcode int) {
 func (r *ReceiveData) UnmarshalData(v any) error {
 	return json.Unmarshal(r.Details, v)
 }
+
+type IHttpResponse interface {
+	Header() http.Header
+	Body() []byte
+	StatusCode() int
+}
+
+type HttpResponse struct {
+	Header     map[string]string `json:"header"`
+	Body       []byte            `json:"body"`
+	StatusCode int               `json:"status"`
+}

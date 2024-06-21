@@ -21,7 +21,7 @@ func ForwardResponseMessage(ctx *gin.Context, md grpc.ServerMetadata, message pr
 		for i := 0; i < hlen && i+1 < hlen; i += 2 {
 			ctx.Header(res.Header[i], res.Header[i+1])
 		}
-		ctx.Status(int(res.Status))
+		ctx.Status(int(res.StatusCode))
 		ctx.Writer.Write(res.Body)
 		return
 	}
