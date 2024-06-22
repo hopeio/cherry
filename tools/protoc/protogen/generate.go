@@ -277,9 +277,7 @@ func gengql() {
 					//这里用模板生成yml
 					t := template.Must(template.New("yml").Parse(ymlTpl))
 					config := fileInfos[i].Name() + `.gqlgen.yml`
-					_, err := os.Stat(config)
-					var file *os.File
-					file, err = os.Create(config)
+					file, err := os.Create(config)
 					if err != nil {
 						log.Panicln(err)
 					}
