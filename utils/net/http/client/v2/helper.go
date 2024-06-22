@@ -10,15 +10,15 @@ func GetRequest[RES any](url string) *Request[RES] {
 }
 
 func PostRequest[RES any](url string) *Request[RES] {
-	return (*Request[RES])(client.GetRequest(url))
+	return (*Request[RES])(client.PostRequest(url))
 }
 
 func PutRequest[RES any](url string) *Request[RES] {
-	return (*Request[RES])(client.GetRequest(url))
+	return (*Request[RES])(client.PutRequest(url))
 }
 
 func DeleteRequest[RES any](url string) *Request[RES] {
-	return (*Request[RES])(client.GetRequest(url))
+	return (*Request[RES])(client.DeleteRequest(url))
 }
 
 func Get[RES any](url string, param any) (*RES, error) {
