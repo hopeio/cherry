@@ -15,11 +15,11 @@ const (
 	EncodeTypeUnixNanoseconds
 )
 
-func SetJsonType(typ EncodeType) {
-	encoding.SetJsonType(typ)
+func SetEncodingType(typ EncodeType) {
+	encoding.SetType(typ)
 }
 
-func SetLayout(l string) {
+func SetEncodingLayout(l string) {
 	encoding.SetLayout(l)
 }
 
@@ -48,7 +48,7 @@ type Encoding struct {
 	Layout string
 }
 
-func (u *Encoding) SetJsonType(typ EncodeType) {
+func (u *Encoding) SetType(typ EncodeType) {
 	u.EncodeType = typ
 }
 
@@ -59,7 +59,7 @@ func (u *Encoding) SetLayout(l string) {
 func (u *Encoding) marshalText(t time.Time) ([]byte, error) {
 	switch u.EncodeType {
 	case EncodeTypeLayout:
-		if u.Layout == time.RFC3339Nano {
+		if u.Layout == "" || u.Layout == time.RFC3339Nano {
 			return t.MarshalText()
 		}
 		return []byte(t.Format(u.Layout)), nil

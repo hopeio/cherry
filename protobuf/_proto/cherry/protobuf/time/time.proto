@@ -9,18 +9,17 @@ message NanoTime {
   int64 nanos = 1;
 }
 
-message MilliTime {
-  int64 millis = 1;
-}
-
 message MacroTime {
   int64 macros = 1;
+}
+
+message MilliTime {
+  int64 millis = 1;
 }
 
 message SecondTime {
   int64 seconds = 1;
 }
-
 
 message Date {
   int64 seconds = 1;

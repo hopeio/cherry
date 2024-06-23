@@ -7,6 +7,18 @@ import (
 	"time"
 )
 
+// 毫秒
+type Timestamp = timestamp[milliTime]
+
+func NewTimeStamp(t time.Time) Timestamp {
+	return Timestamp(t.UnixMilli())
+}
+
+type SecondTimestamp = timestamp[secondTime]
+type MilliTimestamp = timestamp[milliTime]
+type MicroTimestamp = timestamp[microTime]
+type NanoTimestamp = timestamp[nanoTime]
+
 type TimestampConstraints interface {
 	Timestamp(time.Time) int64
 	Time(int64) time.Time
@@ -52,73 +64,61 @@ func (t *timestamp[T]) UnmarshalJSON(data []byte) error {
 }
 
 // go生成的纳米级时间戳最后两位恒为0
-type NanoTime struct{}
+type nanoTime struct{}
 
-func (NanoTime) Encoding() *Encoding {
+func (nanoTime) Encoding() *Encoding {
 	return &Encoding{
 		EncodeType: EncodeTypeUnixNanoseconds,
 	}
 }
 
-func (NanoTime) Timestamp(t time.Time) int64 {
+func (nanoTime) Timestamp(t time.Time) int64 {
 	return t.UnixNano()
 }
-func (NanoTime) Time(t int64) time.Time {
+func (nanoTime) Time(t int64) time.Time {
 	return time.Unix(0, t)
 }
 
-type MicroTime struct{}
+type microTime struct{}
 
-func (MicroTime) Encoding() *Encoding {
+func (microTime) Encoding() *Encoding {
 	return &Encoding{
 		EncodeType: EncodeTypeUnixMicroseconds,
 	}
 }
-func (MicroTime) Timestamp(t time.Time) int64 {
+func (microTime) Timestamp(t time.Time) int64 {
 	return t.UnixMicro()
 }
-func (MicroTime) Time(t int64) time.Time {
+func (microTime) Time(t int64) time.Time {
 	return time.UnixMicro(t)
 }
 
-type MilliTime struct{}
+type milliTime struct{}
 
-func (MilliTime) Encoding() *Encoding {
+func (milliTime) Encoding() *Encoding {
 	return &Encoding{
 		EncodeType: EncodeTypeUnixMilliseconds,
 	}
 }
 
-func (MilliTime) Timestamp(t time.Time) int64 {
+func (milliTime) Timestamp(t time.Time) int64 {
 	return t.UnixMilli()
 }
-func (MilliTime) Time(t int64) time.Time {
+func (milliTime) Time(t int64) time.Time {
 	return time.UnixMilli(t)
 }
 
-type SecondTime struct{}
+type secondTime struct{}
 
-func (SecondTime) Encoding() *Encoding {
+func (secondTime) Encoding() *Encoding {
 	return &Encoding{
 		EncodeType: EncodeTypeUnixSeconds,
 	}
 }
 
-func (SecondTime) Timestamp(t time.Time) int64 {
+func (secondTime) Timestamp(t time.Time) int64 {
 	return t.Unix()
 }
-func (SecondTime) Time(t int64) time.Time {
+func (secondTime) Time(t int64) time.Time {
 	return time.Unix(t, 0)
 }
-
-// 毫秒
-type Timestamp = timestamp[MilliTime]
-
-func NewTimeStamp(t time.Time) Timestamp {
-	return Timestamp(t.UnixMilli())
-}
-
-type SecondTimestamp = timestamp[SecondTime]
-type MilliTimestamp = timestamp[MilliTime]
-type MicroTimestamp = timestamp[MicroTime]
-type NanoTimestamp = timestamp[NanoTime]

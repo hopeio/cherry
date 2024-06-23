@@ -6,5 +6,14 @@ option java_package = "xyz.hoper.cherry.protobuf.any";
 option java_multiple_files = true;
 
 message RawJson {
-    bytes b = 1;
+    bytes data = 1;
+}
+
+enum Encoding {
+    JSON = 0;
+}
+
+message RawData {
+    bytes data = 1;
+    Encoding encoding = 2;
 }

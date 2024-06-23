@@ -1,4 +1,4 @@
-package timestamp
+package duration
 
 import (
 	"google.golang.org/protobuf/runtime/protoimpl"

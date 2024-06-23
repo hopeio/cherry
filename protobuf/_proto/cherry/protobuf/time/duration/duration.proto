@@ -35,7 +35,7 @@ package duration;
 import "protoc-gen-openapiv2/options/annotations.proto";
 
 option cc_enable_arenas = true;
-option go_package = "github.com/hopeio/cherry/protobuf/time/timestamp";
+option go_package = "github.com/hopeio/cherry/protobuf/time/duration";
 option java_package = "com.google.protobuf";
 option java_outer_classname = "DurationProto";
 option java_multiple_files = true;

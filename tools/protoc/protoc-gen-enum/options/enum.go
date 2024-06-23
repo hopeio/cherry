@@ -1,16 +1,30 @@
-package plugin
+package options
 
 import (
 	"github.com/hopeio/cherry/protobuf/utils/enum"
+	gopb "github.com/hopeio/cherry/protobuf/utils/patch"
 	protogeni "github.com/hopeio/cherry/utils/encoding/protobuf/protogen"
 	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/proto"
 )
 
-func TurnOffExtGenAll(f *protogen.File) bool {
+func FileOptions(o *protogen.File) *gopb.FileOptions {
+	return proto.GetExtension(o.Desc.Options(), gopb.E_File).(*gopb.FileOptions)
+}
+
+func ValueOptions(v *protogen.Enum) *gopb.Options {
+	return proto.GetExtension(v.Desc.Options(), gopb.E_Enum).(*gopb.Options)
+}
+
+func EnumValueOptions(v *protogen.EnumValue) *gopb.Options {
+	return proto.GetExtension(v.Desc.Options(), gopb.E_Value).(*gopb.Options)
+}
+
+func NoExtGenAll(f *protogen.File) bool {
 	return protogeni.GetOptionWithDefault[bool](f.Desc, enum.E_EnumNoExtgenAll, false)
 }
 
-func TurnOffExtGen(e *protogen.Enum) bool {
+func NoExtGen(e *protogen.Enum) bool {
 	return protogeni.GetOptionWithDefault[bool](e.Desc, enum.E_EnumNoExtgen, false)
 }
 
@@ -22,7 +36,7 @@ func GetEnumType(e *protogen.Enum) string {
 	return protogeni.GetOptionWithDefault[string](e.Desc, enum.E_EnumCustomtype, "int32")
 }
 
-func TurnOffEnumValueMap(e *protogen.Enum) bool {
+func NoEnumValueMap(e *protogen.Enum) bool {
 	return protogeni.GetOptionWithDefault[bool](e.Desc, enum.E_EnumNoGenvaluemap, false)
 }
 
@@ -49,7 +63,7 @@ func EnabledEnumGqlGen(f *protogen.File, e *protogen.Enum) bool {
 	return protogeni.GetOptionWithDefault[bool](f.Desc, enum.E_EnumGqlgenAll, true)
 }
 
-func EnabledGoEnumPrefix(f *protogen.File, e *protogen.Enum) bool {
+func NoEnumPrefix(f *protogen.File, e *protogen.Enum) bool {
 	if v, ok := protogeni.GetOption[bool](e.Desc, enum.E_EnumNoPrefix); ok {
 		return v
 	}

@@ -9,41 +9,41 @@ func NewAny(v interface{}) (*RawJson, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &RawJson{B: data}, nil
+	return &RawJson{Data: data}, nil
 }
 
 func BytesToJsonAny(b []byte) *RawJson {
 	b = append([]byte{'"'}, b...)
-	return &RawJson{B: append(b, '"')}
+	return &RawJson{Data: append(b, '"')}
 }
 
 func StringToJsonAny(s string) *RawJson {
-	return &RawJson{B: []byte("\"" + s + "\"")}
+	return &RawJson{Data: []byte("\"" + s + "\"")}
 }
 
 func (a *RawJson) MarshalJSON() ([]byte, error) {
-	if len(a.B) == 0 {
+	if len(a.Data) == 0 {
 		return []byte("null"), nil
 	}
-	return a.B, nil
+	return a.Data, nil
 }
 
 func (a *RawJson) Size() int {
-	return len(a.B)
+	return len(a.Data)
 }
 
 func (a *RawJson) MarshalTo(b []byte) (int, error) {
-	return copy(b, a.B), nil
+	return copy(b, a.Data), nil
 }
 
 func (a *RawJson) Unmarshal(b []byte) error {
-	a.B = b
+	a.Data = b
 	return nil
 }
 
 func (a *RawJson) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
-	i -= len(a.B)
-	copy(dAtA[i:], a.B)
-	return len(a.B), nil
+	i -= len(a.Data)
+	copy(dAtA[i:], a.Data)
+	return len(a.Data), nil
 }

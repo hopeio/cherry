@@ -68,53 +68,6 @@ func (x *NanoTime) GetNanos() int64 {
 	return 0
 }
 
-type MilliTime struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Millis int64 `protobuf:"varint,1,opt,name=millis,proto3" json:"millis,omitempty"`
-}
-
-func (x *MilliTime) Reset() {
-	*x = MilliTime{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_cherry_protobuf_time_time_proto_msgTypes[1]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *MilliTime) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*MilliTime) ProtoMessage() {}
-
-func (x *MilliTime) ProtoReflect() protoreflect.Message {
-	mi := &file_cherry_protobuf_time_time_proto_msgTypes[1]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use MilliTime.ProtoReflect.Descriptor instead.
-func (*MilliTime) Descriptor() ([]byte, []int) {
-	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *MilliTime) GetMillis() int64 {
-	if x != nil {
-		return x.Millis
-	}
-	return 0
-}
-
 type MacroTime struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -126,7 +79,7 @@ type MacroTime struct {
 func (x *MacroTime) Reset() {
 	*x = MacroTime{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cherry_protobuf_time_time_proto_msgTypes[2]
+		mi := &file_cherry_protobuf_time_time_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -139,7 +92,7 @@ func (x *MacroTime) String() string {
 func (*MacroTime) ProtoMessage() {}
 
 func (x *MacroTime) ProtoReflect() protoreflect.Message {
-	mi := &file_cherry_protobuf_time_time_proto_msgTypes[2]
+	mi := &file_cherry_protobuf_time_time_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -152,12 +105,59 @@ func (x *MacroTime) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MacroTime.ProtoReflect.Descriptor instead.
 func (*MacroTime) Descriptor() ([]byte, []int) {
-	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{2}
+	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *MacroTime) GetMacros() int64 {
 	if x != nil {
 		return x.Macros
+	}
+	return 0
+}
+
+type MilliTime struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Millis int64 `protobuf:"varint,1,opt,name=millis,proto3" json:"millis,omitempty"`
+}
+
+func (x *MilliTime) Reset() {
+	*x = MilliTime{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cherry_protobuf_time_time_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MilliTime) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MilliTime) ProtoMessage() {}
+
+func (x *MilliTime) ProtoReflect() protoreflect.Message {
+	mi := &file_cherry_protobuf_time_time_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MilliTime.ProtoReflect.Descriptor instead.
+func (*MilliTime) Descriptor() ([]byte, []int) {
+	return file_cherry_protobuf_time_time_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *MilliTime) GetMillis() int64 {
+	if x != nil {
+		return x.Millis
 	}
 	return 0
 }
@@ -419,12 +419,12 @@ var file_cherry_protobuf_time_time_proto_rawDesc = []byte{
 	0x66, 0x2f, 0x74, 0x69, 0x6d, 0x65, 0x2f, 0x74, 0x69, 0x6d, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
 	0x6f, 0x12, 0x04, 0x74, 0x69, 0x6d, 0x65, 0x22, 0x20, 0x0a, 0x08, 0x4e, 0x61, 0x6e, 0x6f, 0x54,
 	0x69, 0x6d, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x6e, 0x61, 0x6e, 0x6f, 0x73, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x03, 0x52, 0x05, 0x6e, 0x61, 0x6e, 0x6f, 0x73, 0x22, 0x23, 0x0a, 0x09, 0x4d, 0x69, 0x6c,
-	0x6c, 0x69, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x6d, 0x69, 0x6c, 0x6c, 0x69, 0x73,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x06, 0x6d, 0x69, 0x6c, 0x6c, 0x69, 0x73, 0x22, 0x23,
-	0x0a, 0x09, 0x4d, 0x61, 0x63, 0x72, 0x6f, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x6d,
-	0x61, 0x63, 0x72, 0x6f, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x06, 0x6d, 0x61, 0x63,
-	0x72, 0x6f, 0x73, 0x22, 0x26, 0x0a, 0x0a, 0x53, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x54, 0x69, 0x6d,
+	0x28, 0x03, 0x52, 0x05, 0x6e, 0x61, 0x6e, 0x6f, 0x73, 0x22, 0x23, 0x0a, 0x09, 0x4d, 0x61, 0x63,
+	0x72, 0x6f, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x6d, 0x61, 0x63, 0x72, 0x6f, 0x73,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x06, 0x6d, 0x61, 0x63, 0x72, 0x6f, 0x73, 0x22, 0x23,
+	0x0a, 0x09, 0x4d, 0x69, 0x6c, 0x6c, 0x69, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x6d,
+	0x69, 0x6c, 0x6c, 0x69, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x06, 0x6d, 0x69, 0x6c,
+	0x6c, 0x69, 0x73, 0x22, 0x26, 0x0a, 0x0a, 0x53, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x54, 0x69, 0x6d,
 	0x65, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x18, 0x01, 0x20, 0x01,
 	0x28, 0x03, 0x52, 0x07, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x22, 0x20, 0x0a, 0x04, 0x44,
 	0x61, 0x74, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x18, 0x01,
@@ -458,8 +458,8 @@ func file_cherry_protobuf_time_time_proto_rawDescGZIP() []byte {
 var file_cherry_protobuf_time_time_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_cherry_protobuf_time_time_proto_goTypes = []interface{}{
 	(*NanoTime)(nil),   // 0: time.NanoTime
-	(*MilliTime)(nil),  // 1: time.MilliTime
-	(*MacroTime)(nil),  // 2: time.MacroTime
+	(*MacroTime)(nil),  // 1: time.MacroTime
+	(*MilliTime)(nil),  // 2: time.MilliTime
 	(*SecondTime)(nil), // 3: time.SecondTime
 	(*Date)(nil),       // 4: time.Date
 	(*Duration)(nil),   // 5: time.Duration
@@ -493,7 +493,7 @@ func file_cherry_protobuf_time_time_proto_init() {
 			}
 		}
 		file_cherry_protobuf_time_time_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*MilliTime); i {
+			switch v := v.(*MacroTime); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -505,7 +505,7 @@ func file_cherry_protobuf_time_time_proto_init() {
 			}
 		}
 		file_cherry_protobuf_time_time_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*MacroTime); i {
+			switch v := v.(*MilliTime); i {
 			case 0:
 				return &v.state
 			case 1:

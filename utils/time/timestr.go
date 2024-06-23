@@ -6,9 +6,9 @@ type Layout interface {
 	Layout() string
 }
 
-type StrTime[T Layout] string
+type TimeStr[T Layout] string
 
-func (t StrTime[T]) Time() (time.Time, error) {
+func (t TimeStr[T]) Time() (time.Time, error) {
 	var v T
 	parse, err := time.Parse(v.Layout(), string(t))
 	if err != nil {
@@ -17,28 +17,28 @@ func (t StrTime[T]) Time() (time.Time, error) {
 	return parse, nil
 }
 
-func (dt StrTime[T]) MarshalJSON() ([]byte, error) {
+func (dt TimeStr[T]) MarshalJSON() ([]byte, error) {
 	return []byte(`"` + dt + `"`), nil
 }
 
-func (dt *StrTime[T]) UnmarshalJSON(data []byte) error {
+func (dt *TimeStr[T]) UnmarshalJSON(data []byte) error {
 	str := string(data)
 	// Ignore null, like in the main JSON package.
 	if str == "null" {
 		return nil
 	}
-	*dt = StrTime[T](str[1 : len(str)-1])
+	*dt = TimeStr[T](str[1 : len(str)-1])
 	return nil
 }
 
 // time.DateTime
-type DateTimeStr = StrTime[EdateTime]
+type DateTimeStr = TimeStr[EdateTime]
 
 func NewDateTimeStr(t time.Time) DateTimeStr {
 	return DateTimeStr(t.Format(time.DateTime))
 }
 
-type DateStr = StrTime[Edate]
+type DateStr = TimeStr[Edate]
 
 func NewDateStr(t time.Time) DateStr {
 	return DateStr(t.Format(time.DateOnly))

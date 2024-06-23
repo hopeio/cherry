@@ -6,46 +6,10 @@ import (
 	"time"
 )
 
-type UnixSecondTime = Time[SecondTime]
-type UnixMilliTime = Time[MilliTime]
-type UnixMicroTime = Time[MicroTime]
-type UnixNanoTime = Time[NanoTime]
-
-type Edate struct{}
-
-func (Edate) Layout() string {
-	return time.DateOnly
-}
-
-func (Edate) Encoding() *Encoding {
-	return &Encoding{
-		Layout: time.DateOnly,
-	}
-}
-
-type EdateTime struct{}
-
-func (EdateTime) Layout() string {
-	return time.DateTime
-}
-
-func (EdateTime) Encoding() *Encoding {
-	return &Encoding{
-		Layout: time.DateTime,
-	}
-}
-
-type Etime struct{}
-
-func (Etime) Encoding() *Encoding {
-	return &Encoding{
-		Layout: time.RFC3339,
-	}
-}
-
-func (Etime) Layout() string {
-	return time.RFC3339
-}
+type SecondTime = Time[secondTime]
+type MilliTime = Time[milliTime]
+type MicroTime = Time[microTime]
+type NanoTime = Time[nanoTime]
 
 type Encode interface {
 	Encoding() *Encoding
@@ -105,4 +69,40 @@ func (dt Time[T]) MarshalJSON() ([]byte, error) {
 func (dt *Time[T]) UnmarshalJSON(data []byte) error {
 	var v T
 	return v.Encoding().unmarshalJSON((*time.Time)(dt), data)
+}
+
+type Edate struct{}
+
+func (Edate) Layout() string {
+	return time.DateOnly
+}
+
+func (Edate) Encoding() *Encoding {
+	return &Encoding{
+		Layout: time.DateOnly,
+	}
+}
+
+type EdateTime struct{}
+
+func (EdateTime) Layout() string {
+	return time.DateTime
+}
+
+func (EdateTime) Encoding() *Encoding {
+	return &Encoding{
+		Layout: time.DateTime,
+	}
+}
+
+type Etime struct{}
+
+func (Etime) Encoding() *Encoding {
+	return &Encoding{
+		Layout: time.RFC3339,
+	}
+}
+
+func (Etime) Layout() string {
+	return time.RFC3339
 }

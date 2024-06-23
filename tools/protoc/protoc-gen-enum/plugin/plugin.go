@@ -63,7 +63,7 @@ func (b *Builder) Generate() error {
 			continue
 		}
 
-		if TurnOffExtGenAll(protoFile) || len(protoFile.Enums) == 0 {
+		if options.NoExtGenAll(protoFile) || len(protoFile.Enums) == 0 {
 			continue
 		}
 
@@ -72,7 +72,7 @@ func (b *Builder) Generate() error {
 		genFileMap[fileName] = g
 		// third traverse: build associations
 		for _, enum := range protoFile.Enums {
-			if TurnOffExtGen(enum) {
+			if options.NoExtGen(enum) {
 				genFileMap[fileName] = g
 				break
 			}
@@ -100,16 +100,16 @@ func (b *Builder) Generate() error {
 
 func (b *Builder) generate(f *protogen.File, e *protogen.Enum, g *protogen.GeneratedFile) {
 
-	if EnabledEnumStringer(e) {
+	if options.EnabledEnumStringer(e) {
 		b.generateString(f, e, g)
 	}
-	if EnabledEnumJsonMarshal(f, e) {
+	if options.EnabledEnumJsonMarshal(f, e) {
 		b.generateJsonMarshal(e, g)
 	}
-	if EnabledEnumErrCode(e) {
+	if options.EnabledEnumErrCode(e) {
 		b.generateErrCode(e, g)
 	}
-	if EnabledEnumGqlGen(f, e) {
+	if options.EnabledEnumGqlGen(f, e) {
 		b.generateGQLMarshal(e, g)
 	}
 }
@@ -117,15 +117,20 @@ func (b *Builder) generate(f *protogen.File, e *protogen.Enum, g *protogen.Gener
 func (b *Builder) generateString(f *protogen.File, e *protogen.Enum, g *protogen.GeneratedFile) {
 	noEnumPrefix := options.FileOptions(f).GetNoEnumPrefix()
 	ccTypeName := e.GoIdent
-
-	g.P("func (x ", ccTypeName, ") String() string {")
+	stringerName := options.ValueOptions(e).GetStringerName()
+	if stringerName == "" || stringerName == "String" {
+		stringerName = "NewString"
+	} else {
+		stringerName = "String"
+	}
+	g.P("func (x ", ccTypeName, ") "+stringerName+"() string {")
 	g.P()
 	if len(e.Values) > 64 {
 		g.P("return ", ccTypeName, "_name[x]")
 	} else {
 		g.P("switch x {")
 		for _, ev := range e.Values {
-			opts := options.ValueOptions(ev)
+			opts := options.EnumValueOptions(ev)
 			name := opts.GetName()
 			if name == "" {
 				name = ev.GoIdent.GoName
@@ -137,7 +142,7 @@ func (b *Builder) generateString(f *protogen.File, e *protogen.Enum, g *protogen
 			//PrintComments(e.Comments, g)
 
 			g.P("case ", name, " :")
-			if cn := GetEnumValueCN(ev); cn != "" {
+			if cn := options.GetEnumValueCN(ev); cn != "" {
 				g.P("return ", strconv.Quote(cn))
 			} else {
 				g.P("return ", strconv.Quote(name))
@@ -155,7 +160,7 @@ func (b *Builder) generateGQLMarshal(e *protogen.Enum, g *protogen.GeneratedFile
 	ccTypeName := e.GoIdent
 
 	typ := "uint32"
-	if typ1 := GetEnumType(e); typ1 != "" {
+	if typ1 := options.GetEnumType(e); typ1 != "" {
 		typ = typ1
 	}
 	g.P("func (x ", ccTypeName, ") MarshalGQL(w ", b.importIo.Ident("Writer"), ") {")

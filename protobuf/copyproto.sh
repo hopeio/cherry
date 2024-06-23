@@ -45,6 +45,10 @@ cp  $validatorsDir/proto/protovalidate/buf/validate/*.proto $protoDir/buf/valida
 cp  $validatorsDir/proto/protovalidate/buf/validate/priv/*.proto $protoDir/buf/validate/priv/
 mkdir -p $protoDir/google/protobuf
 cp  $protobufDir/src/google/protobuf/*.proto $protoDir/google/protobuf
+rm $protoDir/google/protobuf/unittest*.proto
+rm $protoDir/google/protobuf/test_*.proto
+rm $protoDir/google/protobuf/*unittest.proto
+rm $protoDir/google/protobuf/*_test.proto
 #不使用github.com/alta/protopatch
 mkdir -p $protoDir/patch
 cp  $protopatchDir/patch/*.proto $protoDir/patch
