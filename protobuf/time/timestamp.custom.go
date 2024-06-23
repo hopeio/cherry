@@ -46,7 +46,10 @@ func (ts *Timestamp) GobDecode(data []byte) error {
 }
 
 func (ts *Timestamp) MarshalJSON() ([]byte, error) {
-	t := time.Unix(0, ts.Millis)
+	if ts == nil {
+		return []byte("null"), nil
+	}
+	t := time.UnixMilli(ts.Millis)
 	return timei.MarshalJSON(t)
 }
 

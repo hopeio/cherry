@@ -17,6 +17,9 @@ func (ts *Date) Scan(value interface{}) (err error) {
 }
 
 func (ts *Date) Value() (driver.Value, error) {
+	if ts == nil {
+		return nil, nil
+	}
 	return time.Unix(ts.Seconds, 0), nil
 }
 
@@ -47,6 +50,9 @@ func (ts *Date) GobDecode(data []byte) error {
 }
 
 func (ts *Date) MarshalJSON() ([]byte, error) {
+	if ts == nil {
+		return []byte("null"), nil
+	}
 	t := time.Unix(ts.Seconds, 0)
 	if y := t.Year(); y < 0 || y >= 10000 {
 		// RFC 3339 is clear that years are 4 digits exactly.

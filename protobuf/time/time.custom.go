@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"errors"
 	"github.com/hopeio/cherry/utils/encoding/binary"
+	timei "github.com/hopeio/cherry/utils/time"
 	"google.golang.org/protobuf/runtime/protoimpl"
 	"io"
 	"time"
@@ -27,7 +28,7 @@ func (x *Time) AsTime() time.Time {
 // IsValid reports whether the timestamp is valid.
 // It is equivalent to CheckValid == nil.
 func (x *Time) IsValid() bool {
-	return x != nil && x.check() == 0
+	return x != nil && timei.Check(x) == 0
 }
 
 // CheckValid returns an error if the timestamp is invalid.
@@ -35,51 +36,24 @@ func (x *Time) IsValid() bool {
 // in the range of 0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z inclusive.
 // An error is reported for a nil Timestamp.
 func (x *Time) CheckValid() error {
-	switch x.check() {
-	case invalidNil:
-		return protoimpl.X.NewError("invalid nil Timestamp")
-	case invalidUnderflow:
-		return protoimpl.X.NewError("timestamp (%v) before 0001-01-01", x)
-	case invalidOverflow:
-		return protoimpl.X.NewError("timestamp (%v) after 9999-12-31", x)
-	case invalidNanos:
-		return protoimpl.X.NewError("timestamp (%v) has out-of-range nanos", x)
+	switch timei.Check(x) {
+	case timei.InvalidNil:
+		return protoimpl.X.NewError("invalid nil time")
+	case timei.InvalidUnderflow:
+		return protoimpl.X.NewError("time (%v) before 0001-01-01", x)
+	case timei.InvalidOverflow:
+		return protoimpl.X.NewError("time (%v) after 9999-12-31", x)
+	case timei.InvalidNanos:
+		return protoimpl.X.NewError("time (%v) has out-of-range nanos", x)
 	default:
 		return nil
-	}
-}
-
-const (
-	_ = iota
-	invalidNil
-	invalidUnderflow
-	invalidOverflow
-	invalidNanos
-)
-
-func (x *Time) check() uint {
-	const minTimestamp = -62135596800  // Seconds between 1970-01-01T00:00:00Z and 0001-01-01T00:00:00Z, inclusive
-	const maxTimestamp = +253402300799 // Seconds between 1970-01-01T00:00:00Z and 9999-12-31T23:59:59Z, inclusive
-	secs := x.GetSeconds()
-	nanos := x.GetNanos()
-	switch {
-	case x == nil:
-		return invalidNil
-	case secs < minTimestamp:
-		return invalidUnderflow
-	case secs > maxTimestamp:
-		return invalidOverflow
-	case nanos < 0 || nanos >= 1e9:
-		return invalidNanos
-	default:
-		return 0
 	}
 }
 
 func (ts *Time) Scan(value interface{}) (err error) {
 	nullTime := &sql.NullTime{}
 	err = nullTime.Scan(value)
-	*ts = Time{Seconds: nullTime.Time.UnixMilli(), Nanos: int32(nullTime.Time.Nanosecond())}
+	*ts = Time{Seconds: nullTime.Time.Unix(), Nanos: int32(nullTime.Time.Nanosecond())}
 	return
 }
 
@@ -92,7 +66,7 @@ func (ts *Time) GormDataType() string {
 }
 
 func (ts *Time) Time() time.Time {
-	return time.Unix(ts.Seconds, 0)
+	return time.Unix(ts.Seconds, int64(ts.Nanos))
 }
 
 func (ts *Time) MarshalBinary() ([]byte, error) {
@@ -114,44 +88,35 @@ func (ts *Time) GobDecode(data []byte) error {
 }
 
 func (ts *Time) MarshalJSON() ([]byte, error) {
-	t := time.Unix(ts.Seconds, 0)
-	if y := t.Year(); y < 0 || y >= 10000 {
-		// RFC 3339 is clear that years are 4 digits exactly.
-		// See golang.org/issue/4556#c15 for more discussion.
-		return nil, errors.New("Time.MarshalJSON: year outside of range [0,9999]")
+	if ts == nil {
+		return []byte("null"), nil
 	}
-
-	b := make([]byte, 0, len(time.DateOnly)+2)
-	b = append(b, '"')
-	b = t.AppendFormat(b, time.DateOnly)
-	b = append(b, '"')
-	return b, nil
+	return timei.MarshalJSON(ts.Time())
 }
 
 func (ts *Time) UnmarshalJSON(data []byte) error {
-	str := string(data)
-	if len(str) == 0 || str == "null" {
-		return nil
-	}
-	t, err := time.ParseInLocation(time.DateOnly, str[1:len(str)-1], time.Local)
+	var t time.Time
+	err := timei.UnmarshalJSON(&t, data)
 	if err != nil {
 		return err
 	}
-	ts.Seconds = t.Unix()
+	ts.Seconds, ts.Nanos = t.Unix(), int32(t.Nanosecond())
 	return nil
 }
+
 func (x *Time) MarshalGQL(w io.Writer) {
-	w.Write([]byte(time.Unix(x.Seconds, 0).Format(time.DateOnly)))
+	text, _ := timei.MarshalText(x.Time())
+	w.Write(text)
 }
 
 func (x *Time) UnmarshalGQL(v interface{}) error {
 	if i, ok := v.(string); ok {
-		t, err := time.ParseInLocation(time.DateOnly, i, time.Local)
+		var t time.Time
+		err := timei.UnmarshalText(&t, []byte(i))
 		if err != nil {
 			return err
 		}
-		x.Seconds = t.Unix()
-		return nil
+		x.Seconds, x.Nanos = t.Unix(), int32(t.Nanosecond())
 	}
 	return errors.New("enum need integer type")
 }

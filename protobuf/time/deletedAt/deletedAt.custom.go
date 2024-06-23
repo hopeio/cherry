@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"errors"
 	timei "github.com/hopeio/cherry/utils/time"
+	"github.com/jinzhu/now"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"gorm.io/gorm/schema"
@@ -19,52 +20,25 @@ func (t *DeletedAt) Time() time.Time {
 }
 
 func (x *DeletedAt) IsValid() bool {
-	return x != nil && x.check() == 0
-}
-
-const (
-	_ = iota
-	invalidNil
-	invalidUnderflow
-	invalidOverflow
-	invalidNanos
-)
-
-func (x *DeletedAt) check() uint {
-	const minTimestamp = -62135596800  // Seconds between 1970-01-01T00:00:00Z and 0001-01-01T00:00:00Z, inclusive
-	const maxTimestamp = +253402300799 // Seconds between 1970-01-01T00:00:00Z and 9999-12-31T23:59:59Z, inclusive
-	secs := x.GetSeconds()
-	nanos := x.GetNanos()
-	switch {
-	case x == nil:
-		return invalidNil
-	case secs < minTimestamp:
-		return invalidUnderflow
-	case secs > maxTimestamp:
-		return invalidOverflow
-	case nanos < 0 || nanos >= 1e9:
-		return invalidNanos
-	default:
-		return 0
-	}
+	return x != nil && timei.Check(x) == 0
 }
 
 // Scan implements the Scanner interface.
-func (ts *DeletedAt) Scan(value interface{}) error {
+func (x *DeletedAt) Scan(value interface{}) error {
 	nullTime := &sql.NullTime{}
 	err := nullTime.Scan(value)
 	if err != nil {
 		return err
 	}
 	if nullTime.Valid {
-		*ts = DeletedAt{Seconds: nullTime.Time.Unix(), Nanos: int32(nullTime.Time.Nanosecond())}
+		*x = DeletedAt{Seconds: nullTime.Time.Unix(), Nanos: int32(nullTime.Time.Nanosecond())}
 	}
 	return nil
 }
 
 // Value implements the driver Valuer interface.
 func (t *DeletedAt) Value() (driver.Value, error) {
-	if t == nil {
+	if t == nil || timei.Check(t) != 0 {
 		return nil, nil
 	}
 	return time.Unix(t.Seconds, int64(t.Nanos)), nil
@@ -80,7 +54,16 @@ var (
 )
 
 func (*DeletedAt) QueryClauses(f *schema.Field) []clause.Interface {
-	return []clause.Interface{SoftDeleteQueryClause{Field: f}}
+	return []clause.Interface{gorm.SoftDeleteQueryClause{Field: f, ZeroValue: parseZeroValueTag(f)}}
+}
+
+func parseZeroValueTag(f *schema.Field) sql.NullString {
+	if v, ok := f.TagSettings["ZEROVALUE"]; ok {
+		if _, err := now.Parse(v); err == nil {
+			return sql.NullString{String: v, Valid: true}
+		}
+	}
+	return sql.NullString{Valid: false}
 }
 
 type SoftDeleteQueryClause struct {
@@ -126,20 +109,11 @@ func (sd SoftDeleteQueryClause) ModifyStatement(stmt *gorm.Statement) {
 }
 
 func (*DeletedAt) DeleteClauses(f *schema.Field) []clause.Interface {
-	settings := schema.ParseTagSetting(f.TagSettings["SOFTDELETE"], ",")
-	softDeleteClause := SoftDeleteDeleteClause{
-		Field:    f,
-		Flag:     settings["FLAG"] != "",
-		TimeType: getTimeType(settings),
-	}
-	if v := settings["DELETEDATFIELD"]; v != "" { // DeletedAtField
-		softDeleteClause.DeleteAtField = f.Schema.LookUpField(v)
-	}
-	return []clause.Interface{softDeleteClause}
+	return []clause.Interface{gorm.SoftDeleteDeleteClause{Field: f, ZeroValue: parseZeroValueTag(f)}}
 }
 
 func (*DeletedAt) UpdateClauses(f *schema.Field) []clause.Interface {
-	return []clause.Interface{SoftDeleteUpdateClause{Field: f}}
+	return []clause.Interface{gorm.SoftDeleteUpdateClause{Field: f}}
 }
 
 type SoftDeleteUpdateClause struct {
@@ -284,6 +258,9 @@ func (x *DeletedAt) UnmarshalGQL(v interface{}) error {
 }
 
 func (t *DeletedAt) MarshalJSON() ([]byte, error) {
+	if t == nil {
+		return []byte("null"), nil
+	}
 	return timei.MarshalJSON(t.Time())
 }
 

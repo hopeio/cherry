@@ -83,7 +83,7 @@ func (u *Encoding) unmarshalText(t *time.Time, data []byte) error {
 
 	if u.EncodeType == EncodeTypeLayout {
 		data = data[1 : len(data)-1]
-		if u.Layout == time.RFC3339Nano {
+		if u.Layout == "" || u.Layout == time.RFC3339Nano {
 			return t.UnmarshalText(data)
 		} else {
 			var err error
@@ -116,7 +116,7 @@ func (u *Encoding) unmarshalText(t *time.Time, data []byte) error {
 
 func (u *Encoding) marshalJSON(t time.Time) ([]byte, error) {
 	if u.EncodeType == EncodeTypeLayout {
-		if u.Layout == time.RFC3339Nano {
+		if u.Layout == "" || u.Layout == time.RFC3339Nano {
 			return t.MarshalJSON()
 		}
 		return []byte(`"` + t.Format(u.Layout) + `"`), nil
@@ -143,7 +143,7 @@ func (u *Encoding) unmarshalJSON(t *time.Time, data []byte) error {
 	}
 	if u.EncodeType == EncodeTypeLayout {
 		data = data[1 : len(data)-1]
-		if u.Layout == time.RFC3339Nano {
+		if u.Layout == "" || u.Layout == time.RFC3339Nano {
 			return t.UnmarshalJSON(data)
 		} else {
 			var err error
