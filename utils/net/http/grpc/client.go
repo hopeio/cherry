@@ -14,15 +14,6 @@ import (
 
 var Internal = &metadata.MD{httpi.HeaderInternal: []string{"true"}}
 
-var ClientConns = make(clientConns)
-
-func ClientConnsClose() error {
-	if ClientConns != nil {
-		return ClientConns.Close()
-	}
-	return nil
-}
-
 type clientConns map[string]*grpc.ClientConn
 
 func (cs clientConns) Close() error {
@@ -40,19 +31,13 @@ func (cs clientConns) Close() error {
 }
 
 func NewClient(addr string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
-	if conn, ok := ClientConns[addr]; ok {
-		return conn, nil
-	}
 
 	// Set up a connection to the server.
 	conn, err := grpc.NewClient(addr, append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithStatsHandler(&stats.InternalClientHandler{}))...)
 	if err != nil {
 		return nil, err
 	}
-	if oldConn, ok := ClientConns[addr]; ok {
-		oldConn.Close()
-	}
-	ClientConns[addr] = conn
+
 	return conn, nil
 }
 
@@ -62,9 +47,5 @@ func NewTLSClient(addr string, opts ...grpc.DialOption) (*grpc.ClientConn, error
 	if err != nil {
 		return nil, err
 	}
-	if oldConn, ok := ClientConns[addr]; ok {
-		oldConn.Close()
-	}
-	ClientConns[addr] = conn
 	return conn, nil
 }

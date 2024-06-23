@@ -200,13 +200,6 @@ func (l *Logger) Warnf(template string, args ...any) {
 	}
 }
 
-// grpclog
-func (l *Logger) Warningf(template string, args ...any) {
-	if ce := l.Check(zap.WarnLevel, fmt.Sprintf(template, args...)); ce != nil {
-		ce.Write()
-	}
-}
-
 // Errorf uses fmt.Sprintf to log a templated message.
 func (l *Logger) Errorf(template string, args ...any) {
 	if ce := l.Check(zap.ErrorLevel, fmt.Sprintf(template, args...)); ce != nil {
@@ -240,37 +233,6 @@ func (l *Logger) Println(args ...any) {
 	if ce := l.Check(zap.InfoLevel, fmt.Sprint(args...)); ce != nil {
 		ce.Write()
 	}
-}
-
-// // 等同于xxxln,为了实现某些接口 如grpclog
-func (l *Logger) Infoln(args ...any) {
-	if ce := l.Check(zap.InfoLevel, fmt.Sprint(args...)); ce != nil {
-		ce.Write()
-	}
-}
-
-func (l *Logger) Warningln(args ...any) {
-	if ce := l.Check(zap.WarnLevel, fmt.Sprint(args...)); ce != nil {
-		ce.Write()
-	}
-}
-
-func (l *Logger) Errorln(args ...any) {
-	if ce := l.Check(zap.ErrorLevel, fmt.Sprint(args...)); ce != nil {
-		ce.Write()
-	}
-}
-
-func (l *Logger) Fatalln(args ...any) {
-	if ce := l.Check(zap.FatalLevel, fmt.Sprint(args...)); ce != nil {
-		ce.Write()
-	}
-}
-
-// grpclog
-func (l *Logger) V(level int) bool {
-	level -= 2
-	return l.Logger.Core().Enabled(zapcore.Level(level))
 }
 
 func (l *Logger) Debugfw(template string, args ...any) func(...zapcore.Field) {

@@ -24,7 +24,7 @@ import (
 
 func (s *Server) grpcHandler() *grpc.Server {
 	//conf := s.Config
-	grpclog.SetLoggerV2(zapgrpc.NewLogger(log.GetCallerSkipLogger(3).Logger))
+	grpclog.SetLoggerV2(zapgrpc.NewLogger(log.GetCallerSkipLogger(4).Logger))
 	if s.GrpcHandler != nil {
 		var stream = []grpc.StreamServerInterceptor{StreamAccess, StreamValidator}
 		var unary = []grpc.UnaryServerInterceptor{UnaryAccess(s.Config), UnaryValidator}
