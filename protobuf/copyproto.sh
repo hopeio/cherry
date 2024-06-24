@@ -49,6 +49,7 @@ rm $protoDir/google/protobuf/unittest*.proto
 rm $protoDir/google/protobuf/test_*.proto
 rm $protoDir/google/protobuf/*unittest.proto
 rm $protoDir/google/protobuf/*_test.proto
+rm $protoDir/google/protobuf/sample_messages_edition.proto.proto
 #不使用github.com/alta/protopatch
 mkdir -p $protoDir/patch
 cp  $protopatchDir/patch/*.proto $protoDir/patch

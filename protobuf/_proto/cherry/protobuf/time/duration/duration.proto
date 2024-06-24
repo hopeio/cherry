@@ -36,11 +36,11 @@ import "protoc-gen-openapiv2/options/annotations.proto";
 
 option cc_enable_arenas = true;
 option go_package = "github.com/hopeio/cherry/protobuf/time/duration";
-option java_package = "com.google.protobuf";
+option java_package = "xyz.hoper.cherry.protobuf.time.duration";
 option java_outer_classname = "DurationProto";
 option java_multiple_files = true;
-option objc_class_prefix = "GPB";
-option csharp_namespace = "Google.Protobuf.WellKnownTypes";
+option objc_class_prefix = "HCPB";
+option csharp_namespace = "Hoper.Cherry.Protobuf.Duration";
 
 // A Duration represents a signed, fixed-length span of time represented
 // as a count of seconds and fractions of seconds at nanosecond
