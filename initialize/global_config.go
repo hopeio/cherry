@@ -56,13 +56,16 @@ type globalConfig struct {
 	dao  Dao
 
 	*viper.Viper
-
 	/*
 		cacheConf      any*/
 	editTimes   uint32
 	defers      []func()
 	initialized bool
 	lock        sync.RWMutex
+
+	// 为后续仍有需要注入的config和dao保留的后门,与Inject(Config,Dao) 配合
+	injectConfs []Config
+	injectDaos  []Dao
 }
 
 func Start(conf Config, dao Dao, configCenter ...conf_center.ConfigCenter) func() {
@@ -99,8 +102,14 @@ func Start(conf Config, dao Dao, configCenter ...conf_center.ConfigCenter) func(
 }
 
 func (gc *globalConfig) setConfDao(conf Config, dao Dao) {
-	gc.conf = conf
-	gc.dao = dao
+	if !gc.initialized {
+		gc.conf = conf
+		gc.dao = dao
+	} else {
+		gc.injectConfs = append(gc.injectConfs, conf)
+		gc.injectDaos = append(gc.injectDaos, dao)
+	}
+
 	if dao != nil {
 		gc.defers = append(gc.defers, func() {
 			if err := closeDao(dao); err != nil {
@@ -174,17 +183,7 @@ func (gc *globalConfig) loadConfig() {
 	}
 
 	// hook function
-	gc.conf.InitBeforeInject()
-	if c, ok := gc.conf.(InitBeforeInjectWithInitConfig); ok {
-		c.InitBeforeInjectWithInitConfig(&gc.InitConfig)
-	}
-	if gc.dao != nil {
-		gc.dao.InitBeforeInject()
-		if c, ok := gc.dao.(InitBeforeInjectWithInitConfig); ok {
-			c.InitBeforeInjectWithInitConfig(&gc.InitConfig)
-		}
-	}
-
+	gc.beforeInjectCall(gc.conf, gc.dao)
 	gc.genConfigTemplate(singleTemplateFileConfig)
 
 	cfgcenter := gc.InitConfig.ConfigCenter.ConfigCenter
@@ -192,7 +191,19 @@ func (gc *globalConfig) loadConfig() {
 	if err != nil {
 		log.Fatalf("配置错误: %v", err)
 	}
+}
 
+func (gc *globalConfig) beforeInjectCall(conf Config, dao Dao) {
+	conf.InitBeforeInject()
+	if c, ok := conf.(InitBeforeInjectWithInitConfig); ok {
+		c.InitBeforeInjectWithInitConfig(&gc.InitConfig)
+	}
+	if dao != nil {
+		dao.InitBeforeInject()
+		if c, ok := dao.(InitBeforeInjectWithInitConfig); ok {
+			c.InitBeforeInjectWithInitConfig(&gc.InitConfig)
+		}
+	}
 }
 
 func (gc *globalConfig) DeferFunc(deferf ...func()) {

@@ -48,26 +48,6 @@ func DerefValue(v reflect.Value) reflect.Value {
 	}
 }
 
-// DerefPtrValue returns the underlying non-pointer type value.
-func DerefPtrValue(v reflect.Value) reflect.Value {
-	for v.Kind() == reflect.Ptr {
-		v = v.Elem()
-	}
-	return v
-}
-
-// DerefInterfaceValue returns the value of the underlying type that implements the interface v.
-func DerefInterfaceValue(v reflect.Value) reflect.Value {
-	for v.Kind() == reflect.Interface {
-		if ev := v.Elem(); ev.IsValid() {
-			v = ev
-		} else {
-			return v
-		}
-	}
-	return v
-}
-
 func InitPtr(v reflect.Value) reflect.Value {
 	for v.Kind() == reflect.Pointer {
 		if !v.IsValid() || v.IsNil() {

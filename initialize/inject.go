@@ -23,58 +23,50 @@ func (gc *globalConfig) UnmarshalAndSet(data []byte) {
 		}
 	}
 
-	tmpConfig := gc.newStruct()
-	err = gc.Viper.Unmarshal(tmpConfig, decoderConfigOptions...)
-	if err != nil {
-		if gc.editTimes == 0 {
-			log.Fatal(err)
-		} else {
-			log.Error(err)
-			return
-		}
-	}
-	applyFlagConfig(gc.Viper, tmpConfig)
-	gc.inject(tmpConfig)
+	gc.inject(gc.conf, gc.dao)
 	gc.editTimes++
 	gc.lock.Unlock()
-	log.Debugf("config:  %+v", tmpConfig)
 }
 
-func (gc *globalConfig) newStruct() any {
+func (gc *globalConfig) newStruct(conf Config, dao Dao) any {
 	nameValueMap := make(map[string]reflect.Value)
 	var structFields []reflect.StructField
+	var confValue reflect.Value
+	var confType reflect.Type
+	// BuiltinConfig
+	if !gc.initialized {
+		confValue = reflect.ValueOf(&gc.BuiltinConfig).Elem()
+		confType = confValue.Type()
+		for i := 0; i < confValue.NumField(); i++ {
+			field := confValue.Field(i).Addr()
 
-	confValue := reflect.ValueOf(&gc.BuiltinConfig).Elem()
-	confType := confValue.Type()
-	for i := 0; i < confValue.NumField(); i++ {
-		field := confValue.Field(i).Addr()
-
-		structField := confType.Field(i)
-		name := structField.Name
-		tagSettings := ParseInitTagSettings(structField.Tag.Get(initTagName))
-		if tagSettings.ConfigName != "" {
-			name = stringsi.UpperCaseFirst(tagSettings.ConfigName)
-		}
-
-		if field.CanInterface() {
-			inter := field.Interface()
-			if c, ok := inter.(InitBeforeInject); ok {
-				c.InitBeforeInject()
+			structField := confType.Field(i)
+			name := structField.Name
+			tagSettings := ParseInitTagSettings(structField.Tag.Get(initTagName))
+			if tagSettings.ConfigName != "" {
+				name = stringsi.UpperCaseFirst(tagSettings.ConfigName)
 			}
-			if c, ok := inter.(InitBeforeInjectWithInitConfig); ok {
-				c.InitBeforeInjectWithInitConfig(&gc.InitConfig)
-			}
-		}
-		structFields = append(structFields, reflect.StructField{
-			Name:      name,
-			Type:      field.Type(),
-			Tag:       structField.Tag,
-			Anonymous: structField.Anonymous,
-		})
 
-		nameValueMap[name] = field
+			if field.CanInterface() {
+				inter := field.Interface()
+				if c, ok := inter.(InitBeforeInject); ok {
+					c.InitBeforeInject()
+				}
+				if c, ok := inter.(InitBeforeInjectWithInitConfig); ok {
+					c.InitBeforeInjectWithInitConfig(&gc.InitConfig)
+				}
+			}
+			structFields = append(structFields, reflect.StructField{
+				Name:      name,
+				Type:      field.Type(),
+				Tag:       structField.Tag,
+				Anonymous: structField.Anonymous,
+			})
+
+			nameValueMap[name] = field
+		}
 	}
-	confValue = reflect.ValueOf(gc.conf).Elem()
+	confValue = reflect.ValueOf(conf).Elem()
 	confType = confValue.Type()
 	for i := 0; i < confValue.NumField(); i++ {
 		field := confValue.Field(i)
@@ -122,9 +114,8 @@ func (gc *globalConfig) newStruct() any {
 		nameValueMap[name] = field
 	}
 	// 不进行二次注入,无法确定业务中是否仍然使用,除非每次加锁,或者说每次业务中都交给一个零时变量?需要规范去控制
-	if gc.dao != nil {
-
-		daoValue := reflect.ValueOf(gc.dao).Elem()
+	if dao != nil {
+		daoValue := reflect.ValueOf(dao).Elem()
 		daoType := daoValue.Type()
 		for i := 0; i < daoValue.NumField(); i++ {
 			field := daoValue.Field(i)
@@ -194,22 +185,33 @@ func (gc *globalConfig) setNewStruct(value reflect.Value, typValueMap map[string
 }
 
 // 注入配置及生成DAO
-func (gc *globalConfig) inject(tmpConfig any) {
-	gc.confAfterInjectCall(tmpConfig)
-	gc.conf.InitAfterInject()
-	if c, ok := gc.conf.(InitAfterInjectWithInitConfig); ok {
+func (gc *globalConfig) inject(conf Config, dao Dao) {
+	tmpConfig := gc.newStruct(conf, dao)
+	err := gc.Viper.Unmarshal(tmpConfig, decoderConfigOptions...)
+	if err != nil {
+		if gc.editTimes == 0 {
+			log.Fatal(err)
+		} else {
+			log.Error(err)
+			return
+		}
+	}
+	applyFlagConfig(gc.Viper, tmpConfig)
+	conf.InitAfterInject()
+	if c, ok := conf.(InitAfterInjectWithInitConfig); ok {
 		c.InitAfterInjectWithInitConfig(&gc.InitConfig)
 	}
-	if gc.dao != nil {
-		gc.dao.InitAfterInjectConfig()
-		if c, ok := gc.conf.(InitAfterInjectConfigWithInitConfig); ok {
+	if dao != nil {
+		dao.InitAfterInjectConfig()
+		if c, ok := dao.(InitAfterInjectConfigWithInitConfig); ok {
 			c.InitAfterInjectConfigWithInitConfig(&gc.InitConfig)
 		}
-		gc.injectDao()
+		gc.injectDao(dao)
 	}
+	log.Debugf("config:  %+v", tmpConfig)
 }
 
-func (gc *globalConfig) confAfterInjectCall(tmpConfig any) {
+func (gc *globalConfig) afterInjectConfigCall(tmpConfig any) {
 	v := reflect.ValueOf(tmpConfig).Elem()
 	if !v.IsValid() {
 		return
@@ -228,8 +230,8 @@ func (gc *globalConfig) confAfterInjectCall(tmpConfig any) {
 	}
 }
 
-func (gc *globalConfig) injectDao() {
-	v := reflect.ValueOf(gc.dao).Elem()
+func (gc *globalConfig) injectDao(dao Dao) {
+	v := reflect.ValueOf(dao).Elem()
 	if !v.IsValid() {
 		return
 	}
@@ -259,8 +261,8 @@ func (gc *globalConfig) injectDao() {
 			}
 		}
 	}
-	gc.dao.InitAfterInject()
-	if c, ok := gc.dao.(InitAfterInjectWithInitConfig); ok {
+	dao.InitAfterInject()
+	if c, ok := dao.(InitAfterInjectWithInitConfig); ok {
 		c.InitAfterInjectWithInitConfig(&gc.InitConfig)
 	}
 }
@@ -271,23 +273,7 @@ func (gc *globalConfig) Inject(conf Config, dao Dao) error {
 		return errors.New("not initialize, please call Start")
 	}
 	gc.setConfDao(conf, dao)
-	gc.conf.InitBeforeInject()
-	if c, ok := gc.conf.(InitBeforeInjectWithInitConfig); ok {
-		c.InitBeforeInjectWithInitConfig(&gc.InitConfig)
-	}
-	if gc.dao != nil {
-		gc.dao.InitBeforeInject()
-		if c, ok := gc.dao.(InitBeforeInjectWithInitConfig); ok {
-			c.InitBeforeInjectWithInitConfig(&gc.InitConfig)
-		}
-	}
-	tmpConfig := gc.newStruct()
-	err := gc.Viper.Unmarshal(tmpConfig, decoderConfigOptions...)
-	if err != nil {
-		log.Error(err)
-		return err
-	}
-	applyFlagConfig(gc.Viper, tmpConfig)
-	gc.inject(tmpConfig)
+	gc.beforeInjectCall(conf, dao)
+	gc.inject(conf, dao)
 	return nil
 }

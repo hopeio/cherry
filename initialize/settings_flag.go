@@ -83,8 +83,11 @@ func injectFlagConfig(commandLine *pflag.FlagSet, viper *viper.Viper, fcValue re
 		flagTag := fieldType.Tag.Get(flagTagName)
 		fieldValue := fcValue.Field(i)
 		kind := fieldValue.Kind()
-		if kind == reflect.Pointer {
-			fieldValue = reflecti.InitPtr(fieldValue)
+		if kind == reflect.Pointer || kind == reflect.Interface {
+			fieldValue = reflecti.DerefValue(fieldValue)
+			if fieldValue.Kind() == reflect.Pointer && fieldValue.IsNil() {
+				continue
+			}
 			kind = fieldValue.Kind()
 		}
 		if flagTag != "" {
@@ -144,14 +147,4 @@ func parseFlag(commandLine *pflag.FlagSet) {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func deref(v reflect.Value) reflect.Value {
-	for v.Kind() == reflect.Pointer {
-		if !v.IsValid() || v.IsNil() {
-			v.Set(reflect.New(v.Type()))
-		}
-		v = v.Elem()
-	}
-	return v
 }

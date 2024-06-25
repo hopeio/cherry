@@ -187,20 +187,3 @@ func DerefType(typ reflect.Type) reflect.Type {
 		}
 	}
 }
-
-// 获取引用类型的底层类型
-// Deprecated: Use DerefType instead
-func UnderlyingType(typ reflect.Type) reflect.Type {
-	switch typ.Kind() {
-	case reflect.Array, reflect.Chan, reflect.Map, reflect.Ptr, reflect.Slice:
-		return UnderlyingType(typ.Elem())
-	}
-	return typ
-}
-
-func DerefPtrType(t reflect.Type) reflect.Type {
-	for t.Kind() == reflect.Ptr {
-		t = t.Elem()
-	}
-	return t
-}
