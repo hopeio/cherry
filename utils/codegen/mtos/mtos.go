@@ -1,48 +1,70 @@
 package mtos
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"github.com/hopeio/cherry/utils/log"
 	stringsi "github.com/hopeio/cherry/utils/strings"
+	"io"
 	"reflect"
-	"strings"
 )
 
-func Gen(m map[string]any, tag string) {
-	var structFields strings.Builder
+func ParseJson(data []byte) (string, error) {
+	var m map[string]any
+	err := json.Unmarshal(data, &m)
+	if err != nil {
+		return "", err
+	}
+	buff := bytes.Buffer{}
+	Gen(&buff, "T", m, "json")
+	return buff.String(), nil
+}
+
+func Gen(writer io.Writer, name string, m map[string]any, tag string) {
+	writer.Write([]byte(fmt.Sprintf("type %s struct{\n", name)))
+	var nexts []*Next
 	for key, value := range m {
-		dataType := reflect.TypeOf(value)
-		fieldCode := generateFieldCode(key, dataType, tag)
+		dataValue := reflect.ValueOf(value)
+		fieldCode, next := generateFieldCode(key, "", dataValue, tag)
 		if fieldCode != "" {
-			structFields.WriteString(fieldCode + "\n")
+			writer.Write([]byte("\t" + fieldCode + "\n"))
 		}
+		if next != nil {
+			nexts = append(nexts, next...)
+		}
+
+	}
+	writer.Write([]byte("}\n"))
+	for _, next := range nexts {
+		Gen(writer, next.Key, next.Value, tag)
 	}
 }
 
-func generateFieldCode(k string, v any, tag string) string {
-	fieldNameCapitalized := stringsi.SnakeToCamel(k)
+type Next struct {
+	Key   string
+	Value map[string]any
+}
+
+func generateFieldCode(k string, typePrefix string, fieldValue reflect.Value, tag string) (string, []*Next) {
+	fieldType := fieldValue.Type()
+	fieldName := stringsi.SnakeToCamel(k)
 	switch fieldType.Kind() {
-	case reflect.String:
-		return fmt.Sprintf("\t%s string `%s:\"%s\"`\n", tag, fieldNameCapitalized, fieldName)
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return fmt.Sprintf("\t%s int `%s:\"%s\"`\n", fieldNameCapitalized, "json", fieldName)
-	case reflect.Bool:
-		return fmt.Sprintf("\t%s bool `json:\"%s\"`\n", fieldNameCapitalized, fieldName)
+	case reflect.String, reflect.Int, reflect.Float64, reflect.Bool:
+		return fmt.Sprintf("%s %s `%s:\"%s\"`", fieldName, typePrefix+fieldType.Kind().String(), tag, k), nil
+	case reflect.Interface:
+		return fmt.Sprintf("%s %s `%s:\"%s\"`", fieldName, typePrefix+"any", tag, k), nil
 	case reflect.Map:
-		innerStructName := fieldNameCapitalized + "Details"
-		innerStructCode := mapToStruct(fieldType.Interface().(map[string]interface{}), innerStructName)
-		return fmt.Sprintf("\t%s %s `json:\"%s\"`\n", fieldNameCapitalized, innerStructName, fieldName)
+		return fmt.Sprintf("%s %s `%s:\"%s\"`", fieldName, typePrefix+fieldName, tag, k), nil
 	case reflect.Slice:
-		// 这里仅示例处理，实际情况需要更详细的检查和处理
-		elementType := fieldType.Elem()
-		if elementType.Kind() == reflect.String || elementType.Kind() == reflect.Int || elementType.Kind() == reflect.Bool {
-			sliceType := "[]" + elementType.Kind().String()
-			return fmt.Sprintf("\t%s %s `json:\"%s\"`\n", fieldNameCapitalized, sliceType, fieldName)
-		} else {
-			log.Printf("Unsupported slice element type for field %s: %v", fieldName, elementType)
-			return ""
+		if fieldValue.Len() == 0 {
+			return fmt.Sprintf("%s %s `%s:\"%s\"`", fieldName, typePrefix+"[]any", tag, k), nil
 		}
+		// TODO 切片元素类型相同与不同,相同（map直接比较是否同一个类型）,不相同(全部基本类型和含map,slice类型)
+		elementValue := fieldValue.Index(0)
+		return generateFieldCode(k, typePrefix+"[]", elementValue, tag)
 	default:
-		log.Printf("Unsupported type for field %s: %v", fieldName, fieldType)
-		return ""
+		log.Printf("unsupported type for field %s: %v", fieldName, fieldType)
+		return "", nil
 	}
 }
