@@ -1,7 +1,8 @@
-package strings
+package gbk
 
 import (
 	"bytes"
+	strings2 "github.com/hopeio/cherry/utils/strings"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
 	"io"
@@ -15,7 +16,7 @@ func GBKToUTF8(s string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return ToString(b), nil
+	return strings2.ToString(b), nil
 }
 
 func GBKBytesToUTF8(s []byte) ([]byte, error) {
@@ -31,7 +32,7 @@ func UTF8ToGBK(s string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return ToString(b), nil
+	return strings2.ToString(b), nil
 }
 
 func UTF8BytesToGBK(s []byte) ([]byte, error) {

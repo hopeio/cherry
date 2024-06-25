@@ -7,7 +7,7 @@ import (
 )
 
 func Debug(r *gin.Engine) {
-	r.Any("/debug/*path", Wrap(httpi.DebugHandler()))
+	r.Any("/debug/*path", Wrap(httpi.StackHandler()))
 	// Register Metrics metrics handler.
 	r.Any("/metrics", Wrap(promhttp.Handler()))
 }

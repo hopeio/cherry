@@ -1,4 +1,4 @@
-//go:build amd64
+//go:build amd64 && snoic
 
 package json
 
@@ -22,4 +22,20 @@ func MarshalReader(v interface{}) (io.Reader, error) {
 		return nil, err
 	}
 	return bytes.NewReader(data), nil
+}
+
+func MarshalString(v any) (string, error) {
+	return sonic.MarshalString(v)
+}
+
+func NewEncoder(w io.Writer) sonic.Encoder {
+	return sonic.ConfigDefault.NewEncoder(w)
+}
+
+func Unmarshal(data []byte, v any) error {
+	return sonic.Unmarshal(data, v)
+}
+
+func UnmarshalString(data string, v any) error {
+	return sonic.UnmarshalString(data, v)
 }
