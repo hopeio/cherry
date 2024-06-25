@@ -3,6 +3,7 @@ package client
 import (
 	"errors"
 	"github.com/hopeio/cherry/utils/io/fs"
+	httpi "github.com/hopeio/cherry/utils/net/http"
 	"io"
 	"net/http"
 	stdurl "net/url"
@@ -77,13 +78,11 @@ func (c *Downloader) Header(header http.Header) *Downloader {
 	if c.header == nil {
 		c.header = make(http.Header)
 	}
-	for k, v := range header {
-		c.header.Add(k, v[0])
-	}
+	httpi.CopyHttpHeader(header, c.header)
 	return c
 }
 
-func (c *Downloader) AddReqHeader(header, value string) *Downloader {
+func (c *Downloader) AddHeader(header, value string) *Downloader {
 	if c.header == nil {
 		c.header = make(http.Header)
 	}

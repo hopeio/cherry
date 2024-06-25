@@ -22,11 +22,9 @@ const (
 	MIMEYAML              = "application/x-yaml"
 )
 
-var Tag = "json"
-
 func SetTag(tag string) {
 	if tag != "" {
-		Tag = tag
+		binding.Tag = tag
 	}
 }
 
@@ -106,7 +104,7 @@ func Bind(c *gin.Context, obj interface{}) error {
 		tag = b.Name()
 	}
 
-	var args binding.Args
+	var args binding.ArgSource
 	if len(c.Params) > 0 {
 		args = append(args, uriSource(c.Params))
 	}

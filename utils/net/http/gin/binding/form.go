@@ -27,7 +27,7 @@ func (formBinding) Bind(ctx *gin.Context, obj interface{}) error {
 			return err
 		}
 	}
-	args := binding.Args{binding.FormSource(ctx.Request.Form)}
+	args := binding.ArgSource{binding.FormSource(ctx.Request.Form)}
 	if err := binding.MapForm(obj, args); err != nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func (formPostBinding) Bind(ctx *gin.Context, obj interface{}) error {
 		return err
 	}
 
-	args := binding.Args{binding.FormSource(ctx.Request.Form)}
+	args := binding.ArgSource{binding.FormSource(ctx.Request.Form)}
 	if err := binding.MapForm(obj, args); err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (formMultipartBinding) Bind(ctx *gin.Context, obj interface{}) error {
 	if err := ctx.Request.ParseMultipartForm(defaultMemory); err != nil {
 		return err
 	}
-	if err := binding.MappingByPtr(obj, (*binding.MultipartSource)(ctx.Request), Tag); err != nil {
+	if err := binding.MappingByPtr(obj, (*binding.MultipartSource)(ctx.Request), binding.Tag); err != nil {
 		return err
 	}
 

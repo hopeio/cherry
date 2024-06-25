@@ -12,5 +12,5 @@ func (yamlBinding) Name() string {
 }
 
 func (y yamlBinding) Bind(ctx fiber.Ctx, obj interface{}) error {
-	return binding.DecodeYaml(ctx.Body(), obj)
+	return binding.DecodeYamlData(ctx.Body(), obj)
 }

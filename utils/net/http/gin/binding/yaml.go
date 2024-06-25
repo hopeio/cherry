@@ -6,8 +6,7 @@ package binding
 
 import (
 	"github.com/gin-gonic/gin"
-	"gopkg.in/yaml.v3"
-	"io"
+	"github.com/hopeio/cherry/utils/net/http/binding"
 )
 
 type yamlBinding struct{}
@@ -17,13 +16,5 @@ func (yamlBinding) Name() string {
 }
 
 func (yamlBinding) Bind(ctx *gin.Context, obj interface{}) error {
-	return decodeYAML(ctx.Request.Body, obj)
-}
-
-func decodeYAML(r io.Reader, obj interface{}) error {
-	decoder := yaml.NewDecoder(r)
-	if err := decoder.Decode(obj); err != nil {
-		return err
-	}
-	return Validate(obj)
+	return binding.DecodeYAML(ctx.Request.Body, obj)
 }

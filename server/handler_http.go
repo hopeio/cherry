@@ -20,7 +20,10 @@ func (s *Server) httpHandler() http.HandlerFunc {
 	// 默认使用gin
 	ginServer := conf.Gin.New()
 	s.GinHandler(ginServer)
-	gini.Debug(ginServer)
+	if enableMetrics {
+		gini.Debug(ginServer)
+	}
+
 	if len(conf.HttpOption.StaticFs) > 0 {
 		for _, fs := range conf.HttpOption.StaticFs {
 			ginServer.Static(fs.Prefix, fs.Root)

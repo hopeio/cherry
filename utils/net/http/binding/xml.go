@@ -18,13 +18,13 @@ func (xmlBinding) Name() string {
 }
 
 func (xmlBinding) Bind(req *http.Request, obj interface{}) error {
-	return decodeXML(req.Body, obj)
+	return DecodeXML(req.Body, obj)
 }
 
-func DecodeXml(body []byte, obj interface{}) error {
-	return decodeXML(bytes.NewReader(body), obj)
+func DecodeXmlData(body []byte, obj interface{}) error {
+	return DecodeXML(bytes.NewReader(body), obj)
 }
-func decodeXML(r io.Reader, obj interface{}) error {
+func DecodeXML(r io.Reader, obj interface{}) error {
 	decoder := xml.NewDecoder(r)
 	if err := decoder.Decode(obj); err != nil {
 		return err

@@ -5,9 +5,8 @@
 package binding
 
 import (
-	"encoding/xml"
 	"github.com/gin-gonic/gin"
-	"io"
+	"github.com/hopeio/cherry/utils/net/http/binding"
 )
 
 type xmlBinding struct{}
@@ -17,13 +16,5 @@ func (xmlBinding) Name() string {
 }
 
 func (xmlBinding) Bind(ctx *gin.Context, obj interface{}) error {
-	return decodeXML(ctx.Request.Body, obj)
-}
-
-func decodeXML(r io.Reader, obj interface{}) error {
-	decoder := xml.NewDecoder(r)
-	if err := decoder.Decode(obj); err != nil {
-		return err
-	}
-	return Validate(obj)
+	return binding.DecodeXML(ctx.Request.Body, obj)
 }

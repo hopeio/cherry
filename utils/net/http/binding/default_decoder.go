@@ -2,7 +2,6 @@ package binding
 
 import (
 	reflecti "github.com/hopeio/cherry/utils/reflect/converter"
-	"reflect"
 )
 
 var defaultDecoder = NewDecoder()
@@ -28,10 +27,6 @@ func RegisterConverter(value interface{}, converterFunc reflecti.StringConverter
 	defaultDecoder.cache.registerConverter(value, converterFunc)
 }
 
-func Decode(dst interface{}, src map[string][]string) error {
+func Decode(dst any, src map[string][]string) error {
 	return defaultDecoder.Decode(dst, src)
-}
-
-func PickDecode(v reflect.Value, src map[string][]string) error {
-	return defaultDecoder.PickDecode(v, src)
 }

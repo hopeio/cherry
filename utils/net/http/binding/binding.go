@@ -53,17 +53,17 @@ var Validator = validator.DefaultValidator
 // These implement the Binding interface and can be used to bind the data
 // present in the request to struct instances.
 var (
+	Uri    = uriBinding{}
+	Query  = queryBinding{}
+	Header = headerBinding{}
+
 	JSON          = jsonBinding{}
 	XML           = xmlBinding{}
-	Form          = formBinding{}
-	Query         = queryBinding{}
 	FormPost      = formPostBinding{}
 	FormMultipart = formMultipartBinding{}
-	Uri           = uriBinding{}
 	ProtoBuf      = protobufBinding{}
 	MsgPack       = msgpackBinding{}
 	YAML          = yamlBinding{}
-	Header        = headerBinding{}
 )
 
 // Default returns the appropriate Binding instance based on the HTTP method
@@ -111,7 +111,7 @@ func Bind(r *http.Request, obj interface{}) error {
 		tag = b.Name()
 	}
 
-	var args Args
+	var args ArgSource
 	if !reflect.ValueOf(r).Elem().FieldByName("pat").IsNil() {
 		args = append(args, (*UriSource)(r))
 	}

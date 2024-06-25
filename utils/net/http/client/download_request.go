@@ -36,7 +36,7 @@ type DownloadReq struct {
 	Url        string
 	downloader *Downloader
 	ctx        context.Context
-	headers    httpi.Header //请求级请求头
+	header     httpi.Header //请求级请求头
 	mode       DownloadMode // 模式，0-强制覆盖，1-不存在下载，2-断续下载
 }
 
@@ -68,7 +68,7 @@ func (req *DownloadReq) Downloader() *Downloader {
 }
 
 func (req *DownloadReq) AddHeader(k, v string) *DownloadReq {
-	req.headers.Set(k, v)
+	req.header.Set(k, v)
 	return req
 }
 
@@ -99,9 +99,8 @@ func (c *DownloadReq) GetResponse() (*http.Response, error) {
 	req.Header.Set(httpi.HeaderAcceptLanguage, "zh-CN,zh;q=0.9;charset=utf-8")
 	req.Header.Set(httpi.HeaderConnection, "keep-alive")
 	req.Header.Set(httpi.HeaderUserAgent, UserAgentChrome117)
-	for i := 0; i+1 < len(c.headers); i += 2 {
-		req.Header.Set(c.headers[i], c.headers[i+1])
-	}
+
+	httpi.CopyHttpHeader(d.header, req.Header)
 	for _, opt := range d.httpRequestOptions {
 		opt(req)
 	}
@@ -205,7 +204,7 @@ func (c *DownloadReq) ContinuationDownload(filepath string) error {
 	offset := fileinfo.Size()
 	var reader io.ReadCloser
 	for i := 0; i < c.downloader.retryTimes; i++ {
-		c.headers = append(c.headers, httpi.HeaderRange, "bytes="+strconv.FormatInt(offset, 10)+"-")
+		c.header = append(c.header, httpi.HeaderRange, "bytes="+strconv.FormatInt(offset, 10)+"-")
 
 		reader, err = c.GetReader()
 		if err != nil {

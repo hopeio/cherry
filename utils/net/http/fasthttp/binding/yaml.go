@@ -12,5 +12,5 @@ func (yamlBinding) Name() string {
 }
 
 func (y yamlBinding) Bind(req *fasthttp.RequestCtx, obj interface{}) error {
-	return binding.DecodeYaml(req.Request.Body(), obj)
+	return binding.DecodeYamlData(req.Request.Body(), obj)
 }

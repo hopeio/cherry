@@ -16,31 +16,31 @@ type PCP struct {
 
 type Header struct {
 	Type             string
-	Size             int
-	Width            int
-	Height           int
-	Channel          int
-	IntervalValid    int
-	Minx, Miny, Minz int
-	Maxx, Maxy, Maxz int
-	Dx, Dy           int
+	Size             int32
+	Width            int32
+	Height           int32
+	Channel          int8
+	IntervalValid    int8
+	Minx, Miny, Minz int32
+	Maxx, Maxy, Maxz int32
+	Dx, Dy           int32
 	Expose           int
 	Timestamp        int
 	DeviceMessage    string
-	decimal          int
+	decimal          uint8
 }
 
 type PointXYZGray struct {
-	X, Y, Z int
-	Gray    int
+	X, Y, Z int32
+	Gray    int32
 }
 
-func Parse(filePath string) error {
+func Parse(filePath string) (*PCP, error) {
 	var pcp PCP
 	m := toMap(&pcp.Header)
 	f, err := os.Open(filePath)
 	if err != nil {
-		return fmt.Errorf("open file error:%w", err)
+		return nil, fmt.Errorf("open file error:%w", err)
 	}
 	var isHeader bool
 	scanner := bufio.NewScanner(f)
@@ -52,31 +52,31 @@ func Parse(filePath string) error {
 		}
 		if str == "data" {
 			isHeader = false
-			pcp.Data = make([]PointXYZGray, pcp.Header.Size)
+			pcp.Data = make([]PointXYZGray, 0, pcp.Header.Size)
 			continue
 		}
 		if isHeader {
 			kv := strings.Split(str, ":")
 			if len(kv) != 2 {
-				return fmt.Errorf("parse header error:%s", str)
+				return nil, fmt.Errorf("parse header error:%s", str)
 			}
 			if kv[1] == "(null)" {
 				continue
 			}
-			if v, ok := m[strings.ToUpper(kv[0])]; ok {
+			if v, ok := m[strings.ToUpper(strings.ReplaceAll(kv[0], "_", ""))]; ok {
 				switch v.Kind() {
-				case reflect.Int:
+				case reflect.Int32, reflect.Int, reflect.Int8:
 					num := kv[1]
 					if strings.Contains(kv[1], ".") {
 						num = trimZero(strings.ReplaceAll(kv[1], ".", ""))
 						if pcp.Header.decimal == 0 {
-							pcp.Header.decimal = len(kv[1][strings.Index(kv[1], "."):])
+							pcp.Header.decimal = uint8(len(kv[1][strings.Index(kv[1], "."):]))
 						}
 					}
 
 					istr, err := strconv.Atoi(num)
 					if err != nil {
-						return err
+						return nil, err
 					}
 					v.SetInt(int64(istr))
 
@@ -87,31 +87,31 @@ func Parse(filePath string) error {
 		} else {
 			values := strings.Split(str, " ")
 			if len(values) != 4 {
-				return fmt.Errorf("parse data error:%s", str)
+				return nil, fmt.Errorf("parse data error:%s", str)
 			}
 
 			x, err := strconv.Atoi(trimZero(strings.ReplaceAll(values[0], ".", "")))
 			if err != nil {
-				return err
+				return nil, err
 			}
 			y, err := strconv.Atoi(trimZero(strings.ReplaceAll(values[1], ".", "")))
 			if err != nil {
-				return err
+				return nil, err
 			}
 			z, err := strconv.Atoi(trimZero(strings.ReplaceAll(values[2], ".", "")))
 			if err != nil {
-				return err
+				return nil, err
 			}
 			gary, err := strconv.Atoi(trimZero(strings.ReplaceAll(values[3], ".", "")))
 			if err != nil {
-				return err
+				return nil, err
 			}
 
-			pcp.Data = append(pcp.Data, PointXYZGray{X: x, Y: y, Z: z, Gray: gary})
+			pcp.Data = append(pcp.Data, PointXYZGray{X: int32(x), Y: int32(y), Z: int32(z), Gray: int32(gary)})
 
 		}
 	}
-	return nil
+	return &pcp, nil
 }
 
 func toMap(v any) map[string]reflect.Value {

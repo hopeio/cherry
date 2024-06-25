@@ -12,5 +12,5 @@ func (xmlBinding) Name() string {
 }
 
 func (x xmlBinding) Bind(req *fasthttp.RequestCtx, obj interface{}) error {
-	return binding.DecodeXml(req.Request.Body(), obj)
+	return binding.DecodeXmlData(req.Request.Body(), obj)
 }

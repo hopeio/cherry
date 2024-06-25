@@ -94,29 +94,6 @@ func (d *Decoder) Decode(dst interface{}, src map[string][]string) error {
 	return nil
 }
 
-func (d *Decoder) PickDecode(v reflect.Value, src map[string][]string) error {
-	if v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
-		return errors.New("schema: interface must be a pointer to struct")
-	}
-	v = v.Elem()
-	t := v.Type()
-	var errs multierr.MultiError
-	for path, values := range src {
-		if parts, err := d.cache.parsePath(path, t); err == nil {
-			if err = d.decode(v, path, parts, values); err != nil {
-				errs.Append(err)
-			}
-		} else if !d.ignoreUnknownKeys {
-			errs.Append(UnknownKeyError{Key: path})
-		}
-	}
-	errs.Append(d.checkRequired(t, src))
-	if errs.HasErrors() {
-		return &errs
-	}
-	return nil
-}
-
 // checkRequired checks whether required fields are empty
 //
 // check type t recursively if t has struct fields.

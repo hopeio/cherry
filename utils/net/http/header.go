@@ -40,3 +40,25 @@ func (h Header) Clone() Header {
 	copy(newh, h)
 	return newh
 }
+
+func CopyHttpHeader(src, dst http.Header) {
+	if src == nil {
+		return
+	}
+
+	// Find total number of values.
+	nv := 0
+	for _, vv := range src {
+		nv += len(vv)
+	}
+	sv := make([]string, nv) // shared backing array for headers' values
+
+	for k, vv := range src {
+		if vv == nil {
+			continue
+		}
+		n := copy(sv, vv)
+		dst[k] = sv[:n:n]
+		sv = sv[n:]
+	}
+}

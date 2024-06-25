@@ -70,7 +70,7 @@ func Bind(c *fasthttp.RequestCtx, obj interface{}) error {
 		tag = binding.Tag
 	}
 
-	var args binding.Args
+	var args binding.ArgSource
 
 	if query := c.QueryArgs(); query != nil {
 		args = append(args, (*ArgsSource)(query))

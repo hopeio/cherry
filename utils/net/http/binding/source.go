@@ -9,9 +9,9 @@ type Arg interface {
 	Peek(key string) ([]string, bool)
 }
 
-type Args []Arg
+type ArgSource []Arg
 
-func (args Args) Peek(key string) (v []string, ok bool) {
+func (args ArgSource) Peek(key string) (v []string, ok bool) {
 	for i := range args {
 		if v, ok = args[i].Peek(key); ok {
 			return
@@ -20,7 +20,7 @@ func (args Args) Peek(key string) (v []string, ok bool) {
 	return
 }
 
-func (args Args) TrySet(value reflect.Value, field reflect.StructField, key string, opt SetOptions) (isSet bool, err error) {
+func (args ArgSource) TrySet(value reflect.Value, field reflect.StructField, key string, opt SetOptions) (isSet bool, err error) {
 	return SetByKV(value, field, args, key, opt)
 }
 

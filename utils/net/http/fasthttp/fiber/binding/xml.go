@@ -12,5 +12,5 @@ func (xmlBinding) Name() string {
 }
 
 func (x xmlBinding) Bind(ctx fiber.Ctx, obj interface{}) error {
-	return binding.DecodeXml(ctx.Body(), obj)
+	return binding.DecodeXmlData(ctx.Body(), obj)
 }

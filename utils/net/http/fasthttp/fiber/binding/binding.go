@@ -72,7 +72,7 @@ func Bind(c fiber.Ctx, obj interface{}) error {
 		tag = b.Name()
 	}
 
-	var args binding.Args
+	var args binding.ArgSource
 
 	args = append(args, (*uriSource)(c.(*fiber.DefaultCtx)))
 

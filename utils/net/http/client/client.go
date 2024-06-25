@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	httpi "github.com/hopeio/cherry/utils/net/http"
 	"io"
 	"net"
 	"net/http"
@@ -98,9 +99,7 @@ func (c *Client) Header(header http.Header) *Client {
 	if c.header == nil {
 		c.header = make(http.Header)
 	}
-	for k, v := range header {
-		c.header.Add(k, v[0])
-	}
+	httpi.CopyHttpHeader(header, c.header)
 	return c
 }
 

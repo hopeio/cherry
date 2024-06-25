@@ -6,7 +6,7 @@ package binding
 
 import (
 	"github.com/gin-gonic/gin"
-	"google.golang.org/protobuf/proto"
+	"github.com/hopeio/cherry/utils/net/http/binding"
 	"io"
 )
 
@@ -21,15 +21,5 @@ func (b protobufBinding) Bind(ctx *gin.Context, obj interface{}) error {
 	if err != nil {
 		return err
 	}
-	return DecodeProtobuf(buf, obj)
-}
-
-func DecodeProtobuf(body []byte, obj interface{}) error {
-	if err := proto.Unmarshal(body, obj.(proto.Message)); err != nil {
-		return err
-	}
-	// Here it's same to return Validate(obj), but util now we can't add
-	// `binding:""` to the struct which automatically generate by gen-proto
-	return nil
-	// return Validate(obj)
+	return binding.DecodeProtobuf(buf, obj)
 }

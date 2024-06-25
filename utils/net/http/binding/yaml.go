@@ -19,14 +19,14 @@ func (yamlBinding) Name() string {
 }
 
 func (yamlBinding) Bind(req *http.Request, obj interface{}) error {
-	return decodeYAML(req.Body, obj)
+	return DecodeYAML(req.Body, obj)
 }
 
-func DecodeYaml(body []byte, obj interface{}) error {
-	return decodeYAML(bytes.NewReader(body), obj)
+func DecodeYamlData(body []byte, obj interface{}) error {
+	return DecodeYAML(bytes.NewReader(body), obj)
 }
 
-func decodeYAML(r io.Reader, obj interface{}) error {
+func DecodeYAML(r io.Reader, obj interface{}) error {
 	decoder := yaml.NewDecoder(r)
 	if err := decoder.Decode(obj); err != nil {
 		return err

@@ -17,5 +17,5 @@ func (j jsonBinding) Bind(ctx fiber.Ctx, obj interface{}) error {
 	if body == nil {
 		return fmt.Errorf("invalid request")
 	}
-	return binding.DecodeJson(body, obj)
+	return binding.DecodeJsonData(body, obj)
 }

@@ -7,14 +7,14 @@ import (
 	"runtime/debug"
 )
 
-func StackHandler() http.Handler {
-	return http.HandlerFunc(Stack)
+func init() {
+	http.Handle("/debug/stack", http.HandlerFunc(Stack))
+}
+
+func Handler() http.Handler {
+	return http.DefaultServeMux
 }
 
 func Stack(w http.ResponseWriter, r *http.Request) {
 	w.Write(debug.Stack())
-}
-
-func init() {
-	http.Handle("/debug/", http.HandlerFunc(Stack))
 }

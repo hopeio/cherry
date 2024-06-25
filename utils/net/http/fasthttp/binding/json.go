@@ -17,5 +17,5 @@ func (j jsonBinding) Bind(req *fasthttp.RequestCtx, obj interface{}) error {
 	if req == nil || body == nil {
 		return fmt.Errorf("invalid request")
 	}
-	return binding.DecodeJson(body, obj)
+	return binding.DecodeJsonData(body, obj)
 }

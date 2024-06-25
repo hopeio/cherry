@@ -14,7 +14,7 @@ func (uriBinding) Name() string {
 }
 
 func (uriBinding) Bind(ctx *gin.Context, obj interface{}) error {
-	if err := binding.MappingByPtr(obj, (uriSource)(ctx.Params), Tag); err != nil {
+	if err := binding.MappingByPtr(obj, (uriSource)(ctx.Params), binding.Tag); err != nil {
 		return err
 	}
 	return Validate(obj)
