@@ -98,7 +98,7 @@ func (req *Request) DoStream(param any) (io.ReadCloser, error) {
 	return resp.Body, nil
 }
 
-func (r *Request) addHeader(request *http.Request, c *Client) string {
+func (req *Request) addHeader(request *http.Request, c *Client) string {
 	var auth string
 	nv := 0
 	for _, vv := range c.header {
@@ -118,28 +118,28 @@ func (r *Request) addHeader(request *http.Request, c *Client) string {
 		sv = sv[n:]
 	}
 
-	for i := 0; i+1 < len(r.header); i += 2 {
-		request.Header.Set(r.header[i], r.header[i+1])
-		if r.header[i] == httpi.HeaderAuthorization {
-			auth = r.header[i+1]
+	for i := 0; i+1 < len(req.header); i += 2 {
+		request.Header.Set(req.header[i], req.header[i+1])
+		if req.header[i] == httpi.HeaderAuthorization {
+			auth = req.header[i+1]
 		}
 	}
 
-	request.Header.Set(httpi.HeaderContentType, r.contentType.String())
+	request.Header.Set(httpi.HeaderContentType, req.contentType.String())
 	return auth
 }
 
 // Do create a HTTP request
 // param: 请求参数 目前只支持编码为json 或 Url-encoded
-func (r *Request) Do(param, response any) error {
-	if r.Method == "" {
+func (req *Request) Do(param, response any) error {
+	if req.Method == "" {
 		return errors.New("没有设置请求方法")
 	}
 
-	if r.Url == "" {
+	if req.Url == "" {
 		return errors.New("没有设置url")
 	}
-	c := r.client
+	c := req.client
 	var body io.Reader
 	var reqBody, respBody *Body
 	var statusCode, reqTimes int
@@ -149,12 +149,12 @@ func (r *Request) Do(param, response any) error {
 	// 日志记录
 	defer func(now time.Time) {
 		if c.logLevel == LogLevelInfo || (err != nil && c.logLevel == LogLevelError) {
-			c.logger(r.Method, r.Url, auth, reqBody, respBody, statusCode, time.Since(now), err)
+			c.logger(req.Method, req.Url, auth, reqBody, respBody, statusCode, time.Since(now), err)
 		}
 	}(reqTime)
 
-	if r.Method == http.MethodGet {
-		r.Url = url2.AppendQueryParam(r.Url, param)
+	if req.Method == http.MethodGet {
+		req.Url = url2.AppendQueryParam(req.Url, param)
 	} else {
 		reqBody = &Body{}
 		if param != nil {
@@ -171,7 +171,7 @@ func (r *Request) Do(param, response any) error {
 				body = bytes.NewReader(reqBytes)
 				reqBody.Data = reqBytes
 			default:
-				if r.contentType == ContentTypeForm {
+				if req.contentType == ContentTypeForm {
 					params := url2.QueryParam(param)
 					reqBody.Data = stringsi.ToBytes(params)
 					body = strings.NewReader(params)
@@ -189,12 +189,12 @@ func (r *Request) Do(param, response any) error {
 		}
 	}
 	var request *http.Request
-	request, err = http.NewRequestWithContext(r.ctx, r.Method, r.Url, body)
+	request, err = http.NewRequestWithContext(req.ctx, req.Method, req.Url, body)
 	if err != nil {
 		return err
 	}
 
-	auth = r.addHeader(request, c)
+	auth = req.addHeader(request, c)
 
 	var resp *http.Response
 Retry:
@@ -217,7 +217,7 @@ Retry:
 			return err
 		} else {
 			if c.logLevel > LogLevelSilent {
-				c.logger(r.Method, r.Url, auth, reqBody, respBody, statusCode, time.Since(reqTime), errors.New(err.Error()+";will retry"))
+				c.logger(req.Method, req.Url, auth, reqBody, respBody, statusCode, time.Since(reqTime), errors.New(err.Error()+";will retry"))
 			}
 			goto Retry
 		}
@@ -278,7 +278,7 @@ Retry:
 
 		if retry {
 			if c.logLevel > LogLevelSilent {
-				c.logger(r.Method, r.Url, auth, reqBody, respBody, statusCode, time.Since(reqTime), err)
+				c.logger(req.Method, req.Url, auth, reqBody, respBody, statusCode, time.Since(reqTime), err)
 			}
 			goto Retry
 		} else if err != nil {

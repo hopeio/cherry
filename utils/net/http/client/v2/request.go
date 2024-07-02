@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"github.com/hopeio/cherry/utils/net/http/client"
 )
 
@@ -31,6 +32,26 @@ func (req *Request[RES]) Client() *client.Client {
 }
 func (r *Request[RES]) Origin() *client.Request {
 	return (*client.Request)(r)
+}
+
+func (req *Request[RES]) AddHeader(k, v string) *Request[RES] {
+	(*client.Request)(req).AddHeader(k, v)
+	return req
+}
+
+func (req *Request[RES]) ContentType(contentType client.ContentType) *Request[RES] {
+	(*client.Request)(req).ContentType(contentType)
+	return req
+}
+
+func (req *Request[RES]) Context(ctx context.Context) *Request[RES] {
+	(*client.Request)(req).Context(ctx)
+	return req
+}
+
+func (req *Request[RES]) DoNoParam() (*RES, error) {
+	response := new(RES)
+	return response, (*client.Request)(req).Do(nil, response)
 }
 
 // Do create a HTTP request
