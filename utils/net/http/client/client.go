@@ -234,16 +234,32 @@ func (c *Client) Get(url string, param, response any) error {
 	return NewRequest(http.MethodGet, url).WithClient(c).Do(param, response)
 }
 
+func (c *Client) GetRequest(url string) *Request {
+	return NewRequest(http.MethodGet, url).WithClient(c)
+}
+
 func (c *Client) Post(url string, param, response any) error {
 	return NewRequest(http.MethodPost, url).WithClient(c).Do(param, response)
+}
+
+func (c *Client) PostRequest(url string) *Request {
+	return NewRequest(http.MethodPost, url).WithClient(c)
 }
 
 func (c *Client) Put(url string, param, response any) error {
 	return NewRequest(http.MethodPut, url).WithClient(c).Do(param, response)
 }
 
+func (c *Client) PutRequest(url string) *Request {
+	return NewRequest(http.MethodPut, url).WithClient(c)
+}
+
 func (c *Client) Delete(url string, param, response any) error {
 	return NewRequest(http.MethodDelete, url).WithClient(c).Do(param, response)
+}
+
+func (c *Client) DeleteRequest(url string) *Request {
+	return NewRequest(http.MethodDelete, url).WithClient(c)
 }
 
 func (c *Client) GetX(url string, response any) error {
