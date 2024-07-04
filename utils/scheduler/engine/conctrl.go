@@ -82,7 +82,7 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 						}
 						e.lock.Unlock()
 					}
-					log.GetNoCallerLogger().Debugf("[Running] task:D:%d/T:%d/S:%d/H:%d/F:%d/E:%d,worker: %d/%d\r", e.taskDoneCount, e.taskTotalCount, e.taskSkipCount, e.taskErrHandleCount, e.taskFailedCount, e.taskErrorTimes, e.workingWorkerCount, e.currentWorkerCount)
+					log.GetNoCallerLogger().Debugf("\r[Running] task:D:%d/T:%d/S:%d/H:%d/F:%d/E:%d,worker: %d/%d", e.taskDoneCount, e.taskTotalCount, e.taskSkipCount, e.taskErrHandleCount, e.taskFailedCount, e.taskErrorTimes, e.workingWorkerCount, e.currentWorkerCount)
 					timer.Reset(e.monitorInterval)
 				case <-e.ctx.Done():
 					if err := e.ctx.Err(); err != nil {

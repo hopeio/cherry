@@ -227,7 +227,7 @@ Retry:
 	if resp.StatusCode < 200 || resp.StatusCode > 300 {
 		respBody.ContentType = ContentTypeText
 		if resp.StatusCode == http.StatusNotFound {
-			err = errors.New("not found")
+			err = ErrNotFound
 		} else {
 			var msg []byte
 			msg, err = io.ReadAll(resp.Body)

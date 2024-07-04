@@ -133,7 +133,7 @@ func (e *Engine[KEY]) ErrHandler(errHandler func(task *Task[KEY])) *Engine[KEY] 
 }
 
 func (e *Engine[KEY]) ErrHandlerUtilSuccess() *Engine[KEY] {
-	log.Warn("it will clear history exec log contains err")
+	log.Warn("ErrHandlerUtilSuccess will clear history exec log contains err")
 	return e.ErrHandler(func(task *Task[KEY]) {
 		task.ErrTimes = 0
 		task.reExecLogs = task.reExecLogs[:0]
