@@ -334,11 +334,11 @@ func (ps invalidPairs) MarshalLogArray(enc zapcore.ArrayEncoder) error {
 type StdOutLevel zapcore.Level
 
 func (l StdOutLevel) Enabled(lvl zapcore.Level) bool {
-	return lvl >= zapcore.Level(l)
+	return lvl >= zapcore.Level(l) && lvl < zapcore.ErrorLevel
 }
 
 type StdErrLevel zapcore.Level
 
 func (l StdErrLevel) Enabled(lvl zapcore.Level) bool {
-	return lvl >= zapcore.Level(l)
+	return lvl >= zapcore.Level(l) && lvl >= zapcore.ErrorLevel
 }

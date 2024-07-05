@@ -34,7 +34,7 @@ func (c *Config) Build(dialector gorm.Dialector) (*gorm.DB, error) {
 		// 默认日志
 		logger.Default = logger.New(stdlog.New(os.Stdout, "\r", stdlog.LstdFlags), c.Logger)
 	} else {
-		logger.Default = &loggeri.Logger{Logger: log.GetCallerSkipLogger(0).Logger, Config: &c.Logger}
+		logger.Default = &loggeri.Logger{Logger: log.GetNoCallerLogger().Logger, Config: &c.Logger}
 	}
 
 	db, err := gorm.Open(dialector, dbConfig)

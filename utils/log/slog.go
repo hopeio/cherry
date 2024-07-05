@@ -32,5 +32,5 @@ func (l *Logger) WithAttrs(attrs []slog.Attr) slog.Handler {
 }
 
 func (l *Logger) WithGroup(name string) slog.Handler {
-	return l
+	return l.Named(name)
 }

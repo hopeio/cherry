@@ -1,6 +1,8 @@
 package loki
 
-import "github.com/grafana/loki-client-go/loki"
+import (
+	"github.com/grafana/loki-client-go/loki"
+)
 
 type Loki struct {
 	Client loki.Client

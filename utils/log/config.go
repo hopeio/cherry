@@ -262,8 +262,7 @@ func (lc *Config) initLogger(cores ...zapcore.Core) *zap.Logger {
 	//如果没有设置输出，默认控制台
 	if len(cores) == 0 {
 		consoleEncoder = zapcore.NewConsoleEncoder(lc.EncoderConfig)
-		cores = append(cores, zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), StdOutLevel(lc.Level)),
-			zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stderr), StdErrLevel(lc.Level)))
+		cores = append(cores, zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), lc.Level))
 	}
 
 	core := zapcore.NewTee(cores...)

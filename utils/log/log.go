@@ -2,14 +2,12 @@ package log
 
 import (
 	"fmt"
-	"github.com/hopeio/cherry/utils/log/output"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"sync"
 )
 
 func init() {
-	output.RegisterSink()
 	SetDefaultLogger(&Config{Development: true, Level: zapcore.DebugLevel})
 }
 
@@ -38,25 +36,29 @@ func SetDefaultLogger(lf *Config, cores ...zapcore.Core) {
 	defaultLogger = lf.NewLogger(cores...)
 	stackLogger = defaultLogger.WithOptions(zap.WithCaller(true), zap.AddStacktrace(zapcore.ErrorLevel))
 	noCallerLogger = defaultLogger.WithOptions(zap.WithCaller(false))
-	skipLoggers[0].Logger = noCallerLogger
-	for i := 1; i < len(skipLoggers); i++ {
+	for i := 0; i < len(skipLoggers); i++ {
 		if skipLoggers[i].Logger != nil {
 			skipLoggers[i].needUpdate = true
 		}
 	}
 }
 
+// range -3~6
 func GetCallerSkipLogger(skip int) *Logger {
-	if skip > 10 {
-		panic("skip最大不超过10")
+	if skip < -3 {
+		panic("skip不小于-3")
 	}
-	if skipLoggers[skip].needUpdate || skipLoggers[skip].Logger == nil {
+	if skip > 6 {
+		panic("skip不大于6")
+	}
+	idx := skip + 3
+	if skipLoggers[idx].needUpdate || skipLoggers[idx].Logger == nil {
 		mu.Lock()
-		skipLoggers[skip].Logger = defaultLogger.AddSkip(skip)
-		skipLoggers[skip].needUpdate = false
+		skipLoggers[idx].Logger = defaultLogger.AddSkip(skip)
+		skipLoggers[idx].needUpdate = false
 		mu.Unlock()
 	}
-	return skipLoggers[skip].Logger
+	return skipLoggers[idx].Logger
 }
 
 func GetNoCallerLogger() *Logger {
