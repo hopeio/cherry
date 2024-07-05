@@ -151,10 +151,7 @@ func (c *DownloadReq) GetReader() (io.ReadCloser, error) {
 		if err != nil {
 			return nil, err
 		}
-		err = resp.Body.Close()
-		if err != nil {
-			return nil, err
-		}
+		resp.Body.Close()
 		reader = ioi.WarpCloser(bytes.NewBuffer(data))
 	}
 	return reader, nil
@@ -178,10 +175,7 @@ func (c *DownloadReq) Download(filepath string) error {
 			return err
 		}
 		err = fs.Download(filepath, reader)
-		err1 := reader.Close()
-		if err1 != nil {
-			log.Warn("close Reader", err1)
-		}
+		reader.Close()
 		if err == nil {
 			return nil
 		}
@@ -217,11 +211,7 @@ func (c *DownloadReq) ContinuationDownload(filepath string) error {
 
 		var written int64
 		written, err = io.Copy(f, reader)
-
-		err1 := reader.Close()
-		if err1 != nil {
-			log.Warn("close reader error:", err1)
-		}
+		reader.Close()
 
 		if err == nil || err == io.EOF {
 			f.Close()

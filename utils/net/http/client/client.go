@@ -7,7 +7,6 @@ import (
 	"net"
 	"net/http"
 	stdurl "net/url"
-	"sync"
 	"time"
 )
 
@@ -16,7 +15,6 @@ import (
 var (
 	DefaultHttpClient = newHttpClient()
 	DefaultLogLevel   = LogLevelError
-	headerMap         = sync.Map{}
 )
 
 const timeout = time.Minute

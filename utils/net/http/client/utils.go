@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	urli "github.com/hopeio/cherry/utils/net/url"
 	"net/http"
 	"net/url"
@@ -29,4 +30,8 @@ func setTimeout(client *http.Client, timeout time.Duration) {
 
 func setProxy(client *http.Client, proxy func(*http.Request) (*url.URL, error)) {
 	client.Transport.(*http.Transport).Proxy = proxy
+}
+
+func CloseReaderWarp(err error) error {
+	return fmt.Errorf("close reader error: %w", err)
 }

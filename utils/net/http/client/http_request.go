@@ -16,7 +16,7 @@ func NewReplaceHttpRequest(r *http.Request) *replaceHttpRequest {
 }
 
 func ReplaceHttpRequest(r *http.Request, url, method string, body io.ReadCloser) *http.Request {
-	return NewReplaceHttpRequest(r).Replace(url, method, body).StdHttpRequest()
+	return NewReplaceHttpRequest(r).Replace(url, method, body).HttpRequest()
 }
 
 func (r *replaceHttpRequest) Replace(url, method string, body io.ReadCloser) *replaceHttpRequest {
@@ -63,6 +63,6 @@ func (r *replaceHttpRequest) SetContext(ctx context.Context) *replaceHttpRequest
 	return (*replaceHttpRequest)(stdr)
 }
 
-func (r *replaceHttpRequest) StdHttpRequest() *http.Request {
+func (r *replaceHttpRequest) HttpRequest() *http.Request {
 	return (*http.Request)(r)
 }
