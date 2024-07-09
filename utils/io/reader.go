@@ -1,6 +1,7 @@
 package io
 
 import (
+	"bufio"
 	"io"
 )
 
@@ -23,4 +24,14 @@ func (*warpCloser) Close() error {
 
 func WarpCloser(body io.Reader) io.ReadCloser {
 	return &warpCloser{body}
+}
+
+func ReadLines(reader io.Reader, f func(line string) bool) error {
+	scanner := bufio.NewScanner(reader)
+	for scanner.Scan() {
+		if !f(scanner.Text()) {
+			return nil
+		}
+	}
+	return scanner.Err()
 }
