@@ -101,6 +101,9 @@ func (c *DownloadReq) GetResponse() (*http.Response, error) {
 	req.Header.Set(httpi.HeaderUserAgent, UserAgentChrome117)
 
 	httpi.CopyHttpHeader(d.header, req.Header)
+	for i := 0; i+1 < len(c.header); i += 2 {
+		req.Header.Set(c.header[i], c.header[i+1])
+	}
 	for _, opt := range d.httpRequestOptions {
 		opt(req)
 	}
