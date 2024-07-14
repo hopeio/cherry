@@ -316,7 +316,6 @@ func request_{{.Method.Service.GetName}}_{{.Method.GetName}}_{{.Index}}(ctx *gin
 {{if .PathParams}}
 	var (
 		err error
-		_ = err
 	{{- if .HasEnumPathParam}}
 		e int32
 	{{- end}}
@@ -461,7 +460,6 @@ func local_request_{{.Method.Service.GetName}}_{{.Method.GetName}}_{{.Index}}(se
 {{if .PathParams}}
 	var (
 		err error
-		_ = err
 	{{- if .HasEnumPathParam}}
 		e int32
 	{{- end}}
