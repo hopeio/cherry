@@ -55,8 +55,7 @@ func ContextFromRequest(req fiber.Ctx, tracing bool) (*Context, trace.Span) {
 		}
 	}
 
-	ctxi := contexti.NewRequestContext[fiber.Ctx](ctx, traceId)
-	ctxi.RequestCtx = req
+	ctxi := contexti.NewRequestContext[fiber.Ctx](ctx, req, traceId)
 	setWithReq(ctxi, req.Request())
 	return ctxi, span
 }

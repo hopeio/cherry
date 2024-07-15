@@ -67,7 +67,7 @@ func (s *Server) grpcHandler() *grpc.Server {
 }
 
 func UnaryAccess(conf *Config) grpc.UnaryServerInterceptor {
-	enablePrometheus := conf.EnableMetrics
+	//enablePrometheus := conf.EnableMetrics
 	return func(
 		ctx context.Context, req interface{},
 		info *grpc.UnaryServerInfo,
@@ -103,9 +103,9 @@ func UnaryAccess(conf *Config) grpc.UnaryServerInterceptor {
 		defaultAccessLog(ctxi, info.FullMethod, "grpc",
 			stringsi.BytesToString(body), stringsi.BytesToString(result),
 			code)
-		if enablePrometheus {
-			defaultMetricsRecord(ctxi, info.FullMethod, "grpc", code)
-		}
+		/*		if enablePrometheus {
+				defaultMetricsRecord(ctxi, info.FullMethod, "grpc", code)
+			}*/
 		return resp, err
 	}
 }

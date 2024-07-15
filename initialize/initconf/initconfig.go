@@ -22,8 +22,9 @@ type EnvConfig struct {
 	Debug             bool   `flag:"name:debug;short:d;default:debug;usage:是否测试;env:DEBUG"`
 	ConfigTemplateDir string `flag:"name:conf_tmpl_dir;short:t;usage:是否生成配置模板;env:CONFIG_TEMPLATE_DIR"`
 	// 代理, socks5://localhost:1080
-	Proxy    string `flag:"name:proxy;short:p;default:'socks5://localhost:1080';usage:代理;env:HTTP_PROXY" `
-	NoInject []string
+	Proxy       string `flag:"name:proxy;short:p;default:'socks5://localhost:1080';usage:代理;env:HTTP_PROXY" `
+	EnableTrace bool   `flag:"name:trace;default:true;usage:系统trace;env:ENABLE_TRACE"`
+	NoInject    []string
 	// config字段顺序不能变,ConfigCenter 保持在最后
 	ConfigCenter conf_center.Config
 }

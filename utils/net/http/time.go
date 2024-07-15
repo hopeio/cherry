@@ -24,7 +24,7 @@ func NewRequestAt() *RequestAt {
 	}
 }
 
-func NewRequestAtByTime(t time.Time) *RequestAt {
+func NewRequestAtFromTime(t time.Time) *RequestAt {
 	return &RequestAt{
 		Time:       t,
 		TimeStamp:  t.Unix(),

@@ -11,7 +11,6 @@ import (
 	"github.com/quic-go/quic-go"
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"go.opentelemetry.io/otel/trace"
 	"net"
 	"net/http"
 	"os/signal"
@@ -22,7 +21,6 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/cherry/utils/log"
-	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 	"go.uber.org/zap"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
@@ -105,26 +103,21 @@ func (s *Server) Start() {
 		wrappedGrpc = web.WrapServer(grpcServer, s.Config.GrpcWebOption...)
 	}
 
-	enableTracing := s.Config.EnableTracing
+	enableTelemetry := s.Config.EnableTelemetry
 
 	//systemTracing := serviceConfig.SystemTracing
-	if enableTracing {
+	if enableTelemetry {
 		grpc.EnableTracing = true
 		// Set up OpenTelemetry.
 
-		otelShutdown, err := setupOTelSDK(sigCtx, enableTracing)
+		otelShutdown, err := setupOTelSDK(sigCtx, s.Config.EnablePrometheus)
 		if err != nil {
 			log.Fatal(err)
 		}
 		// Handle shutdown properly so nothing leaks.
-		defer func() {
-			err = otelShutdown(context.Background())
-			if err != nil {
-				log.Error(err)
-			}
-		}()
-
+		defer otelShutdown(sigCtx)
 	}
+
 	var handler http.Handler
 	handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
@@ -143,7 +136,7 @@ func (s *Server) Start() {
 			middleware(w, r)
 		}
 
-		ctx, span := httpctx.ContextFromRequest(httpctx.RequestCtx{Request: r, Response: w}, enableTracing)
+		ctx, span := httpctx.ContextFromRequest(httpctx.RequestCtx{Request: r, Response: w}, enableTelemetry)
 
 		r = r.WithContext(ctx.ContextWrapper())
 
@@ -163,22 +156,22 @@ func (s *Server) Start() {
 		}
 	})
 
-	if enableTracing {
+	if enableTelemetry {
 		http.DefaultClient = otelhttp.DefaultClient
-		handlerBack := handler
+		/*		handlerBack := handler
 
-		handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			apiCounter.Add(r.Context(), 1)
-			attr := semconv.HTTPRouteKey.String(r.RequestURI)
+				handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					//apiCounter.Add(r.Context(), 1)
+					attr := semconv.HTTPRouteKey.String(r.RequestURI)
 
-			span := trace.SpanFromContext(r.Context())
-			span.SetAttributes(attr)
+					span := trace.SpanFromContext(r.Context())
+					span.SetAttributes(attr)
 
-			labeler, _ := otelhttp.LabelerFromContext(r.Context())
-			labeler.Add(attr)
+					labeler, _ := otelhttp.LabelerFromContext(r.Context())
+					labeler.Add(attr)
 
-			handlerBack.ServeHTTP(w, r)
-		})
+					handlerBack.ServeHTTP(w, r)
+				})*/
 		handler = otelhttp.NewHandler(handler, "server")
 
 	}

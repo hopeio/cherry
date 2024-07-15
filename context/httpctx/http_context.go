@@ -28,6 +28,7 @@ func ContextFromRequest(req RequestCtx, tracing bool) (*Context, trace.Span) {
 	if r != nil {
 		ctx = r.Context()
 	}
+
 	var traceId string
 	var span trace.Span
 	if tracing {
@@ -50,11 +51,12 @@ func ContextFromRequest(req RequestCtx, tracing bool) (*Context, trace.Span) {
 		} else {
 			ctx, span = contexti.Tracing(ctx, "")
 		}
-
+		if spanContext := span.SpanContext(); spanContext.IsValid() {
+			traceId = spanContext.TraceID().String()
+		}
 	}
 
-	ctxi := contexti.NewRequestContext[RequestCtx](ctx, traceId)
-	ctxi.RequestCtx = req
+	ctxi := contexti.NewRequestContext[RequestCtx](ctx, req, traceId)
 	setWithHttpReq(ctxi, r)
 	return ctxi, span
 }
@@ -141,4 +143,10 @@ func (c *HttpContext) SetTrailer(md metadata.MD) error {
 		}
 	}
 	return nil
+}
+
+type RequestDataCtx[T any] struct {
+	Request  *http.Request
+	Response http.ResponseWriter
+	Data     T
 }

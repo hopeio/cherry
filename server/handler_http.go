@@ -16,11 +16,11 @@ import (
 
 func (s *Server) httpHandler() http.HandlerFunc {
 	conf := s.Config
-	enableMetrics := conf.EnableMetrics
+	//enablePrometheus := conf.EnablePrometheus
 	// 默认使用gin
 	ginServer := conf.Gin.New()
 	s.GinHandler(ginServer)
-	if enableMetrics {
+	if conf.EnableDebugApi {
 		gini.Debug(ginServer)
 	}
 
@@ -90,8 +90,8 @@ func (s *Server) httpHandler() http.HandlerFunc {
 		defaultAccessLog(ctxi, r.RequestURI, r.Method,
 			stringsi.BytesToString(body), stringsi.BytesToString(recorder.Body.Bytes()),
 			recorder.Code)
-		if enableMetrics {
-			defaultMetricsRecord(ctxi, r.RequestURI, r.Method, recorder.Code)
-		}
+		/*		if enablePrometheus {
+				defaultMetricsRecord(ctxi, r.RequestURI, r.Method, recorder.Code)
+			}*/
 	}
 }

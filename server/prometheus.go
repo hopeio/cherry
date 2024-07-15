@@ -1,12 +1,10 @@
 package server
 
+// Deprecated 使用opentelemetry
 import (
 	"github.com/hopeio/cherry/context/httpctx"
-	"github.com/hopeio/cherry/utils/log"
 	prometheus1 "github.com/hopeio/cherry/utils/net/http/prometheus"
 	prometheus2 "github.com/prometheus/client_golang/prometheus"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/metric"
 	"time"
 )
 
@@ -17,32 +15,6 @@ import (
 	metrics1.EnableHostnameLabel = true
 	http.Handle("/metrics", promhttp.Handler())
 }*/
-
-var (
-	meter      = otel.Meter("service-meter")
-	apiCounter metric.Int64Counter
-	histogram  metric.Float64Histogram
-)
-
-func init() {
-	var err error
-	apiCounter, err = meter.Int64Counter(
-		"api.counter",
-		metric.WithDescription("Number of API calls."),
-		metric.WithUnit("{call}"),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-	histogram, err = meter.Float64Histogram(
-		"task.duration",
-		metric.WithDescription("The duration of task execution."),
-		metric.WithUnit("s"),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
 
 type MetricsRecord = func(ctxi *httpctx.Context, uri, method string, code int)
 

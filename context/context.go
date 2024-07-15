@@ -7,7 +7,6 @@ import (
 	timei "github.com/hopeio/cherry/utils/time"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -20,14 +19,13 @@ func GetPool[REQ any]() sync.Pool {
 }
 
 type RequestContext[REQ any] struct {
-	ctx context.Context
-
+	ctx     context.Context
 	TraceID string
-
-	Token  string
-	AuthID string
-	AuthInfo
+	// TODO: 优化,部分数据由使用方设置，等go支持泛型别名
+	Token       string
 	AuthInfoRaw string
+	AuthID      string
+	AuthInfo
 
 	*DeviceInfo
 
@@ -36,7 +34,6 @@ type RequestContext[REQ any] struct {
 	grpc.ServerTransportStream
 
 	Internal string
-	Values   map[string]any
 }
 
 func (c *RequestContext[REQ]) StartSpan(name string, o ...trace.SpanStartOption) (*RequestContext[REQ], trace.Span) {
@@ -46,19 +43,6 @@ func (c *RequestContext[REQ]) StartSpan(name string, o ...trace.SpanStartOption)
 		c.TraceID = span.SpanContext().TraceID().String()
 	}
 	return c, span
-}
-
-func Tracing(ctx context.Context, name string) (context.Context, trace.Span) {
-
-	if span := trace.SpanFromContext(ctx); span != nil {
-		return ctx, span
-	}
-	if name == "" {
-		pc, _, _, _ := runtime.Caller(3)
-		name = runtime.FuncForPC(pc).Name()
-	}
-
-	return tracer.Start(ctx, name)
 }
 
 func methodFamily(m string) string {
@@ -77,7 +61,7 @@ func (c *RequestContext[REQ]) ContextWrapper() context.Context {
 
 func RequestContextFromContext[REQ any](ctx context.Context) *RequestContext[REQ] {
 	if ctx == nil {
-		return NewRequestContext[REQ](context.Background(), "")
+		return NewRequestContext[REQ](context.Background(), *new(REQ), "")
 	}
 
 	ctxi := ctx.Value(ctxKey{})
@@ -88,7 +72,7 @@ func RequestContextFromContext[REQ any](ctx context.Context) *RequestContext[REQ
 		if spanContext := span.SpanContext(); spanContext.IsValid() {
 			traceId = spanContext.TraceID().String()
 		}
-		c = NewRequestContext[REQ](ctx, traceId)
+		c = NewRequestContext[REQ](ctx, *new(REQ), traceId)
 	}
 	if c.ServerTransportStream == nil {
 		c.ServerTransportStream = grpc.ServerTransportStreamFromContext(ctx)
@@ -105,21 +89,21 @@ func (c *RequestContext[REQ]) SetContext(ctx context.Context) {
 	c.ctx = ctx
 }
 
-func NewRequestContext[REQ any](ctx context.Context, traceId string) *RequestContext[REQ] {
+func NewRequestContext[REQ any](ctx context.Context, req REQ, traceId string) *RequestContext[REQ] {
 	now := time.Now()
 	if traceId == "" {
 		traceId = uuid.New().String()
 	}
 	return &RequestContext[REQ]{
-		ctx:     ctx,
-		TraceID: traceId,
+		ctx:        ctx,
+		TraceID:    traceId,
+		RequestCtx: req,
 		RequestAt: http.RequestAt{
 			Time:       now,
 			TimeStamp:  now.Unix(),
 			TimeString: now.Format(timei.LayoutTimeMacro),
 		},
 		ServerTransportStream: grpc.ServerTransportStreamFromContext(ctx),
-		Values:                map[string]any{},
 	}
 }
 

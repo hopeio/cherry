@@ -48,8 +48,7 @@ func ContextFromRequest(req *fasthttp.RequestCtx, tracing bool) (*Context, trace
 		}
 	}
 
-	ctxi := contexti.NewRequestContext[*fasthttp.RequestCtx](ctx, traceId)
-	ctxi.RequestCtx = req
+	ctxi := contexti.NewRequestContext[*fasthttp.RequestCtx](ctx, req, traceId)
 	setWithReq(ctxi, r)
 	return ctxi, span
 }

@@ -3,8 +3,10 @@ package server
 import (
 	"context"
 	"errors"
+	"github.com/hopeio/cherry/utils/log"
 	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
+	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"time"
 
@@ -14,6 +16,32 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
+
+var (
+	meter      = otel.Meter("service")
+	apiCounter metric.Int64Counter
+	histogram  metric.Float64Histogram
+)
+
+func init() {
+	var err error
+	apiCounter, err = meter.Int64Counter(
+		"api.counter",
+		metric.WithDescription("Number of API calls."),
+		metric.WithUnit("{call}"),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	histogram, err = meter.Float64Histogram(
+		"task.duration",
+		metric.WithDescription("The duration of task execution."),
+		metric.WithUnit("s"),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 
 // setupOTelSDK bootstraps the OpenTelemetry pipeline.
 // If it does not return an error, make sure to call shutdown for proper cleanup.
@@ -41,18 +69,18 @@ func setupOTelSDK(ctx context.Context, enablePrometheus bool) (shutdown func(con
 	otel.SetTextMapPropagator(newPropagator())
 
 	// Set up trace provider.
-	tracerProvider, err := newTraceProvider(ctx)
+	tracerProvider, err1 := newTraceProvider(ctx)
 	if err != nil {
-		handleErr(err)
+		handleErr(err1)
 		return
 	}
 	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
 	otel.SetTracerProvider(tracerProvider)
 
 	// Set up meter provider.
-	meterProvider, err := newMeterProvider(enablePrometheus)
+	meterProvider, err1 := newMeterProvider(ctx, enablePrometheus)
 	if err != nil {
-		handleErr(err)
+		handleErr(err1)
 		return
 	}
 	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
@@ -75,14 +103,12 @@ func newTraceProvider(ctx context.Context) (*sdktrace.TracerProvider, error) {
 	if err != nil {
 		return nil, err
 	}
-	res, err := resource.New(ctx,
-		resource.WithFromEnv(),      // Discover and provide attributes from OTEL_RESOURCE_ATTRIBUTES and OTEL_SERVICE_NAME environment variables.
-		resource.WithTelemetrySDK(), // Discover and provide information about the OpenTelemetry SDK used.
-		resource.WithProcess(),      // Discover and provide process information.
-		resource.WithOS(),           // Discover and provide OS information.
-		resource.WithContainer(),    // Discover and provide container information.
-		resource.WithHost(),         // Discover and provide host information.
-	)
+	res, err := resource.New(ctx) //resource.WithFromEnv(), // Discover and provide attributes from OTEL_RESOURCE_ATTRIBUTES and OTEL_SERVICE_NAME environment variables.
+	//resource.WithTelemetrySDK(), // Discover and provide information about the OpenTelemetry SDK used.
+	//resource.WithProcess(),      // Discover and provide process information.
+	//resource.WithOS(),           // Discover and provide OS information.
+	//resource.WithContainer(), // Discover and provide container information.
+	//resource.WithHost(),         // Discover and provide host information.
 
 	if err != nil {
 		return nil, err
@@ -94,23 +120,32 @@ func newTraceProvider(ctx context.Context) (*sdktrace.TracerProvider, error) {
 	), nil
 }
 
-func newMeterProvider(enablePrometheus bool) (*sdkmetric.MeterProvider, error) {
+func newMeterProvider(ctx context.Context, enablePrometheus bool) (*sdkmetric.MeterProvider, error) {
+	res, err := resource.New(ctx)
+	var reader sdkmetric.Reader
 	if enablePrometheus {
-		exporter, err := prometheus.New()
+		reader, err = prometheus.New()
 		if err != nil {
 			return nil, err
 		}
-		return sdkmetric.NewMeterProvider(
-			sdkmetric.WithReader(exporter),
-		), nil
-	}
-	metricExporter, err := stdoutmetric.New()
-	if err != nil {
-		return nil, err
-	}
-	return sdkmetric.NewMeterProvider(
-		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(metricExporter,
+	} else {
+		exporter, err := stdoutmetric.New()
+		if err != nil {
+			return nil, err
+		}
+		reader = sdkmetric.NewPeriodicReader(exporter,
 			// Default is 1m. Set to 3s for demonstrative purposes.
-			sdkmetric.WithInterval(3*time.Second))),
+			sdkmetric.WithInterval(3*time.Second))
+	}
+
+	return sdkmetric.NewMeterProvider(
+		sdkmetric.WithResource(res),
+		sdkmetric.WithReader(reader),
+		/*		sdkmetric.WithView(sdkmetric.NewView(
+				sdkmetric.Instrument{Name: "histogram_*"},
+				sdkmetric.Stream{Aggregation: sdkmetric.AggregationExplicitBucketHistogram{
+					Boundaries: []float64{0, 5, 10, 25, 50, 75, 100, 250, 500, 1000},
+				}},
+			)),*/
 	), nil
 }

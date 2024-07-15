@@ -50,8 +50,7 @@ func ContextFromRequest(req *gin.Context, tracing bool) (*Context, trace.Span) {
 		}
 	}
 
-	ctxi := contexti.NewRequestContext[*gin.Context](ctx, traceId)
-	ctxi.RequestCtx = req
+	ctxi := contexti.NewRequestContext[*gin.Context](ctx, req, traceId)
 	setWithHttpReq(ctxi, r)
 	return ctxi, span
 }
