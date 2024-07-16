@@ -18,44 +18,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package encoding
+package encoder
 
-// ObjectMarshaler allows user-defined types to efficiently add themselves to the
-// logging context, and to selectively omit information which shouldn't be
-// included in logs (e.g., passwords).
-//
-// Note: ObjectMarshaler is only used when zap.Object is used or when
-// passed directly to zap.Any. It is not used when reflection-based
-// encoding is used.
-type ObjectMarshaler interface {
-	MarshalLogObject(ObjectEncoder) error
-}
+import "go.uber.org/zap/zapcore"
 
 // ObjectMarshalerFunc is a type adapter that turns a function into an
 // ObjectMarshaler.
-type ObjectMarshalerFunc func(ObjectEncoder) error
+type ObjectMarshalerFunc func(zapcore.ObjectEncoder) error
 
 // MarshalLogObject calls the underlying function.
-func (f ObjectMarshalerFunc) MarshalLogObject(enc ObjectEncoder) error {
+func (f ObjectMarshalerFunc) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	return f(enc)
-}
-
-// ArrayMarshaler allows user-defined types to efficiently add themselves to the
-// logging context, and to selectively omit information which shouldn't be
-// included in logs (e.g., passwords).
-//
-// Note: ArrayMarshaler is only used when zap.Array is used or when
-// passed directly to zap.Any. It is not used when reflection-based
-// encoding is used.
-type ArrayMarshaler interface {
-	MarshalLogArray(ArrayEncoder) error
 }
 
 // ArrayMarshalerFunc is a type adapter that turns a function into an
 // ArrayMarshaler.
-type ArrayMarshalerFunc func(ArrayEncoder) error
+type ArrayMarshalerFunc func(zapcore.ArrayEncoder) error
 
 // MarshalLogArray calls the underlying function.
-func (f ArrayMarshalerFunc) MarshalLogArray(enc ArrayEncoder) error {
+func (f ArrayMarshalerFunc) MarshalLogArray(enc zapcore.ArrayEncoder) error {
 	return f(enc)
 }

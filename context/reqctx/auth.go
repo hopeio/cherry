@@ -1,4 +1,4 @@
-package context
+package reqctx
 
 type AuthInfo interface {
 	IdStr() string

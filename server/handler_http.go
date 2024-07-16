@@ -86,7 +86,7 @@ func (s *Server) httpHandler() http.HandlerFunc {
 			// 将 recorder 记录的 Response Body 写入到 ResponseWriter 中，客户端收到响应报文体
 			w.Write(recorder.Body.Bytes())
 		}
-		ctxi := httpctx.ContextFromContext(r.Context())
+		ctxi := httpctx.FromContextValue(r.Context())
 		defaultAccessLog(ctxi, r.RequestURI, r.Method,
 			stringsi.BytesToString(body), stringsi.BytesToString(recorder.Body.Bytes()),
 			recorder.Code)

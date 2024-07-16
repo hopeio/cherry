@@ -6,25 +6,32 @@ import (
 	"net/url"
 )
 
-type DingDing dingding.RobotConfig
+type sink dingding.RobotConfig
 
 // TODO
-func (th *DingDing) Write(b []byte) (n int, err error) {
+func (th *sink) Write(b []byte) (n int, err error) {
 	return
 }
 
-func (th *DingDing) Sync() error {
+func (th *sink) Sync() error {
 	return nil
 }
 
-func (th *DingDing) Close() error {
+func (th *sink) Close() error {
 	return nil
 }
 
 // dingding://${token}?sercret=${sercret}
 func RegisterSink() {
-	_ = zap.RegisterSink("dingding", func(url *url.URL) (sink zap.Sink, e error) {
-		th := new(DingDing)
+	_ = zap.RegisterSink("dingding", func(url *url.URL) (sinkv zap.Sink, e error) {
+		th := new(sink)
 		return th, nil
 	})
+}
+
+func NewSink(token, secret string) zap.Sink {
+	th := new(sink)
+	th.Token = token
+	th.Secret = secret
+	return th
 }

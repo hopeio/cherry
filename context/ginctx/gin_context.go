@@ -3,59 +3,32 @@ package ginctx
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	contexti "github.com/hopeio/cherry/context"
+	"github.com/hopeio/cherry/context/reqctx"
 	httpi "github.com/hopeio/cherry/utils/net/http"
-	"go.opentelemetry.io/otel/trace"
-
 	"google.golang.org/grpc/metadata"
 	"net/http"
 )
 
-type Context = contexti.RequestContext[*gin.Context]
+type Context = reqctx.Context[*gin.Context]
 
-func ContextFromContext(ctx context.Context) *Context {
-	return contexti.RequestContextFromContext[*gin.Context](ctx)
+func FromContextValue(ctx context.Context) *Context {
+	return reqctx.FromContextValue[*gin.Context](ctx)
 }
 
-func ContextFromRequest(req *gin.Context, tracing bool) (*Context, trace.Span) {
+func FromRequest(req *gin.Context) *Context {
 	r := req.Request
 
-	ctx := context.Background()
+	var ctx context.Context
 	if r != nil {
 		ctx = r.Context()
 	}
-	var traceId string
-	var span trace.Span
-	if tracing {
-		if r != nil {
-			// go.opencensus.io/trace 完全包含了golang.org/x/net/trace 的功能
-			// grpc内置配合,看了源码并没有启用，根本没调用
-			// 系统trace只能追踪单个请求，且只记录时间及是否完成，只能/debug/requests看
-			/*			t = gtrace.New(methodFamily(r.RequestURI), r.RequestURI)
-						ctx = gtrace.NewContext(ctx, t)
-			*/
 
-			// 直接从远程读取Trace信息，Trace是否为空交给propagation包判断
-			/*	traceString := r.Header.Get(httpi.HeaderGrpcTraceBin)
-				if traceString == "" {
-					traceString = r.Header.Get(httpi.HeaderTraceBin)
-				}
-			*/
-			ctx, span = contexti.Tracing(ctx, r.RequestURI)
-		} else {
-			ctx, span = contexti.Tracing(ctx, "")
-		}
-		if spanContext := span.SpanContext(); spanContext.IsValid() {
-			traceId = spanContext.TraceID().String()
-		}
-	}
-
-	ctxi := contexti.NewRequestContext[*gin.Context](ctx, req, traceId)
+	ctxi := reqctx.NewRequestContext[*gin.Context](ctx, req)
 	setWithHttpReq(ctxi, r)
-	return ctxi, span
+	return ctxi
 }
 
-func setWithHttpReq(c *contexti.RequestContext[*gin.Context], r *http.Request) {
+func setWithHttpReq(c *reqctx.Context[*gin.Context], r *http.Request) {
 	if r == nil {
 		return
 	}
@@ -64,13 +37,13 @@ func setWithHttpReq(c *contexti.RequestContext[*gin.Context], r *http.Request) {
 	c.Token = httpi.GetToken(r)
 }
 
-func DeviceFromHeader(r http.Header) *contexti.DeviceInfo {
-	return contexti.Device(r.Get(httpi.HeaderDeviceInfo),
+func DeviceFromHeader(r http.Header) *reqctx.DeviceInfo {
+	return reqctx.Device(r.Get(httpi.HeaderDeviceInfo),
 		r.Get(httpi.HeaderArea), r.Get(httpi.HeaderLocation),
 		r.Get(httpi.HeaderUserAgent), r.Get(httpi.HeaderXForwardedFor))
 }
 
-type GinContext contexti.RequestContext[*gin.Context]
+type GinContext Context
 
 func (c *GinContext) SetHeader(md metadata.MD) error {
 	header := c.RequestCtx.Writer.Header()

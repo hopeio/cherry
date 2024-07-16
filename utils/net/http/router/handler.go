@@ -1,8 +1,8 @@
 package pickrouter
 
 import (
-	contexti "github.com/hopeio/cherry/context"
 	"github.com/hopeio/cherry/context/httpctx"
+	contexti "github.com/hopeio/cherry/context/reqctx"
 	"github.com/hopeio/cherry/protobuf/errcode"
 	"github.com/hopeio/cherry/utils/encoding/json"
 	httpi "github.com/hopeio/cherry/utils/net/http"
@@ -22,13 +22,11 @@ func commonHandler(w http.ResponseWriter, req *http.Request, handle *reflect.Val
 	handleNumIn := handleTyp.NumIn()
 	if handleNumIn != 0 {
 		params := make([]reflect.Value, handleNumIn)
-		ctxi, s := httpctx.ContextFromRequest(httpctx.RequestCtx{
+		ctxi := httpctx.FromRequest(httpctx.RequestCtx{
 			Request:  req,
 			Response: w,
-		}, tracing)
-		if s != nil {
-			defer s.End()
-		}
+		})
+		defer ctxi.RootSpan().End()
 		for i := 0; i < handleNumIn; i++ {
 			if handleTyp.In(i).ConvertibleTo(HttpContextType) {
 				params[i] = reflect.ValueOf(ctxi)
@@ -56,7 +54,7 @@ func commonHandler(w http.ResponseWriter, req *http.Request, handle *reflect.Val
 	}
 }
 
-func ResHandler[T any](c *contexti.RequestContext[T], w http.ResponseWriter, result []reflect.Value) {
+func ResHandler[T any](c *contexti.Context[T], w http.ResponseWriter, result []reflect.Value) {
 	if !result[1].IsNil() {
 		err := errcode.ErrHandle(result[1].Interface())
 		c.HandleError(err)

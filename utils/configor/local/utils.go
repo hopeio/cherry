@@ -48,7 +48,7 @@ func (configor *Configor) handle(handle func([]byte), watchMode bool, files ...s
 	}
 
 	for _, file := range configFiles {
-		log.Debugf("load config from: '%v'", file)
+		log.Infof("load config from: '%v'", file)
 		data, err := os.ReadFile(file)
 		if err != nil {
 			return err, true

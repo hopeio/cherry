@@ -28,7 +28,7 @@ func (c *InternalClientHandler) HandleRPC(ctx context.Context, rs stats.RPCStats
 
 // TagRPC implements per-RPC context management.
 func (c *InternalClientHandler) TagRPC(ctx context.Context, rti *stats.RPCTagInfo) context.Context {
-	ctxi := httpctx.ContextFromContext(ctx)
+	ctxi := httpctx.FromContextValue(ctx)
 	return metadata.AppendToOutgoingContext(ctx, httpi.HeaderTraceID,
 		ctxi.TraceID,
 		httpi.HeaderGrpcInternal, httpi.HeaderGrpcInternal)

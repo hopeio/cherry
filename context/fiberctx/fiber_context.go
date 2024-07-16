@@ -3,64 +3,35 @@ package fiberctx
 import (
 	"context"
 	"github.com/gofiber/fiber/v3"
-	contexti "github.com/hopeio/cherry/context"
 	"github.com/hopeio/cherry/context/fasthttpctx"
+	"github.com/hopeio/cherry/context/reqctx"
 	httpi "github.com/hopeio/cherry/utils/net/http"
 	fasthttpi "github.com/hopeio/cherry/utils/net/http/fasthttp"
 	stringsi "github.com/hopeio/cherry/utils/strings"
 	"github.com/valyala/fasthttp"
-	"go.opentelemetry.io/otel/trace"
-
 	"google.golang.org/grpc/metadata"
 	"net/http"
 )
 
-type Context = contexti.RequestContext[fiber.Ctx]
+type Context = reqctx.Context[fiber.Ctx]
 
-func ContextFromContext(ctx context.Context) *Context {
-	return contexti.RequestContextFromContext[fiber.Ctx](ctx)
+func FromContextValue(ctx context.Context) *Context {
+	return reqctx.FromContextValue[fiber.Ctx](ctx)
 }
 
-func ContextFromRequest(req fiber.Ctx, tracing bool) (*Context, trace.Span) {
+func FromRequest(req fiber.Ctx) *Context {
 	r := req.Request
 
-	ctx := context.Background()
+	var ctx context.Context
 	if r != nil {
 		ctx = req.Context()
 	}
-	var traceId string
-	var span trace.Span
-	if tracing {
-
-		if r != nil {
-			// go.opencensus.io/trace 完全包含了golang.org/x/net/trace 的功能
-			// grpc内置配合,看了源码并没有启用，根本没调用
-			// 系统trace只能追踪单个请求，且只记录时间及是否完成，只能/debug/requests看
-			/*			t = gtrace.New(methodFamily(r.RequestURI), r.RequestURI)
-						ctx = gtrace.NewContext(ctx, t)
-			*/
-
-			// 直接从远程读取Trace信息，Trace是否为空交给propagation包判断
-			/*	traceString := req.Get(httpi.HeaderGrpcTraceBin)
-				if traceString == "" {
-					traceString = req.Get(httpi.HeaderTraceBin)
-				}*/
-
-			ctx, span = contexti.Tracing(ctx, req.BaseURL())
-		} else {
-			ctx, span = contexti.Tracing(ctx, "")
-		}
-		if spanContext := span.SpanContext(); spanContext.IsValid() {
-			traceId = spanContext.TraceID().String()
-		}
-	}
-
-	ctxi := contexti.NewRequestContext[fiber.Ctx](ctx, req, traceId)
+	ctxi := reqctx.NewRequestContext[fiber.Ctx](ctx, req)
 	setWithReq(ctxi, req.Request())
-	return ctxi, span
+	return ctxi
 }
 
-func setWithReq(c *contexti.RequestContext[fiber.Ctx], r *fasthttp.Request) {
+func setWithReq(c *reqctx.Context[fiber.Ctx], r *fasthttp.Request) {
 	if r == nil {
 		return
 	}
@@ -69,13 +40,13 @@ func setWithReq(c *contexti.RequestContext[fiber.Ctx], r *fasthttp.Request) {
 	c.Internal = stringsi.BytesToString(r.Header.Peek(httpi.HeaderGrpcInternal))
 }
 
-func DeviceFromHeader(r http.Header) *contexti.DeviceInfo {
-	return contexti.Device(r.Get(httpi.HeaderDeviceInfo),
+func DeviceFromHeader(r http.Header) *reqctx.DeviceInfo {
+	return reqctx.Device(r.Get(httpi.HeaderDeviceInfo),
 		r.Get(httpi.HeaderArea), r.Get(httpi.HeaderLocation),
 		r.Get(httpi.HeaderUserAgent), r.Get(httpi.HeaderXForwardedFor))
 }
 
-type FiberContext contexti.RequestContext[fiber.Ctx]
+type FiberContext Context
 
 func (c *FiberContext) SetHeader(md metadata.MD) error {
 	resp := c.RequestCtx.Response()

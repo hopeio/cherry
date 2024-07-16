@@ -19,7 +19,7 @@ type UserService struct {
 }
 
 func (u *UserService) Signup(ctx context.Context, req *user.SignupReq) (*wrapperspb.StringValue, error) {
-	ctxi, span := httpctx.ContextFromContext(ctx).StartSpan("")
+	ctxi, span := httpctx.FromContextValue(ctx).StartSpan("")
 	defer span.End()
 	ctx = ctxi.Context()
 	if req.Mail == "" && req.Phone == "" {
@@ -50,7 +50,7 @@ func (u *UserService) Signup(ctx context.Context, req *user.SignupReq) (*wrapper
 func Test(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, _ := strconv.Atoi(idStr)
-	ctxi := httpctx.ContextFromContext(ctx.Request.Context())
+	ctxi := httpctx.FromContextValue(ctx.Request.Context())
 	t, err := dao.GetDao(ctxi, confdao.Dao.GORMDB.DB).GetJsonArrayT(id)
 	if err != nil {
 		ctx.Writer.WriteString(err.Error())

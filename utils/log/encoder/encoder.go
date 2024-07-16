@@ -18,13 +18,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package encoding
+package encoder
 
 import (
 	"encoding/json"
+	"go.uber.org/zap/zapcore"
 	"time"
-
-	"go.uber.org/zap/buffer"
 )
 
 // DefaultLineEnding defines the default line ending when writing logs.
@@ -36,11 +35,11 @@ const DefaultLineEnding = "\n"
 const OmitKey = ""
 
 // A TimeEncoder serializes a time.Time to a primitive type.
-type TimeEncoder func(time.Time, PrimitiveArrayEncoder)
+type TimeEncoder func(time.Time, zapcore.PrimitiveArrayEncoder)
 
 // EpochTimeEncoder serializes a time.Time to a floating-point number of seconds
 // since the Unix epoch.
-func EpochTimeEncoder(t time.Time, enc PrimitiveArrayEncoder) {
+func EpochTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 	nanos := t.UnixNano()
 	sec := float64(nanos) / float64(time.Second)
 	enc.AppendFloat64(sec)
@@ -48,7 +47,7 @@ func EpochTimeEncoder(t time.Time, enc PrimitiveArrayEncoder) {
 
 // EpochMillisTimeEncoder serializes a time.Time to a floating-point number of
 // milliseconds since the Unix epoch.
-func EpochMillisTimeEncoder(t time.Time, enc PrimitiveArrayEncoder) {
+func EpochMillisTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 	nanos := t.UnixNano()
 	millis := float64(nanos) / float64(time.Millisecond)
 	enc.AppendFloat64(millis)
@@ -56,11 +55,11 @@ func EpochMillisTimeEncoder(t time.Time, enc PrimitiveArrayEncoder) {
 
 // EpochNanosTimeEncoder serializes a time.Time to an integer number of
 // nanoseconds since the Unix epoch.
-func EpochNanosTimeEncoder(t time.Time, enc PrimitiveArrayEncoder) {
+func EpochNanosTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 	enc.AppendInt64(t.UnixNano())
 }
 
-func encodeTimeLayout(t time.Time, layout string, enc PrimitiveArrayEncoder) {
+func encodeTimeLayout(t time.Time, layout string, enc zapcore.PrimitiveArrayEncoder) {
 	type appendTimeEncoder interface {
 		AppendTimeLayout(time.Time, string)
 	}
@@ -78,7 +77,7 @@ func encodeTimeLayout(t time.Time, layout string, enc PrimitiveArrayEncoder) {
 //
 // If enc supports AppendTimeLayout(t time.Time,layout string), it's used
 // instead of appending a pre-formatted string value.
-func ISO8601TimeEncoder(t time.Time, enc PrimitiveArrayEncoder) {
+func ISO8601TimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 	encodeTimeLayout(t, "2006-01-02T15:04:05.000Z0700", enc)
 }
 
@@ -86,7 +85,7 @@ func ISO8601TimeEncoder(t time.Time, enc PrimitiveArrayEncoder) {
 //
 // If enc supports AppendTimeLayout(t time.Time,layout string), it's used
 // instead of appending a pre-formatted string value.
-func RFC3339TimeEncoder(t time.Time, enc PrimitiveArrayEncoder) {
+func RFC3339TimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 	encodeTimeLayout(t, time.RFC3339, enc)
 }
 
@@ -95,14 +94,14 @@ func RFC3339TimeEncoder(t time.Time, enc PrimitiveArrayEncoder) {
 //
 // If enc supports AppendTimeLayout(t time.Time,layout string), it's used
 // instead of appending a pre-formatted string value.
-func RFC3339NanoTimeEncoder(t time.Time, enc PrimitiveArrayEncoder) {
+func RFC3339NanoTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 	encodeTimeLayout(t, time.RFC3339Nano, enc)
 }
 
 // TimeEncoderOfLayout returns TimeEncoder which serializes a time.Time using
 // given layout.
 func TimeEncoderOfLayout(layout string) TimeEncoder {
-	return func(t time.Time, enc PrimitiveArrayEncoder) {
+	return func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 		encodeTimeLayout(t, layout, enc)
 	}
 }
@@ -165,28 +164,28 @@ func (e *TimeEncoder) UnmarshalJSON(data []byte) error {
 }
 
 // A DurationEncoder serializes a time.Duration to a primitive type.
-type DurationEncoder func(time.Duration, PrimitiveArrayEncoder)
+type DurationEncoder func(time.Duration, zapcore.PrimitiveArrayEncoder)
 
 // SecondsDurationEncoder serializes a time.Duration to a floating-point number of seconds elapsed.
-func SecondsDurationEncoder(d time.Duration, enc PrimitiveArrayEncoder) {
+func SecondsDurationEncoder(d time.Duration, enc zapcore.PrimitiveArrayEncoder) {
 	enc.AppendFloat64(float64(d) / float64(time.Second))
 }
 
 // NanosDurationEncoder serializes a time.Duration to an integer number of
 // nanoseconds elapsed.
-func NanosDurationEncoder(d time.Duration, enc PrimitiveArrayEncoder) {
+func NanosDurationEncoder(d time.Duration, enc zapcore.PrimitiveArrayEncoder) {
 	enc.AppendInt64(int64(d))
 }
 
 // MillisDurationEncoder serializes a time.Duration to an integer number of
 // milliseconds elapsed.
-func MillisDurationEncoder(d time.Duration, enc PrimitiveArrayEncoder) {
+func MillisDurationEncoder(d time.Duration, enc zapcore.PrimitiveArrayEncoder) {
 	enc.AppendInt64(d.Nanoseconds() / 1e6)
 }
 
 // StringDurationEncoder serializes a time.Duration using its built-in String
 // method.
-func StringDurationEncoder(d time.Duration, enc PrimitiveArrayEncoder) {
+func StringDurationEncoder(d time.Duration, enc zapcore.PrimitiveArrayEncoder) {
 	enc.AppendString(d.String())
 }
 
@@ -209,10 +208,10 @@ func (e *DurationEncoder) UnmarshalText(text []byte) error {
 
 // A NameEncoder serializes a period-separated logger name to a primitive
 // type.
-type NameEncoder func(string, PrimitiveArrayEncoder)
+type NameEncoder func(string, zapcore.PrimitiveArrayEncoder)
 
 // FullNameEncoder serializes the logger name as-is.
-func FullNameEncoder(loggerName string, enc PrimitiveArrayEncoder) {
+func FullNameEncoder(loggerName string, enc zapcore.PrimitiveArrayEncoder) {
 	enc.AppendString(loggerName)
 }
 
@@ -253,111 +252,4 @@ type EncoderConfig struct {
 	// Configures the field separator used by the console encoder. Defaults
 	// to tab.
 	ConsoleSeparator string `json:"consoleSeparator" yaml:"consoleSeparator"`
-}
-
-// ObjectEncoder is a strongly-typed, encoding-agnostic interface for adding a
-// map- or struct-like object to the logging context. Like maps, ObjectEncoders
-// aren't safe for concurrent use (though typical use shouldn't require locks).
-type ObjectEncoder interface {
-	// Logging-specific marshalers.
-	AddArray(key string, marshaler ArrayMarshaler) error
-	AddObject(key string, marshaler ObjectMarshaler) error
-
-	// Built-in types.
-	AddBinary(key string, value []byte)     // for arbitrary bytes
-	AddByteString(key string, value []byte) // for UTF-8 encoded bytes
-	AddBool(key string, value bool)
-	AddComplex128(key string, value complex128)
-	AddComplex64(key string, value complex64)
-	AddDuration(key string, value time.Duration)
-	AddFloat64(key string, value float64)
-	AddFloat32(key string, value float32)
-	AddInt(key string, value int)
-	AddInt64(key string, value int64)
-	AddInt32(key string, value int32)
-	AddInt16(key string, value int16)
-	AddInt8(key string, value int8)
-	AddString(key, value string)
-	AddTime(key string, value time.Time)
-	AddUint(key string, value uint)
-	AddUint64(key string, value uint64)
-	AddUint32(key string, value uint32)
-	AddUint16(key string, value uint16)
-	AddUint8(key string, value uint8)
-	AddUintptr(key string, value uintptr)
-
-	// AddReflected uses reflection to serialize arbitrary objects, so it can be
-	// slow and allocation-heavy.
-	AddReflected(key string, value interface{}) error
-	// OpenNamespace opens an isolated namespace where all subsequent fields will
-	// be added. Applications can use namespaces to prevent key collisions when
-	// injecting loggers into sub-components or third-party libraries.
-	OpenNamespace(key string)
-}
-
-// ArrayEncoder is a strongly-typed, encoding-agnostic interface for adding
-// array-like objects to the logging context. Of note, it supports mixed-type
-// arrays even though they aren't typical in Go. Like slices, ArrayEncoders
-// aren't safe for concurrent use (though typical use shouldn't require locks).
-type ArrayEncoder interface {
-	// Built-in types.
-	PrimitiveArrayEncoder
-
-	// Time-related types.
-	AppendDuration(time.Duration)
-	AppendTime(time.Time)
-
-	// Logging-specific marshalers.
-	AppendArray(ArrayMarshaler) error
-	AppendObject(ObjectMarshaler) error
-
-	// AppendReflected uses reflection to serialize arbitrary objects, so it's
-	// slow and allocation-heavy.
-	AppendReflected(value interface{}) error
-}
-
-// PrimitiveArrayEncoder is the subset of the ArrayEncoder interface that deals
-// only in Go's built-in types. It's included only so that Duration- and
-// TimeEncoders cannot trigger infinite recursion.
-type PrimitiveArrayEncoder interface {
-	// Built-in types.
-	AppendBool(bool)
-	AppendByteString([]byte) // for UTF-8 encoded bytes
-	AppendComplex128(complex128)
-	AppendComplex64(complex64)
-	AppendFloat64(float64)
-	AppendFloat32(float32)
-	AppendInt(int)
-	AppendInt64(int64)
-	AppendInt32(int32)
-	AppendInt16(int16)
-	AppendInt8(int8)
-	AppendString(string)
-	AppendUint(uint)
-	AppendUint64(uint64)
-	AppendUint32(uint32)
-	AppendUint16(uint16)
-	AppendUint8(uint8)
-	AppendUintptr(uintptr)
-}
-
-// Encoder is a format-agnostic interface for all log entry marshalers. Since
-// log encoders don't need to support the same wide range of use cases as
-// general-purpose marshalers, it's possible to make them faster and
-// lower-allocation.
-//
-// Implementations of the ObjectEncoder interface's methods can, of course,
-// freely modify the receiver. However, the Clone and EncodeEntry methods will
-// be called concurrently and shouldn't modify the receiver.
-type Encoder interface {
-	ObjectEncoder
-
-	// Clone copies the encoder, ensuring that adding fields to the copy doesn't
-	// affect the original.
-	Clone() Encoder
-
-	// EncodeEntry encodes an entry and fields, along with any accumulated
-	// context, into a byte buffer and returns it. Any fields that are empty,
-	// including fields on the `Entry` type, should be omitted.
-	EncodeEntry([]Field) (*buffer.Buffer, error)
 }

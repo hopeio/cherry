@@ -45,7 +45,7 @@ func init() {
 
 // setupOTelSDK bootstraps the OpenTelemetry pipeline.
 // If it does not return an error, make sure to call shutdown for proper cleanup.
-func setupOTelSDK(ctx context.Context, enablePrometheus bool) (shutdown func(context.Context) error, err error) {
+func setupOTelSDK(ctx context.Context, config *TelemetryConfig) (shutdown func(context.Context) error, err error) {
 	var shutdownFuncs []func(context.Context) error
 
 	// shutdown calls cleanup functions registered via shutdownFuncs.
@@ -65,26 +65,33 @@ func setupOTelSDK(ctx context.Context, enablePrometheus bool) (shutdown func(con
 		err = errors.Join(inErr, shutdown(ctx))
 	}
 
+	if config.propagator == nil {
+		config.propagator = newPropagator()
+	}
 	// Set up propagator.
-	otel.SetTextMapPropagator(newPropagator())
+	otel.SetTextMapPropagator(config.propagator)
 
-	// Set up trace provider.
-	tracerProvider, err1 := newTraceProvider(ctx)
-	if err != nil {
-		handleErr(err1)
-		return
+	if config.tracerProvider == nil {
+		config.tracerProvider, err = newTraceProvider(ctx)
+		if err != nil {
+			handleErr(err)
+			return
+		}
 	}
-	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
-	otel.SetTracerProvider(tracerProvider)
+	shutdownFuncs = append(shutdownFuncs, config.tracerProvider.Shutdown)
+	otel.SetTracerProvider(config.tracerProvider)
 
-	// Set up meter provider.
-	meterProvider, err1 := newMeterProvider(ctx, enablePrometheus)
-	if err != nil {
-		handleErr(err1)
-		return
+	if config.meterProvider == nil {
+		// Set up meter provider.
+		config.meterProvider, err = newMeterProvider(ctx, config)
+		if err != nil {
+			handleErr(err)
+			return
+		}
 	}
-	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
-	otel.SetMeterProvider(meterProvider)
+
+	shutdownFuncs = append(shutdownFuncs, config.meterProvider.Shutdown)
+	otel.SetMeterProvider(config.meterProvider)
 
 	return
 }
@@ -120,10 +127,10 @@ func newTraceProvider(ctx context.Context) (*sdktrace.TracerProvider, error) {
 	), nil
 }
 
-func newMeterProvider(ctx context.Context, enablePrometheus bool) (*sdkmetric.MeterProvider, error) {
+func newMeterProvider(ctx context.Context, config *TelemetryConfig) (*sdkmetric.MeterProvider, error) {
 	res, err := resource.New(ctx)
 	var reader sdkmetric.Reader
-	if enablePrometheus {
+	if config.EnablePrometheus {
 		reader, err = prometheus.New()
 		if err != nil {
 			return nil, err
@@ -135,7 +142,7 @@ func newMeterProvider(ctx context.Context, enablePrometheus bool) (*sdkmetric.Me
 		}
 		reader = sdkmetric.NewPeriodicReader(exporter,
 			// Default is 1m. Set to 3s for demonstrative purposes.
-			sdkmetric.WithInterval(3*time.Second))
+			sdkmetric.WithInterval(config.MetricsInterval))
 	}
 
 	return sdkmetric.NewMeterProvider(

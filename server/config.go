@@ -11,6 +11,9 @@ import (
 	"github.com/hopeio/cherry/utils/validation/validator"
 	"github.com/quic-go/quic-go/http3"
 	"github.com/rs/cors"
+	"go.opentelemetry.io/otel/propagation"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"golang.org/x/net/http2"
 	"google.golang.org/grpc"
 	"net/http"
@@ -47,11 +50,32 @@ type Config struct {
 	Middlewares []http.HandlerFunc
 	HttpOption  HttpOption
 	// Grpc options
-	GrpcOptions                                                    []grpc.ServerOption
-	EnableGrpcWeb                                                  bool
-	GrpcWebOption                                                  []web.Option `json:"grpc_web"`
-	EnableTelemetry, EnablePrometheus, EnableDebugApi, GenerateDoc bool
-	BaseContext                                                    func() context.Context
+	GrpcOptions                                  []grpc.ServerOption
+	EnableGrpcWeb                                bool
+	GrpcWebOption                                []web.Option `json:"grpc_web"`
+	EnableTelemetry, EnableDebugApi, GenerateDoc bool
+	TelemetryConfig
+	BaseContext func() context.Context
+}
+
+type TelemetryConfig struct {
+	EnablePrometheus bool
+	MetricsInterval  time.Duration
+	propagator       propagation.TextMapPropagator
+	tracerProvider   *sdktrace.TracerProvider
+	meterProvider    *sdkmetric.MeterProvider
+}
+
+func (c *TelemetryConfig) SetTextMapPropagator(propagator propagation.TextMapPropagator) {
+	c.propagator = propagator
+}
+
+func (c *TelemetryConfig) SetTracerProvider(tracerProvider *sdktrace.TracerProvider) {
+	c.tracerProvider = tracerProvider
+}
+
+func (c *TelemetryConfig) SetMeterProvider(meterProvider *sdkmetric.MeterProvider) {
+	c.meterProvider = meterProvider
 }
 
 func NewConfig() *Config {
@@ -65,6 +89,7 @@ func NewConfig() *Config {
 	validator.DefaultValidator = nil // 自己做校验
 	c.EnableCors = true
 	c.EnableTelemetry = true
+	c.MetricsInterval = time.Minute
 	c.EnableDebugApi = true
 	c.GenerateDoc = true
 	return c

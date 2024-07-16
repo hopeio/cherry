@@ -18,10 +18,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package encoding
+package encoder
 
 import (
 	"fmt"
+	"go.uber.org/zap/zapcore"
 	"sync"
 )
 
@@ -42,7 +43,7 @@ import (
 //	    ...
 //	  ],
 //	}
-func encodeError(key string, err error, enc ObjectEncoder) error {
+func encodeError(key string, err error, enc zapcore.ObjectEncoder) error {
 	basic := err.Error()
 	enc.AddString(key, basic)
 
@@ -73,7 +74,7 @@ type errorGroup interface {
 // Encodes a list of errors using the standard error encoding logic.
 type errArray []error
 
-func (errs errArray) MarshalLogArray(arr ArrayEncoder) error {
+func (errs errArray) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 	for i := range errs {
 		if errs[i] == nil {
 			continue
@@ -101,11 +102,11 @@ func newErrArrayElem(err error) *errArrayElem {
 	return e
 }
 
-func (e *errArrayElem) MarshalLogArray(arr ArrayEncoder) error {
+func (e *errArrayElem) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 	return arr.AppendObject(e)
 }
 
-func (e *errArrayElem) MarshalLogObject(enc ObjectEncoder) error {
+func (e *errArrayElem) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	return encodeError("error", e.err, enc)
 }
 

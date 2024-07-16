@@ -99,7 +99,7 @@ func UnaryAccess(conf *Config) grpc.UnaryServerInterceptor {
 				result, _ := protojson.Marshal(resp.(proto.Message))*/
 		body, _ := json.Marshal(req)
 		result, _ := json.Marshal(resp)
-		ctxi := httpctx.ContextFromContext(ctx)
+		ctxi := httpctx.FromContextValue(ctx)
 		defaultAccessLog(ctxi, info.FullMethod, "grpc",
 			stringsi.BytesToString(body), stringsi.BytesToString(result),
 			code)

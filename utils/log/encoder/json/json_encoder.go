@@ -18,11 +18,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package encoding
+package json
 
 import (
 	"encoding/base64"
 	"encoding/json"
+	"github.com/hopeio/cherry/utils/log/encoder"
+	"go.uber.org/zap/zapcore"
 	"math"
 	"sync"
 	"time"
@@ -60,7 +62,7 @@ func putJSONEncoder(enc *jsonEncoder) {
 }
 
 type jsonEncoder struct {
-	*EncoderConfig
+	*encoder.EncoderConfig
 	buf            *buffer.Buffer
 	spaced         bool // include spaces after colons and commas
 	openNamespaces int
@@ -82,11 +84,11 @@ type jsonEncoder struct {
 // libraries will ignore duplicate key-value pairs (typically keeping the last
 // pair) when unmarshaling, but users should attempt to avoid adding duplicate
 // keys.
-func NewJSONEncoder(cfg *EncoderConfig) Encoder {
+func NewJSONEncoder(cfg *encoder.EncoderConfig) zapcore.Encoder {
 	return newJSONEncoder(cfg, false)
 }
 
-func newJSONEncoder(cfg *EncoderConfig, spaced bool) *jsonEncoder {
+func newJSONEncoder(cfg *encoder.EncoderConfig, spaced bool) *jsonEncoder {
 	return &jsonEncoder{
 		EncoderConfig: cfg,
 		buf:           _pool.Get(),
@@ -94,12 +96,12 @@ func newJSONEncoder(cfg *EncoderConfig, spaced bool) *jsonEncoder {
 	}
 }
 
-func (enc *jsonEncoder) AddArray(key string, arr ArrayMarshaler) error {
+func (enc *jsonEncoder) AddArray(key string, arr zapcore.ArrayMarshaler) error {
 	enc.addKey(key)
 	return enc.AppendArray(arr)
 }
 
-func (enc *jsonEncoder) AddObject(key string, obj ObjectMarshaler) error {
+func (enc *jsonEncoder) AddObject(key string, obj zapcore.ObjectMarshaler) error {
 	enc.addKey(key)
 	return enc.AppendObject(obj)
 }
@@ -197,7 +199,7 @@ func (enc *jsonEncoder) AddUint64(key string, val uint64) {
 	enc.AppendUint64(val)
 }
 
-func (enc *jsonEncoder) AppendArray(arr ArrayMarshaler) error {
+func (enc *jsonEncoder) AppendArray(arr zapcore.ArrayMarshaler) error {
 	enc.addElementSeparator()
 	enc.buf.AppendByte('[')
 	err := arr.MarshalLogArray(enc)
@@ -205,7 +207,7 @@ func (enc *jsonEncoder) AppendArray(arr ArrayMarshaler) error {
 	return err
 }
 
-func (enc *jsonEncoder) AppendObject(obj ObjectMarshaler) error {
+func (enc *jsonEncoder) AppendObject(obj zapcore.ObjectMarshaler) error {
 	enc.addElementSeparator()
 	enc.buf.AppendByte('{')
 	err := obj.MarshalLogObject(enc)
@@ -321,7 +323,7 @@ func (enc *jsonEncoder) AppendUint16(v uint16)              { enc.AppendUint64(u
 func (enc *jsonEncoder) AppendUint8(v uint8)                { enc.AppendUint64(uint64(v)) }
 func (enc *jsonEncoder) AppendUintptr(v uintptr)            { enc.AppendUint64(uint64(v)) }
 
-func (enc *jsonEncoder) Clone() Encoder {
+func (enc *jsonEncoder) Clone() zapcore.Encoder {
 	clone := enc.clone()
 	clone.buf.Write(enc.buf.Bytes())
 	return clone
@@ -336,14 +338,14 @@ func (enc *jsonEncoder) clone() *jsonEncoder {
 	return clone
 }
 
-func (enc *jsonEncoder) EncodeEntry(fields []Field) (*buffer.Buffer, error) {
+func (enc *jsonEncoder) EncodeEntry(entry zapcore.Entry,fields []zapcore.Field) (*buffer.Buffer, error) {
 	final := enc.clone()
 	final.buf.AppendByte('{')
 	if enc.buf.Len() > 0 {
 		final.addElementSeparator()
 		final.buf.Write(enc.buf.Bytes())
 	}
-	AddFields(final, fields)
+	encoder.AddFields(final, fields)
 	final.closeOpenNamespaces()
 	final.buf.AppendByte('}')
 	ret := final.buf

@@ -110,7 +110,7 @@ func (s *Server) Start() {
 		grpc.EnableTracing = true
 		// Set up OpenTelemetry.
 
-		otelShutdown, err := setupOTelSDK(sigCtx, s.Config.EnablePrometheus)
+		otelShutdown, err := setupOTelSDK(sigCtx, &s.Config.TelemetryConfig)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -136,9 +136,9 @@ func (s *Server) Start() {
 			middleware(w, r)
 		}
 
-		ctx, span := httpctx.ContextFromRequest(httpctx.RequestCtx{Request: r, Response: w}, enableTelemetry)
+		ctx := httpctx.FromRequest(httpctx.RequestCtx{Request: r, Response: w})
 
-		r = r.WithContext(ctx.ContextWrapper())
+		r = r.WithContext(ctx.Wrapper())
 
 		contentType := r.Header.Get(httpi.HeaderContentType)
 		if strings.HasPrefix(contentType, httpi.ContentGrpcHeaderValue) {
@@ -151,9 +151,7 @@ func (s *Server) Start() {
 			httpHandler.ServeHTTP(w, r)
 		}
 
-		if span != nil {
-			span.End()
-		}
+		ctx.RootSpan().End()
 	})
 
 	if enableTelemetry {
