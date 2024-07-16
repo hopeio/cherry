@@ -12,9 +12,6 @@ func IsTerminal() bool {
 	if terminal.IsTerminal(int(os.Stdout.Fd())) {
 		return true
 	}
-	if terminal.IsTerminal(int(os.Stdout.Fd())) {
-		return true
-	}
 	if terminal.IsTerminal(int(os.Stderr.Fd())) {
 		return true
 	}

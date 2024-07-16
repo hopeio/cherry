@@ -8,10 +8,13 @@ import (
 	"strings"
 )
 
+// 字符
 const rbgcFormat = "\x1b[38;2;%d;%d;%dm%c"
 const rbgcWithResetFormat = rbgcFormat + reset
 const rbgcBgFormat = "\x1b[48;2;%d;%d;%dm%c"
 const rbgcBgWithResetFormat = rbgcBgFormat + reset
+
+// 字符串
 const rbgsFormat = "\x1b[38;2;%d;%d;%dm%s"
 const rbgsWithResetFormat = rbgsFormat + reset
 const rbgsBgFormat = "\x1b[48;2;%d;%d;%dm%s"
@@ -21,19 +24,19 @@ type colorRGB struct {
 	r, g, b int16
 }
 
-func (c *colorRGB) Format(s string) string {
+func (c colorRGB) Format(s string) string {
 	return fmt.Sprintf(rbgsWithResetFormat, c.r, c.g, c.b, s)
 }
 
-func NewColorRGB(r, g, b byte) colorRGB {
+func NewRGBColor(r, g, b byte) colorRGB {
 	return colorRGB{r: int16(r), g: int16(g), b: int16(b)}
 }
 
-func ColorRGB(s string, r, g, b byte) string {
+func RGB(s string, r, g, b byte) string {
 	return fmt.Sprintf(rbgsWithResetFormat, r, g, b, s)
 }
 
-func BgColorRGB(s string, r, g, b byte) string {
+func BgRGB(s string, r, g, b byte) string {
 	return fmt.Sprintf(rbgsBgWithResetFormat, r, g, b, s)
 }
 
@@ -78,13 +81,13 @@ func GradientMultiLineRandom(text string) string {
 
 var (
 	RainbowRGB       = [...]colorRGB{RainbowRedRGB, RainbowOrangeRGB, RainbowYellowRGB, RainbowGreenRGB, RainbowCyanRGB, RainbowBlueRGB, RainbowPurpleRGB}
-	RainbowRedRGB    = NewColorRGB(255, 0, 0)
-	RainbowOrangeRGB = NewColorRGB(255, 165, 0)
-	RainbowYellowRGB = NewColorRGB(255, 255, 0)
-	RainbowGreenRGB  = NewColorRGB(0, 255, 0)
-	RainbowCyanRGB   = NewColorRGB(0, 255, 255)
-	RainbowBlueRGB   = NewColorRGB(0, 0, 255)
-	RainbowPurpleRGB = NewColorRGB(128, 0, 128)
+	RainbowRedRGB    = NewRGBColor(255, 0, 0)
+	RainbowOrangeRGB = NewRGBColor(255, 165, 0)
+	RainbowYellowRGB = NewRGBColor(255, 255, 0)
+	RainbowGreenRGB  = NewRGBColor(0, 255, 0)
+	RainbowCyanRGB   = NewRGBColor(0, 255, 255)
+	RainbowBlueRGB   = NewRGBColor(0, 0, 255)
+	RainbowPurpleRGB = NewRGBColor(128, 0, 128)
 )
 
 func Rainbow(text string) string {
