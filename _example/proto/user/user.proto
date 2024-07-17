@@ -1,9 +1,9 @@
 syntax = "proto3";
 package user;
-import "cherry/protobuf/utils/enum/enum.proto";
-import "cherry/protobuf/utils/patch/go.proto";
+import "hopeio/utils/enum/enum.proto";
+import "hopeio/utils/patch/go.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
-import "cherry/protobuf/utils/validator/validator.proto";
+import "hopeio/utils/validator/validator.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/wrappers.proto";
 import "danielvladco/protobuf/graphql.proto";

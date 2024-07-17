@@ -1,1 +1,0 @@
-用于生成.gqlgen.pb.go文件

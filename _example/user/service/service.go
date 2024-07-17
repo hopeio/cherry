@@ -4,14 +4,14 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/cherry/_example/user/dao"
-	gormi "github.com/hopeio/cherry/utils/dao/database/gorm"
+	gormi "github.com/hopeio/utils/dao/database/gorm"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	"strconv"
 
 	"github.com/hopeio/cherry/_example/protobuf/user"
 	"github.com/hopeio/cherry/_example/user/confdao"
-	"github.com/hopeio/cherry/context/httpctx"
-	"github.com/hopeio/cherry/protobuf/errcode"
+	"github.com/hopeio/context/httpctx"
+	"github.com/hopeio/protobuf/errcode"
 )
 
 type UserService struct {
@@ -19,9 +19,8 @@ type UserService struct {
 }
 
 func (u *UserService) Signup(ctx context.Context, req *user.SignupReq) (*wrapperspb.StringValue, error) {
-	ctxi, span := httpctx.FromContextValue(ctx).StartSpan("")
-	defer span.End()
-	ctx = ctxi.Context()
+	ctxi := httpctx.FromContextValue(ctx)
+	defer ctxi.StartSpanEnd("")()
 	if req.Mail == "" && req.Phone == "" {
 		return nil, errcode.DBError.Message("请填写邮箱或手机号")
 	}

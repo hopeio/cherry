@@ -2,13 +2,12 @@ package user
 
 import (
 	errors "errors"
-	"github.com/hopeio/cherry/protobuf/errcode"
-	log "github.com/hopeio/cherry/utils/log"
-	strings "github.com/hopeio/cherry/utils/strings"
+	errcode "github.com/hopeio/protobuf/errcode"
+	log "github.com/hopeio/utils/log"
+	strings "github.com/hopeio/utils/strings"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	io "io"
-	strconv "strconv"
 )
 
 func (x Gender) String() string {
@@ -24,30 +23,6 @@ func (x Gender) String() string {
 		return "女"
 	}
 	return ""
-}
-
-func (x Gender) MarshalJSON() ([]byte, error) {
-	return strings.QuoteToBytes(x.String()), nil
-}
-
-func (x *Gender) UnmarshalJSON(data []byte) error {
-	if len(data) > 0 && data[0] == '"' {
-		value, ok := Gender_value[string(data[1:len(data)-1])]
-		if ok {
-			*x = Gender(value)
-			return nil
-		}
-	} else {
-		value, err := strconv.ParseInt(string(data), 10, 32)
-		if err == nil {
-			_, ok := Gender_name[int32(value)]
-			if ok {
-				*x = Gender(value)
-				return nil
-			}
-		}
-	}
-	return errors.New("invalid enum value: Gender")
 }
 
 func (x Gender) MarshalGQL(w io.Writer) {
@@ -77,30 +52,6 @@ func (x Role) String() string {
 	return ""
 }
 
-func (x Role) MarshalJSON() ([]byte, error) {
-	return strings.QuoteToBytes(x.String()), nil
-}
-
-func (x *Role) UnmarshalJSON(data []byte) error {
-	if len(data) > 0 && data[0] == '"' {
-		value, ok := Role_value[string(data[1:len(data)-1])]
-		if ok {
-			*x = Role(value)
-			return nil
-		}
-	} else {
-		value, err := strconv.ParseInt(string(data), 10, 32)
-		if err == nil {
-			_, ok := Role_name[int32(value)]
-			if ok {
-				*x = Role(value)
-				return nil
-			}
-		}
-	}
-	return errors.New("invalid enum value: Role")
-}
-
 func (x Role) MarshalGQL(w io.Writer) {
 	w.Write(strings.QuoteToBytes(x.String()))
 }
@@ -128,30 +79,6 @@ func (x UserStatus) String() string {
 		return "已注销"
 	}
 	return ""
-}
-
-func (x UserStatus) MarshalJSON() ([]byte, error) {
-	return strings.QuoteToBytes(x.String()), nil
-}
-
-func (x *UserStatus) UnmarshalJSON(data []byte) error {
-	if len(data) > 0 && data[0] == '"' {
-		value, ok := UserStatus_value[string(data[1:len(data)-1])]
-		if ok {
-			*x = UserStatus(value)
-			return nil
-		}
-	} else {
-		value, err := strconv.ParseInt(string(data), 10, 32)
-		if err == nil {
-			_, ok := UserStatus_name[int32(value)]
-			if ok {
-				*x = UserStatus(value)
-				return nil
-			}
-		}
-	}
-	return errors.New("invalid enum value: UserStatus")
 }
 
 func (x UserStatus) MarshalGQL(w io.Writer) {
@@ -185,30 +112,6 @@ func (x UserErr) String() string {
 		return "未登录"
 	}
 	return ""
-}
-
-func (x UserErr) MarshalJSON() ([]byte, error) {
-	return strings.QuoteToBytes(x.String()), nil
-}
-
-func (x *UserErr) UnmarshalJSON(data []byte) error {
-	if len(data) > 0 && data[0] == '"' {
-		value, ok := UserErr_value[string(data[1:len(data)-1])]
-		if ok {
-			*x = UserErr(value)
-			return nil
-		}
-	} else {
-		value, err := strconv.ParseInt(string(data), 10, 32)
-		if err == nil {
-			_, ok := UserErr_name[int32(value)]
-			if ok {
-				*x = UserErr(value)
-				return nil
-			}
-		}
-	}
-	return errors.New("invalid enum value: UserErr")
 }
 
 func (x UserErr) Error() string {

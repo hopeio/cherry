@@ -2,8 +2,8 @@ package dao
 
 import (
 	"github.com/hopeio/cherry/_example/user/model"
-	"github.com/hopeio/cherry/context/httpctx"
-	"github.com/hopeio/cherry/utils/log"
+	"github.com/hopeio/context/httpctx"
+	"github.com/hopeio/utils/log"
 	"gorm.io/gorm"
 )
 
