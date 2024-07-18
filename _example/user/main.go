@@ -14,13 +14,12 @@ import (
 func main() {
 	defer initialize.Start(confdao.Conf, confdao.Dao, nacos.ConfigCenter)()
 
-	config := confdao.Conf.Server.Origin()
-	config.GrpcOptions = []grpc.ServerOption{
+	confdao.Conf.Server.GrpcOptions = []grpc.ServerOption{
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 	}
 
 	cherry.Start(&cherry.Server{
-		Config: config,
+		Config: &confdao.Conf.Server,
 		//为了可以自定义中间件
 		GrpcHandler: api.GrpcRegister,
 		GinHandler:  api.GinRegister,

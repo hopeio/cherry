@@ -126,6 +126,14 @@ func (c *Config) Init() {
 
 }
 
+// implement initialize
+func (c *Config) InitBeforeInject() {
+	*c = *NewConfig()
+}
+func (c *Config) InitAfterInject() {
+	c.Init()
+}
+
 func defaultServerConfig() *Config {
 	c := NewConfig()
 	c.Init()

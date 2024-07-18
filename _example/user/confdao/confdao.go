@@ -3,9 +3,9 @@ package confdao
 import (
 	"database/sql"
 	"fmt"
+	"github.com/hopeio/cherry"
 	"github.com/hopeio/initialize/conf_dao/gormdb/postgres"
 	"github.com/hopeio/initialize/conf_dao/redis"
-	"github.com/hopeio/initialize/conf_dao/server"
 	"github.com/hopeio/utils/io/fs"
 	timei "github.com/hopeio/utils/time"
 	"runtime"
@@ -20,7 +20,7 @@ var (
 type config struct {
 	//自定义的配置
 	Customize serverConfig
-	Server    server.Config
+	Server    cherry.Config
 }
 
 type serverConfig struct {
