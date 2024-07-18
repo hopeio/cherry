@@ -3,12 +3,8 @@ package confdao
 import (
 	"database/sql"
 	"fmt"
-	"github.com/hopeio/cherry/_example/user/model"
 	"github.com/hopeio/initialize/conf_dao/gormdb/postgres"
-	"github.com/hopeio/initialize/conf_dao/log"
-	"github.com/hopeio/initialize/conf_dao/mail"
 	"github.com/hopeio/initialize/conf_dao/redis"
-	"github.com/hopeio/initialize/conf_dao/ristretto"
 	"github.com/hopeio/initialize/conf_dao/server"
 	"github.com/hopeio/utils/io/fs"
 	timei "github.com/hopeio/utils/time"
@@ -25,7 +21,6 @@ type config struct {
 	//自定义的配置
 	Customize serverConfig
 	Server    server.Config
-	Log       log.Config
 }
 
 type serverConfig struct {
@@ -65,9 +60,6 @@ type dao struct {
 	StdDB  *sql.DB
 	// RedisPool Redis连接池
 	Redis redis.Client
-	Cache ristretto.Cache[string, any]
-	//elastic
-	Mail mail.Mail `init:"config:Mail"`
 }
 
 func (d *dao) InitBeforeInject() {
@@ -86,5 +78,4 @@ func (d *dao) InitAfterInject() {
 	db.Callback().Update().Remove("gorm:save_after_associations")
 
 	d.StdDB, _ = db.DB.DB()
-	d.GORMDB.Migrator().AutoMigrate(&model.TestJson{})
 }

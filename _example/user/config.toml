@@ -4,7 +4,7 @@ Env = "dev"
 
 [dev]
 debug = true
-ConfigTemplateDir = "."
+ConfigTemplateDir = "./_example/user"
 
 [dev.ConfigCenter]
 Format = "toml"
@@ -12,7 +12,7 @@ Type = "local"
 NoInject = ["Apollo","Etcd", "Es"]
 
 [dev.ConfigCenter.local]
-ConfigPath = "D:/local.toml"
+ConfigPath = "./_example/user/local.toml"
 ReloadType = "fsnotify"
 
 [test]
