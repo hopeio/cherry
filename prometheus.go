@@ -10,7 +10,7 @@ import (
 
 /*func init() {
 	sink, _ := prometheus.NewPrometheusSink()
-	conf := metrics.DefaultConfig(initialize.GlobalConfig.Module)
+	conf := metrics.DefaultConfig("")
 	metrics1, _ := metrics.New(conf, sink)
 	metrics1.EnableHostnameLabel = true
 	http.Handle("/metrics", promhttp.Handler())

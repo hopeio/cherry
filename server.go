@@ -180,8 +180,6 @@ func (s *Server) Start() {
 	// 为了提供grpc服务,默认启用http2
 	h2Handler := h2c.NewHandler(handler, &s.Config.Http2)
 	server.Handler = h2Handler
-	// 服务注册
-	//initialize.GlobalConfig().Register()
 
 	srvErr := make(chan error, 1)
 	if s.Config.Http3 != nil && s.Config.Http3.TLSConfig != nil {

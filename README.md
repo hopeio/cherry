@@ -19,7 +19,7 @@ cherry服务器，各种服务接口的保留，集成支持，一个服务暴�
 #### use docker(可选的)
 `docker run --rm -v $project:/work jybl/protogen protogen go -e -w -p $proto_path -g $proto_output_path`
 ### run
-`go run _example/user/main.go -c _example/user/config.toml`
+`go run _example/user/main.go`
 
 
 
@@ -27,27 +27,21 @@ cherry服务器，各种服务接口的保留，集成支持，一个服务暴�
 package main
 
 import (
-	"github.com/hopeio/utils/net/http/gin/handler"
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/cherry"
-	"github.com/hopeio/initialize"
-	"user/protobuf/user"
-	uconf "user/confdao"
-	udao "user/dao"
+	"protobuf/user"
 	userservice "user/service"
-	"github.com/hopeio/utils/log"
-	
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 )
 
 func main() {
-	//配置初始化应该在第一位
-	defer initialize.Start(uconf.Conf, udao.Dao)()
-	
-  config := uconf.Conf.Server.Origin()
-  config.GrpcOptions = []grpc.ServerOption{
-    grpc.StatsHandler(otelgrpc.NewServerHandler()),
-  }
+
+
+	conf := cherry.NewConfig()
+	conf.GrpcOptions = []grpc.ServerOption{
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
+	}
   cherry.Start(&cherry.Server{
         Config: config,
 		GrpcHandler: func(gs *grpc.Server) {
