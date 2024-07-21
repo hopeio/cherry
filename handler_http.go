@@ -15,17 +15,17 @@ import (
 )
 
 func (s *Server) httpHandler() http.HandlerFunc {
-	conf := s.Config
+
 	//enablePrometheus := conf.EnablePrometheus
 	// 默认使用gin
-	ginServer := conf.Gin.New()
+	ginServer := s.Gin.New()
 	s.GinHandler(ginServer)
-	if conf.EnableDebugApi {
+	if s.EnableDebugApi {
 		gini.Debug(ginServer)
 	}
 
-	if len(conf.HttpOption.StaticFs) > 0 {
-		for _, fs := range conf.HttpOption.StaticFs {
+	if len(s.HttpOption.StaticFs) > 0 {
+		for _, fs := range s.HttpOption.StaticFs {
 			ginServer.Static(fs.Prefix, fs.Root)
 		}
 	}
@@ -48,10 +48,10 @@ func (s *Server) httpHandler() http.HandlerFunc {
 	}
 
 	// http.Handle("/", ginServer)
-	var excludes = conf.HttpOption.ExcludeLogPrefixes
-	var includes = conf.HttpOption.IncludeLogPrefixes
+	var excludes = s.HttpOption.ExcludeLogPrefixes
+	var includes = s.HttpOption.IncludeLogPrefixes
 	return func(w http.ResponseWriter, r *http.Request) {
-		for _, middlewares := range conf.HttpOption.Middlewares {
+		for _, middlewares := range s.HttpOption.Middlewares {
 			middlewares(w, r)
 		}
 		// 暂时解决方法，三个路由

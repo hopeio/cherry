@@ -8,5 +8,4 @@ import (
 
 func GrpcRegister(gs *grpc.Server) {
 	user.RegisterUserServiceServer(gs, userService.GetUserService())
-
 }

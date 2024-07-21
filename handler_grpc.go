@@ -12,6 +12,7 @@ import (
 	stringsi "github.com/hopeio/utils/strings"
 	"github.com/hopeio/utils/validation/validator"
 	"github.com/modern-go/reflect2"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapgrpc"
 	"google.golang.org/grpc"
@@ -27,7 +28,7 @@ func (s *Server) grpcHandler() *grpc.Server {
 	grpclog.SetLoggerV2(zapgrpc.NewLogger(log.GetCallerSkipLogger(4).Logger))
 	if s.GrpcHandler != nil {
 		var stream = []grpc.StreamServerInterceptor{StreamAccess, StreamValidator}
-		var unary = []grpc.UnaryServerInterceptor{UnaryAccess(s.Config), UnaryValidator}
+		var unary = []grpc.UnaryServerInterceptor{s.UnaryAccess, UnaryValidator}
 		// 想做的大而全几乎不可能,为了更高的自由度,这里不做实现,均由使用者自行实现,后续可提供默认实现,但同样要由用户自己调用
 		/*		var srvMetrics *grpcprom.ServerMetrics
 				if conf.EnableMetrics {
@@ -50,12 +51,15 @@ func (s *Server) grpcHandler() *grpc.Server {
 
 		stream = append(stream, grpc_validator.StreamServerInterceptor())
 		unary = append(unary, grpc_validator.UnaryServerInterceptor())
-		s.Config.GrpcOptions = append([]grpc.ServerOption{
+		s.GrpcOptions = append([]grpc.ServerOption{
 			grpc.ChainStreamInterceptor(stream...),
 			grpc.ChainUnaryInterceptor(unary...),
-		}, s.Config.GrpcOptions...)
+		}, s.GrpcOptions...)
+		if s.EnableTelemetry {
+			s.GrpcOptions = append(s.GrpcOptions, grpc.StatsHandler(otelgrpc.NewServerHandler()))
+		}
 
-		grpcServer := grpc.NewServer(s.Config.GrpcOptions...)
+		grpcServer := grpc.NewServer(s.GrpcOptions...)
 		/*		if conf.EnableMetrics {
 				srvMetrics.InitializeMetrics(grpcServer)
 			}*/
@@ -66,48 +70,44 @@ func (s *Server) grpcHandler() *grpc.Server {
 	return nil
 }
 
-func UnaryAccess(conf *Config) grpc.UnaryServerInterceptor {
+func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	//enablePrometheus := conf.EnableMetrics
-	return func(
-		ctx context.Context, req interface{},
-		info *grpc.UnaryServerInfo,
-		handler grpc.UnaryHandler,
-	) (resp interface{}, err error) {
-		defer func() {
-			if r := recover(); r != nil {
-				frame := debug.Stack()
-				log.Errorw(fmt.Sprintf("panic: %v", r), zap.ByteString(log.FieldStack, frame))
-				err = errcode.SysError.ErrRep()
-			}
-		}()
 
-		resp, err = handler(ctx, req)
-		var code int
-		//不能添加错误处理，除非所有返回的结构相同
-		if err != nil {
-			if v, ok := err.(interface{ GrpcStatus() *status.Status }); !ok {
-				err = errcode.Unknown.Message(err.Error())
-				code = int(errcode.Unknown)
-			} else {
-				code = int(v.GrpcStatus().Code())
-			}
+	defer func() {
+		if r := recover(); r != nil {
+			frame := debug.Stack()
+			log.Errorw(fmt.Sprintf("panic: %v", r), zap.ByteString(log.FieldStack, frame))
+			err = errcode.SysError.ErrRep()
 		}
-		if err == nil && reflect2.IsNil(resp) {
-			resp = reflect.New(reflect.TypeOf(resp).Elem()).Interface()
+	}()
+
+	resp, err = handler(ctx, req)
+	var code int
+	//不能添加错误处理，除非所有返回的结构相同
+	if err != nil {
+		if v, ok := err.(interface{ GrpcStatus() *status.Status }); !ok {
+			err = errcode.Unknown.Message(err.Error())
+			code = int(errcode.Unknown)
+		} else {
+			code = int(v.GrpcStatus().Code())
 		}
-		/*		body, _ := protojson.Marshal(req.(proto.Message)) // 性能比标准库差很多
-				result, _ := protojson.Marshal(resp.(proto.Message))*/
-		body, _ := json.Marshal(req)
-		result, _ := json.Marshal(resp)
-		ctxi := httpctx.FromContextValue(ctx)
-		defaultAccessLog(ctxi, info.FullMethod, "grpc",
-			stringsi.BytesToString(body), stringsi.BytesToString(result),
-			code)
-		/*		if enablePrometheus {
-				defaultMetricsRecord(ctxi, info.FullMethod, "grpc", code)
-			}*/
-		return resp, err
 	}
+	if err == nil && reflect2.IsNil(resp) {
+		resp = reflect.New(reflect.TypeOf(resp).Elem()).Interface()
+	}
+	/*		body, _ := protojson.Marshal(req.(proto.Message)) // 性能比标准库差很多
+			result, _ := protojson.Marshal(resp.(proto.Message))*/
+	body, _ := json.Marshal(req)
+	result, _ := json.Marshal(resp)
+	ctxi := httpctx.FromContextValue(ctx)
+	defaultAccessLog(ctxi, info.FullMethod, "grpc",
+		stringsi.BytesToString(body), stringsi.BytesToString(result),
+		code)
+	/*		if enablePrometheus {
+			defaultMetricsRecord(ctxi, info.FullMethod, "grpc", code)
+		}*/
+	return resp, err
+
 }
 
 func StreamAccess(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
