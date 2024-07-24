@@ -130,10 +130,16 @@ github.com/hashicorp/golang-lru/v2 v2.0.7 h1:a+bsQ5rvGLjzHuww6tVxozPZFVghXaHOwFs
 github.com/hashicorp/golang-lru/v2 v2.0.7/go.mod h1:QeFd9opnmA6QUJc5vARoKUSoFhyfM2/ZepoAG6RGpeM=
 github.com/hopeio/context v0.0.16 h1:fC2L8MNmzHYBvJAkEYvomq49DcYPYVMnWDmYafoVyGQ=
 github.com/hopeio/context v0.0.16/go.mod h1:hylRS9sv+PpbtJkznnI6eSg/8KJu1GD62ZXgL0onRos=
+github.com/hopeio/context v0.0.20 h1:0VlWy8r0cchYHD59BXRHpXwW2Rl8z96aPFVYHBIoM48=
+github.com/hopeio/context v0.0.20/go.mod h1:RE69bosNxN0mLYuThnwOrjRt+YjlTnufHWXdDSwWRpA=
 github.com/hopeio/protobuf v0.0.17 h1:z9DSwCvoK6SQclR7O/G1Mp42dPfomQUAl3MT1f7Mr0c=
 github.com/hopeio/protobuf v0.0.17/go.mod h1:MxW+wkbBlLcmr1gCa1sTW/iNxRvEQvje7jZH1mEUIYw=
+github.com/hopeio/protobuf v0.0.20 h1:KFiHOCllVby+n3Q17H/oIPeh6r4xvT3aWa6Thd5zTcc=
+github.com/hopeio/protobuf v0.0.20/go.mod h1:XYFxViPMXxfmQOBqH9/Rcxr/S6nkkvp5Ps6PnbzbREA=
 github.com/hopeio/utils v0.0.15 h1:YgnNqsWE8eyvD77oTIVA0B+k7H8cma7LSPdf8k16fcM=
 github.com/hopeio/utils v0.0.15/go.mod h1:BZVm+GkuTmBq2/Ejk+Pf3C4d1Hr7frae9Vl8VocbMcg=
+github.com/hopeio/utils v0.0.20 h1:03tHAKPEd3zmJQ65X3jkkC77Z+2wiE/xfxemZuY55/Y=
+github.com/hopeio/utils v0.0.20/go.mod h1:9KUtETjhpBy+U0/HUaNuTAV1S6HqcnmUG39nwsaE0Qc=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/imkira/go-interpol v1.1.0 h1:KIiKr0VSG2CUW1hl1jpiyuzuJeKUUpC8iM1AIE7N1Vk=
 github.com/imkira/go-interpol v1.1.0/go.mod h1:z0h2/2T3XF8kyEPpRgJ3kmNv+C43p+I/CoI+jC3w2iA=

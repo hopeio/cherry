@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/utils/configor"
 	"github.com/hopeio/utils/crypto/tls"
 	"github.com/hopeio/utils/log"
 	gini "github.com/hopeio/utils/net/http/gin"
@@ -124,12 +123,12 @@ func (s *Server) Init() {
 	if s.Http3 != nil && s.Http3.Addr == "" {
 		s.Http3.Addr = ":8080"
 	}
-	configor.DurationNotify("ReadTimeout", s.Http.ReadTimeout, time.Second)
-	configor.DurationNotify("WriteTimeout", s.Http.WriteTimeout, time.Second)
+	log.DurationNotify("ReadTimeout", s.Http.ReadTimeout, time.Second)
+	log.DurationNotify("WriteTimeout", s.Http.WriteTimeout, time.Second)
 	if s.StopTimeout == 0 {
 		s.StopTimeout = 5 * time.Second
 	}
-	configor.DurationNotify("StopTimeout", s.StopTimeout, time.Second)
+	log.DurationNotify("StopTimeout", s.StopTimeout, time.Second)
 	if s.Http.CertFile != "" && s.Http.KeyFile != "" {
 		tlsConfig, err := tls.NewServerTLSConfig(s.Http.CertFile, s.Http.KeyFile)
 		if err != nil {
