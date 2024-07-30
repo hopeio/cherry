@@ -77,7 +77,7 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 		if r := recover(); r != nil {
 			frame := debug.Stack()
 			log.Errorw(fmt.Sprintf("panic: %v", r), zap.ByteString(log.FieldStack, frame))
-			err = errcode.SysError.Origin().Rep()
+			err = errcode.SysError.Origin().ErrRep()
 		}
 	}()
 
@@ -85,18 +85,18 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 	var code int
 	//不能添加错误处理，除非所有返回的结构相同
 	if err != nil {
-		if v, ok := err.(interface{ GrpcStatus() *status.Status }); !ok {
-			err = errcode.Unknown.Message(err.Error())
+		if v, ok := err.(interface{ GRPCStatus() *status.Status }); !ok {
+			err = errcode.Unknown.Msg(err.Error())
 			code = int(errcode.Unknown)
 		} else {
-			code = int(v.GrpcStatus().Code())
+			code = int(v.GRPCStatus().Code())
 		}
 	}
 	if err == nil && reflect2.IsNil(resp) {
 		resp = reflect.New(reflect.TypeOf(resp).Elem()).Interface()
 	}
-	/*		body, _ := protojson.Marshal(req.(proto.Message)) // 性能比标准库差很多
-			result, _ := protojson.Marshal(resp.(proto.Message))*/
+	/*		body, _ := protojson.Marshal(req.(proto.Msg)) // 性能比标准库差很多
+			result, _ := protojson.Marshal(resp.(proto.Msg))*/
 	body, _ := json.Marshal(req)
 	result, _ := json.Marshal(resp)
 	ctxi := httpctx.FromContextValue(ctx)
@@ -115,12 +115,12 @@ func StreamAccess(srv interface{}, stream grpc.ServerStream, info *grpc.StreamSe
 		if r := recover(); r != nil {
 			frame, _ := runtimei.GetCallerFrame(2)
 			log.Errorw(fmt.Sprintf("panic: %v", r), zap.String(log.FieldStack, fmt.Sprintf("%s:%d (%#x)\n\t%s\n", frame.File, frame.Line, frame.PC, frame.Function)))
-			err = errcode.SysError.Origin().Rep()
+			err = errcode.SysError.Origin().ErrRep()
 		}
 		//不能添加错误处理，除非所有返回的结构相同
 		if err != nil {
-			if _, ok := err.(interface{ GrpcStatus() *status.Status }); !ok {
-				err = errcode.Unknown.Message(err.Error())
+			if _, ok := err.(interface{ GRPCStatus() *status.Status }); !ok {
+				err = errcode.Unknown.Msg(err.Error())
 			}
 		}
 	}()
@@ -138,7 +138,7 @@ func (s *recvWrapper) SendMsg(m interface{}) error {
 
 func (s *recvWrapper) RecvMsg(m interface{}) error {
 	if err := validator.Validator.Struct(m); err != nil {
-		return errcode.InvalidArgument.Message(validator.Trans(err))
+		return errcode.InvalidArgument.Msg(validator.Trans(err))
 	}
 	if err := s.ServerStream.RecvMsg(m); err != nil {
 		return err
@@ -153,7 +153,7 @@ func UnaryValidator(
 ) (resp interface{}, err error) {
 
 	if err = validator.Validator.Struct(req); err != nil {
-		return nil, errcode.InvalidArgument.Message(validator.Trans(err))
+		return nil, errcode.InvalidArgument.Msg(validator.Trans(err))
 	}
 	return handler(ctx, req)
 }

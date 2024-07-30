@@ -19,7 +19,7 @@ func (u *UserService) Signup(ctx context.Context, req *user.SignupReq) (*wrapper
 	ctxi := httpctx.FromContextValue(ctx)
 	defer ctxi.StartSpanEnd("")()
 	if req.Mail == "" && req.Phone == "" {
-		return nil, errcode.DBError.Message("请填写邮箱或手机号")
+		return nil, errcode.DBError.Msg("请填写邮箱或手机号")
 	}
 
 	return &wrapperspb.StringValue{Value: "注册成功"}, nil

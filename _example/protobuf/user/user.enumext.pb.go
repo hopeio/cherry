@@ -2,8 +2,7 @@ package user
 
 import (
 	errors "errors"
-	errcode "github.com/hopeio/protobuf/errcode"
-	log "github.com/hopeio/utils/log"
+	errcode "github.com/hopeio/utils/errors/errcode"
 	strings "github.com/hopeio/utils/strings"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -119,19 +118,18 @@ func (x UserErr) Error() string {
 }
 
 func (x UserErr) ErrRep() *errcode.ErrRep {
-	return &errcode.ErrRep{Code: errcode.ErrCode(x), Message: x.String()}
+	return &errcode.ErrRep{Code: errcode.ErrCode(x), Msg: x.String()}
 }
 
-func (x UserErr) Message(msg string) error {
-	return &errcode.ErrRep{Code: errcode.ErrCode(x), Message: msg}
+func (x UserErr) Msg(msg string) *errcode.ErrRep {
+	return &errcode.ErrRep{Code: errcode.ErrCode(x), Msg: msg}
 }
 
-func (x UserErr) ErrorLog(err error) error {
-	log.Error(err)
-	return &errcode.ErrRep{Code: errcode.ErrCode(x), Message: x.String()}
+func (x UserErr) Wrap(err error) *errcode.ErrRep {
+	return &errcode.ErrRep{Code: errcode.ErrCode(x), Msg: err.Error()}
 }
 
-func (x UserErr) GrpcStatus() *status.Status {
+func (x UserErr) GRPCStatus() *status.Status {
 	return status.New(codes.Code(x), x.String())
 }
 

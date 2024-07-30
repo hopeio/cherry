@@ -17,7 +17,7 @@ func HttpResponseHook(ctx context.Context, writer http.ResponseWriter, message p
 		writer.Write(res.Body)
 	}
 	/*	if message == nil{
-		*(&message) = &response.TinyRep{Message: "OK"}
+		*(&message) = &response.TinyRep{}
 	}*/
 	return nil
 }

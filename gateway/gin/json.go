@@ -24,9 +24,8 @@ func (j *JSONPb) Marshal(v any) ([]byte, error) {
 		v = msg.Value
 	}
 	return json.Marshal(&responsei.ResAnyData{
-		Code:    0,
-		Message: "OK",
-		Details: v,
+		Code: 0,
+		Data: v,
 	})
 }
 
