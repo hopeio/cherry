@@ -19,6 +19,9 @@ func (s *Server) httpHandler() http.HandlerFunc {
 	//enablePrometheus := conf.EnablePrometheus
 	// 默认使用gin
 	ginServer := s.Gin.New()
+	// TODO: 不记录日志
+	gini.OpenApi(ginServer, s.ApiDocUriPrefix, s.ApiDocDir)
+
 	s.GinHandler(ginServer)
 	if s.EnableDebugApi {
 		gini.Debug(ginServer)

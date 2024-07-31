@@ -79,6 +79,7 @@ type Server struct {
 	EnableGrpcWeb                   bool
 	GrpcWebOptions                  []web.Option
 	EnableTelemetry, EnableDebugApi bool
+	ApiDocUriPrefix, ApiDocDir      string
 	TelemetryConfig
 	BaseContext context.Context
 	// 注册 grpc 服务

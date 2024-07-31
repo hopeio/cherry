@@ -31,9 +31,9 @@ require (
 
 require (
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0
-	github.com/hopeio/context v0.0.24
-	github.com/hopeio/protobuf v0.0.24
-	github.com/hopeio/utils v0.0.28
+	github.com/hopeio/context v0.0.25
+	github.com/hopeio/protobuf v0.0.26
+	github.com/hopeio/utils v0.0.30
 	github.com/quic-go/quic-go v0.44.0
 	github.com/rs/cors v1.11.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.52.0
