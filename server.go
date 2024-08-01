@@ -75,11 +75,11 @@ type Server struct {
 	Middlewares []http.HandlerFunc
 	HttpOption  HttpOption
 	// Grpc options
-	GrpcOptions                     []grpc.ServerOption
-	EnableGrpcWeb                   bool
-	GrpcWebOptions                  []web.Option
-	EnableTelemetry, EnableDebugApi bool
-	ApiDocUriPrefix, ApiDocDir      string
+	GrpcOptions                                   []grpc.ServerOption
+	EnableGrpcWeb                                 bool
+	GrpcWebOptions                                []web.Option
+	EnableTelemetry, EnableDebugApi, EnableApiDoc bool
+	ApiDocUriPrefix, ApiDocDir                    string
 	TelemetryConfig
 	BaseContext context.Context
 	// 注册 grpc 服务
