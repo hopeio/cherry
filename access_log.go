@@ -14,7 +14,7 @@ var defaultAccessLog = func(ctxi *httpctx.Context, uri, method, body, result str
 		ce.Write(zap.String("uri", uri),
 			zap.String("method", method),
 			zap.String("body", body),
-			zap.String("traceId", ctxi.TraceID),
+			zap.String("traceId", ctxi.TraceID()),
 			// 性能
 			zap.Duration("processTime", ce.Time.Sub(ctxi.RequestAt.Time)),
 			zap.String("result", result),
