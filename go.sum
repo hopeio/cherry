@@ -132,6 +132,8 @@ github.com/hopeio/context v0.0.26 h1:FUv8Lr3gfqBzIqp9+GFClGcKptVRiHVQ+VgRanUg0CQ
 github.com/hopeio/context v0.0.26/go.mod h1:XrV3gI8py0INa+gK0mQ3MblZ90p0/7c44ptC1WESmZ8=
 github.com/hopeio/protobuf v0.0.28 h1:Vw/Il4DrD1mt3Ao03Ae+i3QMxFEgNR46hJyE/CsLNm8=
 github.com/hopeio/protobuf v0.0.28/go.mod h1:AH9U2PAVPQcYrbSiuJA4OkRnqW4fGuTiFbHyQYUAHEw=
+github.com/hopeio/protobuf v0.0.29 h1:oVnIshJwOYfmQai0kicjm0KjuRcaANgN8Z/8cl2qXJI=
+github.com/hopeio/protobuf v0.0.29/go.mod h1:v9UAUIa2N6S8GG+jjFwgnTQHbkTp2YMN1CkMkym0kek=
 github.com/hopeio/utils v0.0.36 h1:Ut419uoWSf0aBr5dBkpTE1P8369/Gkyb2lCG4gjp50c=
 github.com/hopeio/utils v0.0.36/go.mod h1:+2FqZZu/bS7Qdd39LiBwfH00sQXBxBJN7dvmnQhCM70=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
