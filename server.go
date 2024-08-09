@@ -150,10 +150,10 @@ func (s *Server) Init() {
 }
 
 // implement initialize
-func (s *Server) InitBeforeInject() {
+func (s *Server) BeforeInject() {
 	*s = *NewServer()
 }
-func (s *Server) InitAfterInject() {
+func (s *Server) AfterInject() {
 	s.Init()
 }
 
