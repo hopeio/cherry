@@ -1,6 +1,8 @@
 module github.com/hopeio/cherry
 
-go 1.22
+go 1.23
+
+toolchain go1.23.0
 
 require (
 	github.com/99designs/gqlgen v0.17.47
@@ -31,9 +33,9 @@ require (
 
 require (
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0
-	github.com/hopeio/context v0.0.31
-	github.com/hopeio/protobuf v0.0.34
-	github.com/hopeio/utils v0.0.43
+	github.com/hopeio/context v0.0.32
+	github.com/hopeio/protobuf v0.0.35
+	github.com/hopeio/utils v0.1.0
 	github.com/quic-go/quic-go v0.44.0
 	github.com/rs/cors v1.11.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.53.0
