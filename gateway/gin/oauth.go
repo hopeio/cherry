@@ -4,11 +4,10 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/protobuf/oauth"
+	"github.com/hopeio/utils/reflect/mtos"
 
 	"github.com/hopeio/protobuf/response"
 	httpi "github.com/hopeio/utils/net/http"
-	"github.com/hopeio/utils/net/http/binding"
-
 	"google.golang.org/grpc/metadata"
 )
 
@@ -20,7 +19,7 @@ type OauthServiceServer interface {
 func RegisterOauthServiceHandlerServer(r *gin.Engine, server OauthServiceServer) {
 	r.GET("/oauth/authorize", func(ctx *gin.Context) {
 		var protoReq oauth.OauthReq
-		binding.DefaultDecoder().Decode(&protoReq, ctx.Request.URL.Query())
+		mtos.DefaultDecoder().Decode(&protoReq, ctx.Request.URL.Query())
 		res, _ := server.OauthAuthorize(
 			metadata.NewIncomingContext(
 				ctx.Request.Context(),
@@ -32,7 +31,7 @@ func RegisterOauthServiceHandlerServer(r *gin.Engine, server OauthServiceServer)
 
 	r.POST("/oauth/access_token", func(ctx *gin.Context) {
 		var protoReq oauth.OauthReq
-		binding.DefaultDecoder().Decode(&protoReq, ctx.Request.PostForm)
+		mtos.DefaultDecoder().Decode(&protoReq, ctx.Request.PostForm)
 		res, _ := server.OauthToken(ctx.Request.Context(), &protoReq)
 		res.Response(ctx.Writer)
 	})
