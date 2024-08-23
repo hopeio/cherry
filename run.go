@@ -81,7 +81,7 @@ func (s *Server) Run() {
 		defer func() {
 			if err := recover(); err != nil {
 				log.Errorw(fmt.Sprintf("panic: %v", err), zap.String(log.FieldStack, stringsi.BytesToString(debug.Stack())))
-				w.Header().Set(httpi.HeaderContentType, httpi.ContentJsonHeaderValue)
+				w.Header().Set(httpi.HeaderContentType, httpi.ContentTypeJson)
 				_, err := w.Write(httpi.ResponseSysErr)
 				if err != nil {
 					log.Error(err)
@@ -99,8 +99,8 @@ func (s *Server) Run() {
 		r = r.WithContext(ctx.Wrapper())
 
 		contentType := r.Header.Get(httpi.HeaderContentType)
-		if strings.HasPrefix(contentType, httpi.ContentGrpcHeaderValue) {
-			if strings.HasPrefix(contentType[len(httpi.ContentGrpcHeaderValue):], "-web") && wrappedGrpc != nil {
+		if strings.HasPrefix(contentType, httpi.ContentTypeGrpc) {
+			if strings.HasPrefix(contentType[len(httpi.ContentTypeGrpc):], "-web") && wrappedGrpc != nil {
 				wrappedGrpc.ServeHTTP(w, r)
 			} else if r.ProtoMajor == 2 && grpcServer != nil {
 				grpcServer.ServeHTTP(w, r) // gRPC Server
