@@ -8,7 +8,7 @@ import (
 
 type AccessLog = func(ctxi *httpctx.Context, uri, method, body, result string, code int)
 
-var defaultAccessLog = func(ctxi *httpctx.Context, uri, method, body, result string, code int) {
+func defaultAccessLog(ctxi *httpctx.Context, uri, method, body, result string, code int) {
 	// log 里time now 浪费性能
 	if ce := log.Default().Logger.Check(zap.InfoLevel, "access"); ce != nil {
 		ce.Write(zap.String("uri", uri),
@@ -20,11 +20,5 @@ var defaultAccessLog = func(ctxi *httpctx.Context, uri, method, body, result str
 			zap.String("result", result),
 			zap.String("auth", ctxi.AuthInfoRaw),
 			zap.Int("status", code))
-	}
-}
-
-func SetAccessLog(accessLog AccessLog) {
-	if accessLog != nil {
-		defaultAccessLog = accessLog
 	}
 }

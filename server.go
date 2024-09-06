@@ -52,6 +52,7 @@ type Http3 struct {
 }
 
 type HttpOption struct {
+	AccessLog          AccessLog
 	ExcludeLogPrefixes []string
 	IncludeLogPrefixes []string
 	StaticFs           []StaticFsConfig
@@ -90,7 +91,6 @@ type Server struct {
 	GinHandler func(*gin.Engine)
 	// 注册 graphql 服务
 	GraphqlHandler graphql.ExecutableSchema
-
 	// 各种钩子函数
 	OnStart func(context.Context)
 	OnStop  func(context.Context)
@@ -147,6 +147,7 @@ func (s *Server) Init() {
 	if s.BaseContext == nil {
 		s.BaseContext = context.Background()
 	}
+	s.HttpOption.AccessLog = defaultAccessLog
 }
 
 // implement initialize
