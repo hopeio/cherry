@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/gin-gonic/gin"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/hopeio/context/httpctx"
 	httpi "github.com/hopeio/utils/net/http"
 	gini "github.com/hopeio/utils/net/http/gin"
-	"github.com/hopeio/utils/net/http/grpc/gateway/runtime"
+	"github.com/hopeio/utils/net/http/grpc/gateway/grpc-gateway"
 	"io"
 
 	stringsi "github.com/hopeio/utils/strings"
@@ -40,9 +41,10 @@ func (s *Server) httpHandler() http.HandlerFunc {
 			graphqlServer.ServeHTTP(ctx.Writer, ctx.Request)
 		})
 	}
-	var gatewayServer http.Handler
+	var gatewayServer *runtime.ServeMux
 	if s.GatewayHandler != nil {
-		gatewayServer = runtime.Gateway(s.GatewayHandler)
+		gatewayServer = grpc_gateway.New()
+		s.GatewayHandler(s.BaseContext, gatewayServer)
 		/*	ginServer.NoRoute(func(ctx *gin.Context) {
 			gatewayServer.ServeHTTP(
 				(*httpi.ResponseRecorder)(unsafe.Pointer(uintptr(*(*int64)(unsafe.Pointer(uintptr(unsafe.Pointer(ctx))+8))))),
