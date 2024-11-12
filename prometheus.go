@@ -2,6 +2,7 @@ package cherry
 
 // Deprecated 使用opentelemetry
 import (
+	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"github.com/hopeio/context/httpctx"
 	prometheus1 "github.com/hopeio/utils/net/http/prometheus"
 	prometheus2 "github.com/prometheus/client_golang/prometheus"
@@ -14,7 +15,10 @@ import (
 	metrics1, _ := metrics.New(conf, sink)
 	metrics1.EnableHostnameLabel = true
 	http.Handle("/metrics", promhttp.Handler())
+	reg.MustRegister(srvMetrics)
 }*/
+
+var reg = prometheus2.NewRegistry()
 
 type MetricsRecord = func(ctxi *httpctx.Context, uri, method string, code int)
 
@@ -35,3 +39,9 @@ func SetMetricsRecord(metricsRecord MetricsRecord) {
 		defaultMetricsRecord = metricsRecord
 	}
 }
+
+var srvMetrics = grpcprom.NewServerMetrics(
+	grpcprom.WithServerHandlingTimeHistogram(
+		grpcprom.WithHistogramBuckets([]float64{0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120}),
+	),
+)

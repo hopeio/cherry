@@ -66,6 +66,7 @@ func (s *Server) Run() {
 	//systemTracing := serviceConfig.SystemTracing
 	if enableTelemetry {
 		grpc.EnableTracing = true
+		http.DefaultClient = otelhttp.DefaultClient
 		// Set up OpenTelemetry.
 
 		otelShutdown, err := setupOTelSDK(sigCtx, &s.TelemetryConfig)
@@ -74,6 +75,7 @@ func (s *Server) Run() {
 		}
 		// Handle shutdown properly so nothing leaks.
 		defer otelShutdown(sigCtx)
+
 	}
 
 	var handler http.Handler
@@ -113,7 +115,7 @@ func (s *Server) Run() {
 	})
 
 	if enableTelemetry {
-		http.DefaultClient = otelhttp.DefaultClient
+
 		/*		handlerBack := handler
 
 				handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -129,7 +131,6 @@ func (s *Server) Run() {
 					handlerBack.ServeHTTP(w, r)
 				})*/
 		handler = otelhttp.NewHandler(handler, "server")
-
 	}
 	server := &s.Http
 	server.BaseContext = func(_ net.Listener) context.Context {
