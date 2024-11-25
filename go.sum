@@ -88,6 +88,7 @@ github.com/go-playground/universal-translator v0.18.1 h1:Bcnm0ZwsGyWbCzImXv+pAJn
 github.com/go-playground/universal-translator v0.18.1/go.mod h1:xekY+UJKNuX9WP91TpwSH2VMlDf28Uj24BCp08ZFTUY=
 github.com/go-playground/validator/v10 v10.20.0 h1:K9ISHbSaI0lyB2eWMPJo+kOS/FBExVwjEviJTixqxL8=
 github.com/go-playground/validator/v10 v10.20.0/go.mod h1:dbuPbCMFw/DrkbEynArYaCwl3amGuJotoKCe95atGMM=
+github.com/go-playground/validator/v10 v10.22.1/go.mod h1:dbuPbCMFw/DrkbEynArYaCwl3amGuJotoKCe95atGMM=
 github.com/go-session/session v3.1.2+incompatible/go.mod h1:8B3iivBQjrz/JtC68Np2T1yBBLxTan3mn/3OM0CyRt0=
 github.com/go-task/slim-sprig/v3 v3.0.0 h1:sUs3vkvUymDpBKi3qH1YSqBQk9+9D/8M2mN1vB6EwHI=
 github.com/go-task/slim-sprig/v3 v3.0.0/go.mod h1:W848ghGpv3Qj3dhTPRyJypKRiqCdHZiAzKg9hl15HA8=
@@ -150,6 +151,8 @@ github.com/hopeio/context v0.0.44 h1:dlsTQu7lAl64mTGAiCavyOCzSwRhhtn5fZ0Cf6271jU
 github.com/hopeio/context v0.0.44/go.mod h1:ukRayMkzMF7wzbYYTxsHdnxn201jP2GaMjjfStUm3xE=
 github.com/hopeio/context v0.0.45 h1:q7wL8clnd2QD3zr3g9rrBSQc3Jvh0xcqB9HrlS362hg=
 github.com/hopeio/context v0.0.45/go.mod h1:fB8Fa3hFkndrYZ7ioE+uKuxxHStvfdU5GA5CnPPBUZ0=
+github.com/hopeio/context v0.1.0 h1:0V01OdKu8e7NnQuVJlU+gNEcQylzRLkuMibRLG99TNI=
+github.com/hopeio/context v0.1.0/go.mod h1:WW0Cp+2+IWuT68D+xryKrzhTbK1pBr+euieIKymP9vs=
 github.com/hopeio/protobuf v0.0.28 h1:Vw/Il4DrD1mt3Ao03Ae+i3QMxFEgNR46hJyE/CsLNm8=
 github.com/hopeio/protobuf v0.0.28/go.mod h1:AH9U2PAVPQcYrbSiuJA4OkRnqW4fGuTiFbHyQYUAHEw=
 github.com/hopeio/protobuf v0.0.29 h1:oVnIshJwOYfmQai0kicjm0KjuRcaANgN8Z/8cl2qXJI=
@@ -176,6 +179,10 @@ github.com/hopeio/protobuf v0.0.47 h1:EVPImgUnN2C2QI3gfuMW7t4sUO1AsVUH4pwxXKyrZN
 github.com/hopeio/protobuf v0.0.47/go.mod h1:GyzRUGzC3mznELCWcsHkuNIVQ52vLF42b9rx3BvpOzw=
 github.com/hopeio/protobuf v0.0.48 h1:5C0b6O3F//ws9rqEVl62J7Tjh26iUDaWr7DO35onPws=
 github.com/hopeio/protobuf v0.0.48/go.mod h1:HTrW/wy7yy3E3IeiRwbzTCyAlvE0e+R9z2BS8OZUZMQ=
+github.com/hopeio/protobuf v0.0.49-0.20241106033414-88d148f0a6a7 h1:E9oiWQ/JHBlIJ9eR2hXsEUZ8JaQ8H856oVu+8/H5714=
+github.com/hopeio/protobuf v0.0.49-0.20241106033414-88d148f0a6a7/go.mod h1:uieSjBOoblHsgOJc6aGHqDBfMOym/l6x0dyxoqV7odE=
+github.com/hopeio/protobuf v0.1.0 h1:u9u8soZsrf8noKqN/DznCpOE5qMGks2PoPih0MtYRvk=
+github.com/hopeio/protobuf v0.1.0/go.mod h1:1UEb2l89n6HdBiRJHpI4Ew0aPi9ycMZkfWM2c+8ia0Q=
 github.com/hopeio/utils v0.0.36 h1:Ut419uoWSf0aBr5dBkpTE1P8369/Gkyb2lCG4gjp50c=
 github.com/hopeio/utils v0.0.36/go.mod h1:+2FqZZu/bS7Qdd39LiBwfH00sQXBxBJN7dvmnQhCM70=
 github.com/hopeio/utils v0.0.41 h1:CxCLWkBycasWw3cFP8T72qNKCwINU1fnqlh0zO6L+4s=
@@ -200,6 +207,8 @@ github.com/hopeio/utils v0.1.13 h1:50n0LDKmbQ93MBIlh5Qj+CaWTzbotJATIZArXKlORDI=
 github.com/hopeio/utils v0.1.13/go.mod h1:5DJ6FmPd3aSRNYnUrUBjpt0fn/6slD2QUUEicNHOM0k=
 github.com/hopeio/utils v0.2.0 h1:0W7az5WVjMH7ZhpvFXLsnJSu/5ubJk3HoiY5eAcXIbg=
 github.com/hopeio/utils v0.2.0/go.mod h1:5DJ6FmPd3aSRNYnUrUBjpt0fn/6slD2QUUEicNHOM0k=
+github.com/hopeio/utils v0.3.2 h1:lEfYit/ddyRxvgTtwGYBH5Um31NBqTL4XFXR0Q9Ph/o=
+github.com/hopeio/utils v0.3.2/go.mod h1:rLOo6KASzkt8ZFkmCRDNO9kMLmEqPtTX+jGIyrE58xw=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/imkira/go-interpol v1.1.0 h1:KIiKr0VSG2CUW1hl1jpiyuzuJeKUUpC8iM1AIE7N1Vk=
 github.com/imkira/go-interpol v1.1.0/go.mod h1:z0h2/2T3XF8kyEPpRgJ3kmNv+C43p+I/CoI+jC3w2iA=
@@ -339,6 +348,7 @@ github.com/valyala/fasthttp v1.53.0/go.mod h1:6dt4/8olwq9QARP/TDuPmWyWcl4byhpvTJ
 github.com/valyala/tcplisten v1.0.0/go.mod h1:T0xQ8SeCZGxckz9qRXTfG43PvQ/mcWh7FwZEA7Ioqkc=
 github.com/vektah/gqlparser/v2 v2.5.12 h1:COMhVVnql6RoaF7+aTBWiTADdpLGyZWU3K/NwW0ph98=
 github.com/vektah/gqlparser/v2 v2.5.12/go.mod h1:WQQjFc+I1YIzoPvZBhUQX7waZgg3pMLi0r8KymvAE2w=
+github.com/vektah/gqlparser/v2 v2.5.14/go.mod h1:WQQjFc+I1YIzoPvZBhUQX7waZgg3pMLi0r8KymvAE2w=
 github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f h1:J9EGpcZtP0E/raorCMxlFGSTBrsSlaDGf3jU/qvAE2c=
 github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f/go.mod h1:N2zxlSyiKSe5eX1tZViRH5QA0qijqEDrYZiPEAiq3wU=
 github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 h1:EzJWgHovont7NscjpAxXsDA8S8BMYve8Y5+7cuRE7R0=
