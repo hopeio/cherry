@@ -153,6 +153,8 @@ github.com/hopeio/context v0.0.45 h1:q7wL8clnd2QD3zr3g9rrBSQc3Jvh0xcqB9HrlS362hg
 github.com/hopeio/context v0.0.45/go.mod h1:fB8Fa3hFkndrYZ7ioE+uKuxxHStvfdU5GA5CnPPBUZ0=
 github.com/hopeio/context v0.1.0 h1:0V01OdKu8e7NnQuVJlU+gNEcQylzRLkuMibRLG99TNI=
 github.com/hopeio/context v0.1.0/go.mod h1:WW0Cp+2+IWuT68D+xryKrzhTbK1pBr+euieIKymP9vs=
+github.com/hopeio/context v0.1.1-0.20241126062231-e8f26de4657f h1:V21irg6wRk5ZZSIhkiNxRldqjqCb91Xk67v5p2dU1Q0=
+github.com/hopeio/context v0.1.1-0.20241126062231-e8f26de4657f/go.mod h1:S0L7MvhVO0vLSqK4CG+L9V9OCxNYm4pf6t7xPUln+bA=
 github.com/hopeio/protobuf v0.0.28 h1:Vw/Il4DrD1mt3Ao03Ae+i3QMxFEgNR46hJyE/CsLNm8=
 github.com/hopeio/protobuf v0.0.28/go.mod h1:AH9U2PAVPQcYrbSiuJA4OkRnqW4fGuTiFbHyQYUAHEw=
 github.com/hopeio/protobuf v0.0.29 h1:oVnIshJwOYfmQai0kicjm0KjuRcaANgN8Z/8cl2qXJI=
@@ -183,6 +185,8 @@ github.com/hopeio/protobuf v0.0.49-0.20241106033414-88d148f0a6a7 h1:E9oiWQ/JHBlI
 github.com/hopeio/protobuf v0.0.49-0.20241106033414-88d148f0a6a7/go.mod h1:uieSjBOoblHsgOJc6aGHqDBfMOym/l6x0dyxoqV7odE=
 github.com/hopeio/protobuf v0.1.0 h1:u9u8soZsrf8noKqN/DznCpOE5qMGks2PoPih0MtYRvk=
 github.com/hopeio/protobuf v0.1.0/go.mod h1:1UEb2l89n6HdBiRJHpI4Ew0aPi9ycMZkfWM2c+8ia0Q=
+github.com/hopeio/protobuf v0.1.1 h1:PIglslpY33bJKs8b23bP/69uFwkOD9mPKN+oA30ZSNQ=
+github.com/hopeio/protobuf v0.1.1/go.mod h1:8CRcGBUS+jW8NEpKhbBgS+2SMMPnUl3kjwLrWK2Jtkk=
 github.com/hopeio/utils v0.0.36 h1:Ut419uoWSf0aBr5dBkpTE1P8369/Gkyb2lCG4gjp50c=
 github.com/hopeio/utils v0.0.36/go.mod h1:+2FqZZu/bS7Qdd39LiBwfH00sQXBxBJN7dvmnQhCM70=
 github.com/hopeio/utils v0.0.41 h1:CxCLWkBycasWw3cFP8T72qNKCwINU1fnqlh0zO6L+4s=
@@ -209,6 +213,8 @@ github.com/hopeio/utils v0.2.0 h1:0W7az5WVjMH7ZhpvFXLsnJSu/5ubJk3HoiY5eAcXIbg=
 github.com/hopeio/utils v0.2.0/go.mod h1:5DJ6FmPd3aSRNYnUrUBjpt0fn/6slD2QUUEicNHOM0k=
 github.com/hopeio/utils v0.3.2 h1:lEfYit/ddyRxvgTtwGYBH5Um31NBqTL4XFXR0Q9Ph/o=
 github.com/hopeio/utils v0.3.2/go.mod h1:rLOo6KASzkt8ZFkmCRDNO9kMLmEqPtTX+jGIyrE58xw=
+github.com/hopeio/utils v0.3.3 h1:jdZS56KjsU4UfiD4AYDvflMkAGf3Ec0wV1x3iBinUVQ=
+github.com/hopeio/utils v0.3.3/go.mod h1:DPP3gDrq5wfbmJYbeQYEx8vXb08aO6xZBQhfBT4wAHE=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/imkira/go-interpol v1.1.0 h1:KIiKr0VSG2CUW1hl1jpiyuzuJeKUUpC8iM1AIE7N1Vk=
 github.com/imkira/go-interpol v1.1.0/go.mod h1:z0h2/2T3XF8kyEPpRgJ3kmNv+C43p+I/CoI+jC3w2iA=
