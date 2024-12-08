@@ -14,6 +14,7 @@ import (
 	"github.com/hopeio/context/httpctx"
 	httpi "github.com/hopeio/utils/net/http"
 	gini "github.com/hopeio/utils/net/http/gin"
+	"github.com/hopeio/utils/net/http/gin/apidoc"
 	"github.com/hopeio/utils/net/http/grpc/gateway/grpc-gateway"
 	"io"
 
@@ -28,7 +29,7 @@ func (s *Server) httpHandler() http.HandlerFunc {
 	ginServer := s.Gin.New()
 	// TODO: 不记录日志
 	if s.EnableApiDoc {
-		gini.OpenApi(ginServer, s.ApiDocUriPrefix, s.ApiDocDir)
+		apidoc.OpenApi(ginServer, s.ApiDocUriPrefix, s.ApiDocDir)
 	}
 	s.GinHandler(ginServer)
 	if s.EnableDebugApi {
