@@ -3,7 +3,6 @@ module github.com/hopeio/cherry
 go 1.23
 
 require (
-	github.com/99designs/gqlgen v0.17.47
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-oauth2/oauth2/v4 v4.5.2
 	github.com/go-openapi/swag v0.23.0 // indirect

@@ -8,8 +8,6 @@ package cherry
 
 import (
 	"bytes"
-	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/gin-gonic/gin"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/hopeio/context/httpctx"
 	httpi "github.com/hopeio/utils/net/http"
@@ -42,12 +40,6 @@ func (s *Server) httpHandler() http.HandlerFunc {
 		}
 	}
 
-	if s.GraphqlHandler != nil {
-		graphqlServer := handler.NewDefaultServer(s.GraphqlHandler)
-		ginServer.Handle(http.MethodPost, "/api/graphql", func(ctx *gin.Context) {
-			graphqlServer.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-	}
 	var gatewayServer *runtime.ServeMux
 	if s.GatewayHandler != nil {
 		gatewayServer = grpc_gateway.New()

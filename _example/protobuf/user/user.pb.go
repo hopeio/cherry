@@ -13,7 +13,6 @@
 package user
 
 import (
-	_ "github.com/danielvladco/go-proto-gql/pkg/graphqlpb"
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	_ "github.com/hopeio/protobuf/utils/enum"
 	_ "github.com/hopeio/protobuf/utils/patch"

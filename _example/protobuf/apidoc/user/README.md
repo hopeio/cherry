@@ -51,11 +51,6 @@ func main() {
 			_ = user.RegisterUserServiceHandlerServer(app, userservice.GetUserService())
 			app.Static("/static", "F:/upload")
 		},
-        /*	GraphqlHandler: model.NewExecutableSchema(model.Config{
-                Resolvers: &model.GQLServer{
-                UserService:  service.GetUserService(),
-                OauthService: service.GetOauthService(),
-            }}),*/
 	})
 }
 

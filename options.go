@@ -8,7 +8,6 @@ package cherry
 
 import (
 	"context"
-	"github.com/99designs/gqlgen/graphql"
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/utils/net/http/grpc/web"
 	"github.com/rs/cors"
@@ -62,12 +61,6 @@ func WithGrpcHandler(grpcHandler func(*grpc.Server)) Option {
 func WithGinHandler(ginHandler func(*gin.Engine)) Option {
 	return func(server *Server) {
 		server.GinHandler = ginHandler
-	}
-}
-
-func WithGraphqlHandler(graphqlHandler graphql.ExecutableSchema) Option {
-	return func(server *Server) {
-		server.GraphqlHandler = graphqlHandler
 	}
 }
 

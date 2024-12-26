@@ -8,7 +8,6 @@ package cherry
 
 import (
 	"context"
-	"github.com/99designs/gqlgen/graphql"
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/utils/crypto/tls"
 	"github.com/hopeio/utils/log"
@@ -95,8 +94,6 @@ type Server struct {
 	GatewayHandler grpc_gateway.GatewayHandler
 	// 注册 gin 服务
 	GinHandler func(*gin.Engine)
-	// 注册 graphql 服务
-	GraphqlHandler graphql.ExecutableSchema
 	// 各种钩子函数
 	OnStart func(context.Context)
 	OnStop  func(context.Context)
