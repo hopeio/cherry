@@ -16,7 +16,7 @@ import (
 	"github.com/hopeio/utils/log"
 	runtimei "github.com/hopeio/utils/runtime"
 	stringsi "github.com/hopeio/utils/strings"
-	"github.com/hopeio/utils/validation/validator"
+	"github.com/hopeio/utils/validate/validator"
 	"github.com/modern-go/reflect2"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/zap"
@@ -144,7 +144,7 @@ func (s *recvWrapper) SendMsg(m interface{}) error {
 
 func (s *recvWrapper) RecvMsg(m interface{}) error {
 	if err := validator.Validator.Struct(m); err != nil {
-		return errcode.InvalidArgument.Msg(validator.Trans(err))
+		return errcode.InvalidArgument.Msg(validator.TransError(err))
 	}
 	if err := s.ServerStream.RecvMsg(m); err != nil {
 		return err
@@ -159,7 +159,7 @@ func UnaryValidator(
 ) (resp interface{}, err error) {
 
 	if err = validator.Validator.Struct(req); err != nil {
-		return nil, errcode.InvalidArgument.Msg(validator.Trans(err))
+		return nil, errcode.InvalidArgument.Msg(validator.TransError(err))
 	}
 	return handler(ctx, req)
 }
