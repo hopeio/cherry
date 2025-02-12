@@ -14,7 +14,7 @@ import (
 	gini "github.com/hopeio/utils/net/http/gin"
 	"github.com/hopeio/utils/net/http/grpc/gateway/grpc-gateway"
 	"github.com/hopeio/utils/net/http/grpc/web"
-	"github.com/hopeio/utils/validate/validator"
+	"github.com/hopeio/utils/validation/validator"
 	"github.com/quic-go/quic-go/http3"
 	"github.com/rs/cors"
 	"go.opentelemetry.io/otel/propagation"

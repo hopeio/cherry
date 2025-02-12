@@ -16,7 +16,7 @@ import (
 	"github.com/hopeio/utils/log"
 	runtimei "github.com/hopeio/utils/runtime"
 	stringsi "github.com/hopeio/utils/strings"
-	"github.com/hopeio/utils/validate/validator"
+	"github.com/hopeio/utils/validation/validator"
 	"github.com/modern-go/reflect2"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/zap"
