@@ -88,7 +88,7 @@ func (s *Server) Run() {
 	handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
-				log.Errorw(fmt.Sprintf("panic: %v", err), zap.String(log.FieldStack, stringsi.BytesToString(debug.Stack())))
+				log.GetCallerSkipLogger(2).Errorw(fmt.Sprintf("panic: %v", err), zap.String(log.FieldStack, stringsi.BytesToString(debug.Stack())))
 				w.Header().Set(httpi.HeaderContentType, httpi.ContentTypeJson)
 				_, err := w.Write(httpi.ResponseSysErr)
 				if err != nil {
