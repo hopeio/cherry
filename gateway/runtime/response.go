@@ -15,11 +15,11 @@ import (
 
 func HttpResponseHook(ctx context.Context, writer http.ResponseWriter, message proto.Message) error {
 	if res, ok := message.(*response.HttpResponse); ok {
-		hlen := len(res.Header)
-		for i := 0; i < hlen && i+1 < hlen; i += 2 {
-			writer.Header().Set(res.Header[i], res.Header[i+1])
+		header := writer.Header()
+		for k, v := range res.Headers {
+			header.Set(k, v)
 		}
-		writer.WriteHeader(int(res.StatusCode))
+		writer.WriteHeader(int(res.Status))
 		writer.Write(res.Body)
 	}
 	/*	if message == nil{
