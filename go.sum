@@ -75,8 +75,12 @@ github.com/hopeio/protobuf v0.1.8 h1:bKIDtlfdIbTlGadTsByjnYuyl6yZm79tu42BkN8PQLo
 github.com/hopeio/protobuf v0.1.8/go.mod h1:zmOumrSqFoZ2gefrBdQLt44Tg/B+E6ydElHN2wIOEZU=
 github.com/hopeio/protobuf v0.1.9 h1:PAvziCme1UuNkIj2l1V+GcjfMuaPX2yXVUXRWjMxH8g=
 github.com/hopeio/protobuf v0.1.9/go.mod h1:zmOumrSqFoZ2gefrBdQLt44Tg/B+E6ydElHN2wIOEZU=
+github.com/hopeio/protobuf v0.3.1-0.20250214080340-a0a0fb9f3ca7 h1:5Tp9yZ8ks+2xHeuea1Y/wS4tcV1VwaINyE9VJqfeeuc=
+github.com/hopeio/protobuf v0.3.1-0.20250214080340-a0a0fb9f3ca7/go.mod h1:EGsYsoo7obtUsVOk+/U9hyxwPd6085ksKTSYF5n3nkk=
 github.com/hopeio/utils v0.7.3 h1:SZGU/f/1uFGadrYcOG2kSWtrEcc+enEZEWYZlbmoqlc=
 github.com/hopeio/utils v0.7.3/go.mod h1:m3PNWoASmCxXm+RComDV2YQo7hee9s9eCi1H8LsAMKM=
+github.com/hopeio/utils v0.8.2 h1:WpcFHHsxoZxPblWeVHNQ2nicmnWDwcMmHeskvpJHBUY=
+github.com/hopeio/utils v0.8.2/go.mod h1:m3PNWoASmCxXm+RComDV2YQo7hee9s9eCi1H8LsAMKM=
 github.com/invopop/yaml v0.3.1 h1:f0+ZpmhfBSS4MhG+4HYseMdJhoeeopbSKbq5Rpeelso=
 github.com/invopop/yaml v0.3.1/go.mod h1:PMOp3nn4/12yEZUFfmOuNHJsZToEEOwoWsT+D81KkeA=
 github.com/josharian/intern v1.0.0 h1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=
