@@ -26,7 +26,7 @@ require (
 require (
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.0.1
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0
-	github.com/hopeio/context v0.2.4
+	github.com/hopeio/context v0.2.5
 	github.com/hopeio/protobuf v0.3.1-0.20250214080340-a0a0fb9f3ca7
 	github.com/hopeio/utils v0.8.6
 	github.com/quic-go/quic-go v0.48.2
