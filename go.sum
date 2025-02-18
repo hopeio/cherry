@@ -71,8 +71,8 @@ github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0 h1:pRhl55Yx1eC7BZ1N+BBWwn
 github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0/go.mod h1:XKMd7iuf/RGPSMJ/U4HP0zS2Z9Fh8Ps9a+6X26m/tmI=
 github.com/grpc-ecosystem/grpc-gateway/v2 v2.24.0 h1:TmHmbvxPmaegwhDubVz0lICL0J5Ka2vwTzhoePEXsGE=
 github.com/grpc-ecosystem/grpc-gateway/v2 v2.24.0/go.mod h1:qztMSjm835F2bXf+5HKAPIS5qsmQDqZna/PgVt4rWtI=
-github.com/hopeio/context v0.2.3 h1:Htr9s5nQwASQu16VG8kNDJQ5H4FdXXH2WT94PETzIeo=
-github.com/hopeio/context v0.2.3/go.mod h1:GPWcLmAC6AXedPait64/OkNkUc+qlyB98qJQGp7cxSU=
+github.com/hopeio/context v0.2.4 h1:Bs9VtqNeTf+82DgVSdJYEiVxPrqFlY+9ApdFLmO8Gqc=
+github.com/hopeio/context v0.2.4/go.mod h1:GPWcLmAC6AXedPait64/OkNkUc+qlyB98qJQGp7cxSU=
 github.com/hopeio/protobuf v0.3.1-0.20250214080340-a0a0fb9f3ca7 h1:5Tp9yZ8ks+2xHeuea1Y/wS4tcV1VwaINyE9VJqfeeuc=
 github.com/hopeio/protobuf v0.3.1-0.20250214080340-a0a0fb9f3ca7/go.mod h1:EGsYsoo7obtUsVOk+/U9hyxwPd6085ksKTSYF5n3nkk=
 github.com/hopeio/utils v0.8.6 h1:6xVxCSWc+kGHJyvEUMeWIKbjsrTgjFXmIBnROc0P9iY=
