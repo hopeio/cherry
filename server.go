@@ -12,19 +12,16 @@ import (
 	"github.com/hopeio/context/httpctx"
 	httpi "github.com/hopeio/utils/net/http"
 	"github.com/hopeio/utils/net/http/grpc/web"
-	stringsi "github.com/hopeio/utils/strings"
 	"github.com/quic-go/quic-go"
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"net"
 	"net/http"
 	"os/signal"
-	"runtime/debug"
 	"strings"
 	"syscall"
 
 	"github.com/hopeio/utils/log"
-	"go.uber.org/zap"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
 )
@@ -88,7 +85,7 @@ func (s *Server) Run() {
 	handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
-				log.GetCallerSkipLogger(2).Errorw(fmt.Sprintf("panic: %v", err), zap.String(log.FieldStack, stringsi.BytesToString(debug.Stack())))
+				log.GetStackLogger().Errorw(fmt.Sprintf("panic: %v", err))
 				w.Header().Set(httpi.HeaderContentType, httpi.ContentTypeJson)
 				_, err := w.Write(httpi.ResponseSysErr)
 				if err != nil {
