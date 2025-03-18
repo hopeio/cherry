@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/hopeio/context/httpctx"
 	httpi "github.com/hopeio/utils/net/http"
+	"github.com/hopeio/utils/net/http/consts"
 	"github.com/hopeio/utils/net/http/grpc/web"
 	"github.com/quic-go/quic-go"
 	"github.com/rs/cors"
@@ -86,7 +87,7 @@ func (s *Server) Run() {
 		defer func() {
 			if err := recover(); err != nil {
 				log.GetStackLogger().Errorw(fmt.Sprintf("panic: %v", err))
-				w.Header().Set(httpi.HeaderContentType, httpi.ContentTypeJson)
+				w.Header().Set(consts.HeaderContentType, consts.ContentTypeJson)
 				_, err := w.Write(httpi.ResponseSysErr)
 				if err != nil {
 					log.Error(err)
@@ -103,9 +104,9 @@ func (s *Server) Run() {
 
 		r = r.WithContext(ctx.Wrapper())
 
-		contentType := r.Header.Get(httpi.HeaderContentType)
-		if strings.HasPrefix(contentType, httpi.ContentTypeGrpc) {
-			if strings.HasPrefix(contentType[len(httpi.ContentTypeGrpc):], "-web") && wrappedGrpc != nil {
+		contentType := r.Header.Get(consts.HeaderContentType)
+		if strings.HasPrefix(contentType, consts.ContentTypeGrpc) {
+			if strings.HasPrefix(contentType[len(consts.ContentTypeGrpc):], "-web") && wrappedGrpc != nil {
 				wrappedGrpc.ServeHTTP(w, r)
 			} else if r.ProtoMajor == 2 && grpcServer != nil {
 				grpcServer.ServeHTTP(w, r) // gRPC Server
