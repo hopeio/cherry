@@ -12,19 +12,25 @@ import (
 	"go.uber.org/zap"
 )
 
-type AccessLog = func(ctxi *httpctx.Context, uri, method, body, result string, code int)
+type AccessLogParam struct {
+	Method, Url       string
+	ReqBody, RespBody []byte
+	Code              int
+}
 
-func defaultAccessLog(ctxi *httpctx.Context, uri, method, body, result string, code int) {
+type AccessLog = func(ctxi *httpctx.Context, pram *AccessLogParam)
+
+func defaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 	// log 里time now 浪费性能
 	if ce := log.Default().Logger.Check(zap.InfoLevel, "access"); ce != nil {
-		ce.Write(zap.String("uri", uri),
-			zap.String("method", method),
-			zap.String("body", body),
+		ce.Write(zap.String("url", param.Url),
+			zap.String("method", param.Method),
+			zap.ByteString("body", param.ReqBody),
 			zap.String("traceId", ctxi.TraceID()),
 			// 性能
 			zap.Duration("processTime", ce.Time.Sub(ctxi.RequestAt.Time)),
-			zap.String("result", result),
+			zap.ByteString("result", param.RespBody),
 			zap.String("auth", ctxi.AuthInfoRaw),
-			zap.Int("status", code))
+			zap.Int("status", param.Code))
 	}
 }

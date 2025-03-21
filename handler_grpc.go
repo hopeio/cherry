@@ -16,7 +16,6 @@ import (
 
 	"github.com/hopeio/utils/log"
 	runtimei "github.com/hopeio/utils/runtime"
-	stringsi "github.com/hopeio/utils/strings"
 	"github.com/hopeio/utils/validation/validator"
 	"github.com/modern-go/reflect2"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -107,9 +106,15 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 	body, _ := json.Marshal(req)
 	result, _ := json.Marshal(resp)
 	ctxi := httpctx.FromContextValue(ctx)
-	defaultAccessLog(ctxi, info.FullMethod, "grpc",
-		stringsi.BytesToString(body), stringsi.BytesToString(result),
-		code)
+	if s.HttpOption.AccessLog != nil {
+		s.HttpOption.AccessLog(ctxi, &AccessLogParam{
+			Method:   "grpc",
+			Url:      info.FullMethod,
+			ReqBody:  body,
+			RespBody: result,
+			Code:     code,
+		})
+	}
 	/*		if enablePrometheus {
 			defaultMetricsRecord(ctxi, info.FullMethod, "grpc", code)
 		}*/

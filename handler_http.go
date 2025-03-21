@@ -92,9 +92,13 @@ func (s *Server) httpHandler() http.HandlerFunc {
 			w.Write(recorder.Body.Bytes())
 		}
 		ctxi := httpctx.FromContextValue(r.Context())
-		defaultAccessLog(ctxi, r.RequestURI, r.Method,
-			stringsi.BytesToString(body), stringsi.BytesToString(recorder.Body.Bytes()),
-			recorder.Code)
+		if s.HttpOption.AccessLog != nil {
+			s.HttpOption.AccessLog(ctxi, &AccessLogParam{
+				r.Method, r.RequestURI,
+				body, recorder.Body.Bytes(),
+				recorder.Code,
+			})
+		}
 		/*		if enablePrometheus {
 				defaultMetricsRecord(ctxi, r.RequestURI, r.Method, recorder.Code)
 			}*/
