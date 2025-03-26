@@ -20,7 +20,7 @@ type AccessLogParam struct {
 
 type AccessLog = func(ctxi *httpctx.Context, pram *AccessLogParam)
 
-func defaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
+func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 	// log 里time now 浪费性能
 	if ce := log.Default().Logger.Check(zap.InfoLevel, "access"); ce != nil {
 		ce.Write(zap.String("url", param.Url),
@@ -28,7 +28,7 @@ func defaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 			zap.ByteString("body", param.ReqBody),
 			zap.String("traceId", ctxi.TraceID()),
 			// 性能
-			zap.Duration("processTime", ce.Time.Sub(ctxi.RequestAt.Time)),
+			zap.Duration("duration", ce.Time.Sub(ctxi.RequestAt.Time)),
 			zap.ByteString("result", param.RespBody),
 			zap.String("auth", ctxi.AuthInfoRaw),
 			zap.Int("status", param.Code))

@@ -150,7 +150,7 @@ func (s *Server) Init() {
 	if s.BaseContext == nil {
 		s.BaseContext = context.Background()
 	}
-	s.HttpOption.AccessLog = defaultAccessLog
+	s.HttpOption.AccessLog = DefaultAccessLog
 }
 
 // implement initialize
