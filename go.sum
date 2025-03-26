@@ -76,6 +76,8 @@ github.com/hopeio/protobuf v0.3.7 h1:Dpr0AX86dbiAnHpFF+GE81srGgeLf6gV+W6yUNPqVFk
 github.com/hopeio/protobuf v0.3.7/go.mod h1:nZHGBGKB9bRQR3ufOp50pX/84T6mh90Pb/b80M3Xyu0=
 github.com/hopeio/utils v0.13.3 h1:lqqxSzaF+V1bagLxbAB/FRrxdNVx0+oI7gDfD6LN5ss=
 github.com/hopeio/utils v0.13.3/go.mod h1:CBLmjplb0zCqdCMXreiyQrhW0Kx3rTx+zPQkMthYOQY=
+github.com/hopeio/utils v0.13.4 h1:0Xa0HfORG2dGcR4J8jzQRyY6PnL9BVXhvcy4ryS+xyU=
+github.com/hopeio/utils v0.13.4/go.mod h1:CBLmjplb0zCqdCMXreiyQrhW0Kx3rTx+zPQkMthYOQY=
 github.com/invopop/yaml v0.3.1 h1:f0+ZpmhfBSS4MhG+4HYseMdJhoeeopbSKbq5Rpeelso=
 github.com/invopop/yaml v0.3.1/go.mod h1:PMOp3nn4/12yEZUFfmOuNHJsZToEEOwoWsT+D81KkeA=
 github.com/josharian/intern v1.0.0 h1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=

@@ -11,10 +11,12 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/hopeio/context/httpctx"
 	httpi "github.com/hopeio/utils/net/http"
+	"github.com/hopeio/utils/net/http/consts"
 	gini "github.com/hopeio/utils/net/http/gin"
 	"github.com/hopeio/utils/net/http/gin/apidoc"
 	"github.com/hopeio/utils/net/http/grpc/gateway/grpc-gateway"
 	"io"
+	"strings"
 
 	stringsi "github.com/hopeio/utils/strings"
 	"net/http"
@@ -95,7 +97,14 @@ func (s *Server) httpHandler() http.HandlerFunc {
 		if s.HttpOption.AccessLog != nil {
 			s.HttpOption.AccessLog(ctxi, &AccessLogParam{
 				r.Method, r.RequestURI,
-				body, recorder.Body.Bytes(),
+				Body{
+					IsJson: strings.HasPrefix(r.Header.Get(consts.HeaderContentType), consts.ContentTypeJson),
+					Data:   body,
+				},
+				Body{
+					IsJson: strings.HasPrefix(w.Header().Get(consts.HeaderContentType), consts.ContentTypeJson),
+					Data:   recorder.Body.Bytes(),
+				},
 				recorder.Code,
 			})
 		}

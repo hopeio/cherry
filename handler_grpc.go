@@ -108,11 +108,17 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 	ctxi := httpctx.FromContextValue(ctx)
 	if s.HttpOption.AccessLog != nil {
 		s.HttpOption.AccessLog(ctxi, &AccessLogParam{
-			Method:   "grpc",
-			Url:      info.FullMethod,
-			ReqBody:  body,
-			RespBody: result,
-			Code:     code,
+			Method: "grpc",
+			Url:    info.FullMethod,
+			ReqBody: Body{
+				IsJson: true,
+				Data:   body,
+			},
+			RespBody: Body{
+				IsJson: true,
+				Data:   result,
+			},
+			StatusCode: code,
 		})
 	}
 	/*		if enablePrometheus {
