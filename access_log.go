@@ -29,16 +29,20 @@ type AccessLog = func(ctxi *httpctx.Context, pram *AccessLogParam)
 
 func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 	reqBodyField := zap.Skip()
-	if param.ReqBody.IsJson {
-		reqBodyField = zap.Reflect("body", json.RawMessage(param.ReqBody.Data))
-	} else {
-		reqBodyField = zap.String("body", stringsi.BytesToString(param.ReqBody.Data))
+	if len(param.ReqBody.Data) > 0 {
+		if param.ReqBody.IsJson {
+			reqBodyField = zap.Reflect("body", json.RawMessage(param.ReqBody.Data))
+		} else {
+			reqBodyField = zap.String("body", stringsi.BytesToString(param.ReqBody.Data))
+		}
 	}
 	respBodyField := zap.Skip()
-	if param.RespBody.IsJson {
-		respBodyField = zap.Reflect("result", json.RawMessage(param.RespBody.Data))
-	} else {
-		respBodyField = zap.String("result", stringsi.BytesToString(param.RespBody.Data))
+	if len(param.RespBody.Data) > 0 {
+		if param.RespBody.IsJson {
+			respBodyField = zap.Reflect("result", json.RawMessage(param.RespBody.Data))
+		} else {
+			respBodyField = zap.String("result", stringsi.BytesToString(param.RespBody.Data))
+		}
 	}
 	// log 里time now 浪费性能
 	if ce := log.Default().Logger.Check(zap.InfoLevel, "access"); ce != nil {
