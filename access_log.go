@@ -45,7 +45,7 @@ func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 		}
 	}
 	// log 里time now 浪费性能
-	if ce := log.Default().Logger.Check(zap.InfoLevel, "access"); ce != nil {
+	if ce := log.NoCallerLogger().Logger.Check(zap.InfoLevel, "access"); ce != nil {
 		ce.Write(zap.String("url", param.Url),
 			zap.String("method", param.Method),
 			reqBodyField,
