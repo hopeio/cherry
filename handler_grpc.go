@@ -105,7 +105,7 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 			result, _ := protojson.Marshal(resp.(proto.Msg))*/
 	body, _ := json.Marshal(req)
 	result, _ := json.Marshal(resp)
-	ctxi := httpctx.FromContextValue(ctx)
+	ctxi, _ := httpctx.FromContextValue(ctx)
 	if s.HttpOption.AccessLog != nil {
 		s.HttpOption.AccessLog(ctxi, &AccessLogParam{
 			Method: "grpc",

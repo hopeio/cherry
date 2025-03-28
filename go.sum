@@ -72,6 +72,8 @@ github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.1 h1:e9Rjr40Z98/clHv5Yg79Is0Ntos
 github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.1/go.mod h1:tIxuGz/9mpox++sgp9fJjHO0+q1X9/UOWd798aAm22M=
 github.com/hopeio/context v0.2.13 h1:76mbNFyElhcPTW+B0vCB+xsFrfzSsRZI2g7FcJy52rw=
 github.com/hopeio/context v0.2.13/go.mod h1:ZAg4kMkwjuIrLQDuLQjLf+0h+eBLaf91wqgC29SKARo=
+github.com/hopeio/context v0.3.0 h1:2FB4XmvNAWQYXZJVcFy9HVvvPo1fUcPzQBU39k5jLsg=
+github.com/hopeio/context v0.3.0/go.mod h1:ZAg4kMkwjuIrLQDuLQjLf+0h+eBLaf91wqgC29SKARo=
 github.com/hopeio/protobuf v0.3.9 h1:3DFaCrLbDkT7G/tbNCpVejkZRN+EaYVQyBgDQTsAUQw=
 github.com/hopeio/protobuf v0.3.9/go.mod h1:o9Y/5qk8kXLqSb+JAQnLjBP5kSpCqpDW1Onqjfe32Wg=
 github.com/hopeio/utils v0.13.9 h1:MBbB/MCwm6Rk0hAeoCr5TlBs33gCUM40lDrHxJ6bUuM=

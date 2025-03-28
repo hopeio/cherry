@@ -23,7 +23,7 @@ type UserService struct {
 }
 
 func (u *UserService) Signup(ctx context.Context, req *user.SignupReq) (*wrapperspb.StringValue, error) {
-	ctxi := httpctx.FromContextValue(ctx)
+	ctxi, _ := httpctx.FromContextValue(ctx)
 	defer ctxi.StartSpanEnd("")()
 	if req.Mail == "" && req.Phone == "" {
 		return nil, errcode.InvalidArgument.Msg("请填写邮箱或手机号")
@@ -35,7 +35,7 @@ func (u *UserService) Signup(ctx context.Context, req *user.SignupReq) (*wrapper
 func Test(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, _ := strconv.Atoi(idStr)
-	ctxi := httpctx.FromContextValue(ctx.Request.Context())
+	ctxi, _ := httpctx.FromContextValue(ctx.Request.Context())
 	defer ctxi.StartSpanEnd("")()
 	ctx.JSON(200, id)
 }
