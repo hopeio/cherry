@@ -8,13 +8,11 @@ package cherry
 
 import (
 	"bytes"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/hopeio/context/httpctx"
 	httpi "github.com/hopeio/utils/net/http"
 	"github.com/hopeio/utils/net/http/consts"
 	gini "github.com/hopeio/utils/net/http/gin"
 	"github.com/hopeio/utils/net/http/gin/apidoc"
-	"github.com/hopeio/utils/net/http/grpc/gateway/grpc-gateway"
 	"io"
 	"strings"
 
@@ -40,18 +38,6 @@ func (s *Server) httpHandler() http.HandlerFunc {
 		for _, fs := range s.HttpOption.StaticFs {
 			ginServer.Static(fs.Prefix, fs.Root)
 		}
-	}
-
-	var gatewayServer *runtime.ServeMux
-	if s.GatewayHandler != nil {
-		gatewayServer = grpc_gateway.New()
-		s.GatewayHandler(s.BaseContext, gatewayServer)
-		/*	ginServer.NoRoute(func(ctx *gin.Context) {
-			gatewayServer.ServeHTTP(
-				(*httpi.ResponseRecorder)(unsafe.Pointer(uintptr(*(*int64)(unsafe.Pointer(uintptr(unsafe.Pointer(ctx))+8))))),
-				ctx.Request)
-			ctx.Writer.WriteHeader(http.StatusOK)
-		})*/
 	}
 
 	// http.Handle("/", ginServer)
@@ -82,10 +68,6 @@ func (s *Server) httpHandler() http.HandlerFunc {
 		recorder := httpi.NewRecorder(w.Header())
 
 		ginServer.ServeHTTP(recorder, r)
-		if recorder.Code == http.StatusNotFound && gatewayServer != nil {
-			recorder.Reset()
-			gatewayServer.ServeHTTP(recorder, r)
-		}
 
 		// 提取 recorder 中记录的状态码，写入到 ResponseWriter 中
 		w.WriteHeader(recorder.Code)

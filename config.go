@@ -12,7 +12,6 @@ import (
 	"github.com/hopeio/utils/crypto/tls"
 	"github.com/hopeio/utils/log"
 	gini "github.com/hopeio/utils/net/http/gin"
-	"github.com/hopeio/utils/net/http/grpc/gateway/grpc-gateway"
 	"github.com/hopeio/utils/net/http/grpc/web"
 	"github.com/hopeio/utils/validation/validator"
 	"github.com/quic-go/quic-go/http3"
@@ -90,8 +89,6 @@ type Server struct {
 	BaseContext context.Context
 	// 注册 grpc 服务
 	GrpcHandler func(*grpc.Server)
-	// 注册 grpc-gateway 服务
-	GatewayHandler grpc_gateway.GatewayHandler
 	// 注册 gin 服务
 	GinHandler func(*gin.Engine)
 	// 各种钩子函数

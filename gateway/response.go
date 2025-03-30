@@ -4,7 +4,7 @@
  * @Created by jyb
  */
 
-package gin
+package gateway
 
 import (
 	"github.com/gin-gonic/gin"
