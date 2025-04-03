@@ -16,10 +16,6 @@ import (
 	"time"
 )
 
-type IOption interface {
-	apply(server *Server)
-}
-
 type Option func(server *Server)
 
 func WithContext(ctx context.Context) Option {

@@ -14,6 +14,8 @@ import (
 	gini "github.com/hopeio/utils/net/http/gin"
 	"github.com/hopeio/utils/net/http/grpc/web"
 	"github.com/hopeio/utils/validation/validator"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/quic-go/quic-go/http3"
 	"github.com/rs/cors"
 	"go.opentelemetry.io/otel/propagation"
@@ -97,13 +99,16 @@ type Server struct {
 }
 
 type TelemetryConfig struct {
-	EnableMetrics    bool
-	EnableTracing    bool
-	EnablePrometheus bool
-	MetricsInterval  time.Duration
-	propagator       propagation.TextMapPropagator
-	tracerProvider   *sdktrace.TracerProvider
-	meterProvider    *sdkmetric.MeterProvider
+	EnableMetrics         bool
+	EnableTracing         bool
+	EnablePrometheus      bool
+	MetricsInterval       time.Duration
+	PrometheusHandlerOpts promhttp.HandlerOpts
+	gatherer              prometheus.Gatherer
+	registry              prometheus.Registerer
+	propagator            propagation.TextMapPropagator
+	tracerProvider        *sdktrace.TracerProvider
+	meterProvider         *sdkmetric.MeterProvider
 }
 
 func (c *TelemetryConfig) SetTextMapPropagator(propagator propagation.TextMapPropagator) {
@@ -116,6 +121,14 @@ func (c *TelemetryConfig) SetTracerProvider(tracerProvider *sdktrace.TracerProvi
 
 func (c *TelemetryConfig) SetMeterProvider(meterProvider *sdkmetric.MeterProvider) {
 	c.meterProvider = meterProvider
+}
+
+func (c *TelemetryConfig) SetPrometheusGatherer(gatherer prometheus.Gatherer) {
+	c.gatherer = gatherer
+}
+
+func (c *TelemetryConfig) SetPrometheusRegistry(registry prometheus.Registerer) {
+	c.registry = registry
 }
 
 func (s *Server) Init() {

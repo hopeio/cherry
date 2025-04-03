@@ -24,8 +24,6 @@ import (
 	reg.MustRegister(srvMetrics)
 }*/
 
-var reg = prometheus2.NewRegistry()
-
 type MetricsRecord = func(ctxi *httpctx.Context, uri, method string, code int)
 
 var defaultMetricsRecord = func(ctxi *httpctx.Context, uri, method string, code int) {
