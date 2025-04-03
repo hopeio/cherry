@@ -97,6 +97,8 @@ type Server struct {
 }
 
 type TelemetryConfig struct {
+	EnableMetrics    bool
+	EnableTracing    bool
 	EnablePrometheus bool
 	MetricsInterval  time.Duration
 	propagator       propagation.TextMapPropagator

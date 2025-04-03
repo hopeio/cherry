@@ -70,35 +70,35 @@ func setupOTelSDK(ctx context.Context, config *TelemetryConfig) (shutdown func(c
 	handleErr := func(inErr error) {
 		err = errors.Join(inErr, shutdown(ctx))
 	}
-
-	if config.propagator == nil {
-		config.propagator = newPropagator()
-	}
-	// Set up propagator.
-	otel.SetTextMapPropagator(config.propagator)
-
-	if config.tracerProvider == nil {
-		config.tracerProvider, err = newTraceProvider(ctx)
-		if err != nil {
-			handleErr(err)
-			return
+	if config.EnableTracing {
+		if config.propagator == nil {
+			config.propagator = newPropagator()
 		}
-	}
-	shutdownFuncs = append(shutdownFuncs, config.tracerProvider.Shutdown)
-	otel.SetTracerProvider(config.tracerProvider)
+		// Set up propagator.
+		otel.SetTextMapPropagator(config.propagator)
 
-	if config.meterProvider == nil {
-		// Set up meter provider.
-		config.meterProvider, err = newMeterProvider(ctx, config)
-		if err != nil {
-			handleErr(err)
-			return
+		if config.tracerProvider == nil {
+			config.tracerProvider, err = newTraceProvider(ctx)
+			if err != nil {
+				handleErr(err)
+				return
+			}
 		}
+		shutdownFuncs = append(shutdownFuncs, config.tracerProvider.Shutdown)
+		otel.SetTracerProvider(config.tracerProvider)
 	}
-
-	shutdownFuncs = append(shutdownFuncs, config.meterProvider.Shutdown)
-	otel.SetMeterProvider(config.meterProvider)
-
+	if config.EnableMetrics {
+		if config.meterProvider == nil {
+			// Set up meter provider.
+			config.meterProvider, err = newMeterProvider(ctx, config)
+			if err != nil {
+				handleErr(err)
+				return
+			}
+		}
+		shutdownFuncs = append(shutdownFuncs, config.meterProvider.Shutdown)
+		otel.SetMeterProvider(config.meterProvider)
+	}
 	return
 }
 

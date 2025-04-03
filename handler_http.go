@@ -53,8 +53,8 @@ func (s *Server) httpHandler() http.HandlerFunc {
 			return
 		}
 		// 不记录日志
-		if len(includes) > 0 || len(excludes) > 0 {
-			if !stringsi.HasPrefixes(r.RequestURI, includes) || stringsi.HasPrefixes(r.RequestURI, excludes) {
+		if len(excludes) > 0 {
+			if stringsi.HasPrefixes(r.RequestURI, excludes) && !stringsi.HasPrefixes(r.RequestURI, includes) {
 				ginServer.ServeHTTP(w, r)
 				return
 			}
