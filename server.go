@@ -13,8 +13,6 @@ import (
 	httpi "github.com/hopeio/utils/net/http"
 	"github.com/hopeio/utils/net/http/consts"
 	"github.com/hopeio/utils/net/http/grpc/web"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/quic-go/quic-go"
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -72,21 +70,6 @@ func (s *Server) Run() {
 		if s.TelemetryConfig.EnableTracing {
 			grpc.EnableTracing = true
 			http.DefaultClient = otelhttp.DefaultClient
-		}
-		if s.TelemetryConfig.EnableMetrics {
-			if s.TelemetryConfig.EnablePrometheus {
-				gatherer := s.gatherer
-				if gatherer == nil {
-					gatherer = prometheus.DefaultGatherer
-				}
-				http.Handle("/metrics", promhttp.HandlerFor(gatherer, s.PrometheusHandlerOpts))
-
-				registry := s.registry
-				if registry == nil {
-					registry = prometheus.DefaultRegisterer
-				}
-
-			}
 		}
 		// Set up OpenTelemetry.
 

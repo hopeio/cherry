@@ -10,7 +10,6 @@ import (
 	"context"
 	"errors"
 	"github.com/hopeio/utils/log"
-	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -90,7 +89,7 @@ func setupOTelSDK(ctx context.Context, config *TelemetryConfig) (shutdown func(c
 	if config.EnableMetrics {
 		if config.meterProvider == nil {
 			// Set up meter provider.
-			config.meterProvider, err = newMeterProvider(ctx, config)
+			config.meterProvider, err = newMeterProvider(ctx)
 			if err != nil {
 				handleErr(err)
 				return
@@ -111,7 +110,7 @@ func newPropagator() propagation.TextMapPropagator {
 
 func newTraceProvider(ctx context.Context) (*sdktrace.TracerProvider, error) {
 	traceExporter, err := stdouttrace.New(
-	//stdouttrace.WithPrettyPrint(),
+		//stdouttrace.WithPrettyPrint(),
 	)
 	if err != nil {
 		return nil, err
@@ -133,23 +132,15 @@ func newTraceProvider(ctx context.Context) (*sdktrace.TracerProvider, error) {
 	), nil
 }
 
-func newMeterProvider(ctx context.Context, config *TelemetryConfig) (*sdkmetric.MeterProvider, error) {
+func newMeterProvider(ctx context.Context) (*sdkmetric.MeterProvider, error) {
 	res, err := resource.New(ctx)
 	var reader sdkmetric.Reader
-	if config.EnablePrometheus {
-		reader, err = prometheus.New()
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		exporter, err := stdoutmetric.New()
-		if err != nil {
-			return nil, err
-		}
-		reader = sdkmetric.NewPeriodicReader(exporter,
-			// Default is 1m. Set to 3s for demonstrative purposes.
-			sdkmetric.WithInterval(config.MetricsInterval))
+	exporter, err := stdoutmetric.New()
+	if err != nil {
+		return nil, err
 	}
+	reader = sdkmetric.NewPeriodicReader(exporter,
+		sdkmetric.WithInterval(time.Minute))
 
 	return sdkmetric.NewMeterProvider(
 		sdkmetric.WithResource(res),
