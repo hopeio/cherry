@@ -18,6 +18,7 @@ import (
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/propagation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -37,6 +38,7 @@ func NewServer(options ...Option) *Server {
 	validator.DefaultValidator = nil // 自己做校验
 	c.Cors.Enable = true
 	c.Telemetry.Enable = true
+	c.Telemetry.EnablePrometheus = true
 	c.EnableDebugApi = true
 	for _, option := range options {
 		option(c)
@@ -105,14 +107,14 @@ type CorsConfig struct {
 }
 
 type TelemetryConfig struct {
-	Enable         bool
-	EnableMetrics  bool
-	EnableTracing  bool
-	otelhttpOpts   []otelhttp.Option
-	otelgrpcOpts   []otelgrpc.Option
-	propagator     propagation.TextMapPropagator
-	tracerProvider *sdktrace.TracerProvider
-	meterProvider  *sdkmetric.MeterProvider
+	Enable           bool
+	EnablePrometheus bool
+	prometheusOpts   []prometheus.Option
+	otelhttpOpts     []otelhttp.Option
+	otelgrpcOpts     []otelgrpc.Option
+	propagator       propagation.TextMapPropagator
+	tracerProvider   *sdktrace.TracerProvider
+	meterProvider    *sdkmetric.MeterProvider
 }
 
 func (c *TelemetryConfig) SetOtelhttpHandlerOpts(otelhttpOpts []otelhttp.Option) {
@@ -121,6 +123,10 @@ func (c *TelemetryConfig) SetOtelhttpHandlerOpts(otelhttpOpts []otelhttp.Option)
 
 func (c *TelemetryConfig) SetOtelgrpcOptsHandlerOpts(otelgrpcOpts []otelgrpc.Option) {
 	c.otelgrpcOpts = otelgrpcOpts
+}
+
+func (c *TelemetryConfig) SetPrometheusOpts(prometheusOpts []prometheus.Option) {
+	c.prometheusOpts = prometheusOpts
 }
 
 func (c *TelemetryConfig) SetTextMapPropagator(propagator propagation.TextMapPropagator) {

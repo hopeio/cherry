@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/hopeio/context/httpctx"
 	"github.com/hopeio/utils/crypto/tls"
+	"github.com/hopeio/utils/log"
 	httpi "github.com/hopeio/utils/net/http"
 	"github.com/hopeio/utils/net/http/consts"
 	"github.com/hopeio/utils/net/http/grpc/web"
@@ -26,8 +27,6 @@ import (
 	"reflect"
 	"strings"
 	"syscall"
-
-	"github.com/hopeio/utils/log"
 )
 
 func (s *Server) Run() {
@@ -64,21 +63,18 @@ func (s *Server) Run() {
 		wrappedGrpc = web.WrapServer(grpcServer, s.Grpc.GrpcWebOptions...)
 	}
 
-	//systemTracing := serviceConfig.SystemTracing
+	// Set up OpenTelemetry.
 	if s.Telemetry.Enable {
-		if s.Telemetry.EnableTracing {
-			grpc.EnableTracing = true
-			http.DefaultClient = otelhttp.DefaultClient
-		}
-		// Set up OpenTelemetry.
 
-		otelShutdown, err := setupOTelSDK(sigCtx, &s.Telemetry)
+		grpc.EnableTracing = true
+		http.DefaultClient = otelhttp.DefaultClient
+
+		otelShutdown, err := s.Telemetry.setupOTelSDK(sigCtx)
 		if err != nil {
 			log.Fatal(err)
 		}
 		// Handle shutdown properly so nothing leaks.
 		defer otelShutdown(sigCtx)
-
 	}
 
 	var handler http.Handler

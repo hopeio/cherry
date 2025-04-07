@@ -9,9 +9,8 @@ package cherry
 import (
 	"context"
 	"errors"
-	"github.com/hopeio/utils/log"
+	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
-	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"time"
 
@@ -22,35 +21,9 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
-var (
-	meter      = otel.Meter("service")
-	apiCounter metric.Int64Counter
-	histogram  metric.Float64Histogram
-)
-
-func init() {
-	var err error
-	apiCounter, err = meter.Int64Counter(
-		"api.counter",
-		metric.WithDescription("Number of API calls."),
-		metric.WithUnit("{call}"),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-	histogram, err = meter.Float64Histogram(
-		"task.duration",
-		metric.WithDescription("The duration of task execution."),
-		metric.WithUnit("s"),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
 // setupOTelSDK bootstraps the OpenTelemetry pipeline.
 // If it does not return an error, make sure to call shutdown for proper cleanup.
-func setupOTelSDK(ctx context.Context, config *TelemetryConfig) (shutdown func(context.Context) error, err error) {
+func (c *TelemetryConfig) setupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, err error) {
 	var shutdownFuncs []func(context.Context) error
 
 	// shutdown calls cleanup functions registered via shutdownFuncs.
@@ -69,78 +42,86 @@ func setupOTelSDK(ctx context.Context, config *TelemetryConfig) (shutdown func(c
 	handleErr := func(inErr error) {
 		err = errors.Join(inErr, shutdown(ctx))
 	}
-	if config.EnableTracing {
-		if config.propagator == nil {
-			config.propagator = newPropagator()
+	if c.Enable {
+		if c.propagator == nil {
+			c.propagator = c.newPropagator()
 		}
 		// Set up propagator.
-		otel.SetTextMapPropagator(config.propagator)
+		otel.SetTextMapPropagator(c.propagator)
+		var res *resource.Resource
+		res, err = resource.New(ctx) //resource.WithFromEnv(), // Discover and provide attributes from OTEL_RESOURCE_ATTRIBUTES and OTEL_SERVICE_NAME environment variables.
+		//resource.WithTelemetrySDK(), // Discover and provide information about the OpenTelemetry SDK used.
+		//resource.WithProcess(),      // Discover and provide process information.
+		//resource.WithOS(),           // Discover and provide OS information.
+		//resource.WithContainer(), // Discover and provide container information.
+		//resource.WithHost(),         // Discover and provide host information.
 
-		if config.tracerProvider == nil {
-			config.tracerProvider, err = newTraceProvider(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if c.tracerProvider == nil {
+			c.tracerProvider, err = c.newTraceProvider(ctx, res)
 			if err != nil {
 				handleErr(err)
 				return
 			}
 		}
-		shutdownFuncs = append(shutdownFuncs, config.tracerProvider.Shutdown)
-		otel.SetTracerProvider(config.tracerProvider)
-	}
-	if config.EnableMetrics {
-		if config.meterProvider == nil {
+		shutdownFuncs = append(shutdownFuncs, c.tracerProvider.Shutdown)
+		otel.SetTracerProvider(c.tracerProvider)
+
+		if c.meterProvider == nil {
 			// Set up meter provider.
-			config.meterProvider, err = newMeterProvider(ctx)
+			c.meterProvider, err = c.newMeterProvider(ctx, res)
 			if err != nil {
 				handleErr(err)
 				return
 			}
 		}
-		shutdownFuncs = append(shutdownFuncs, config.meterProvider.Shutdown)
-		otel.SetMeterProvider(config.meterProvider)
+		shutdownFuncs = append(shutdownFuncs, c.meterProvider.Shutdown)
+		otel.SetMeterProvider(c.meterProvider)
 	}
 	return
 }
 
-func newPropagator() propagation.TextMapPropagator {
+func (c *TelemetryConfig) newPropagator() propagation.TextMapPropagator {
 	return propagation.NewCompositeTextMapPropagator(
 		propagation.TraceContext{},
 		propagation.Baggage{},
 	)
 }
 
-func newTraceProvider(ctx context.Context) (*sdktrace.TracerProvider, error) {
+func (c *TelemetryConfig) newTraceProvider(ctx context.Context, res *resource.Resource) (*sdktrace.TracerProvider, error) {
 	traceExporter, err := stdouttrace.New(
-	//stdouttrace.WithPrettyPrint(),
+		//stdouttrace.WithPrettyPrint(),
 	)
 	if err != nil {
 		return nil, err
 	}
-	res, err := resource.New(ctx) //resource.WithFromEnv(), // Discover and provide attributes from OTEL_RESOURCE_ATTRIBUTES and OTEL_SERVICE_NAME environment variables.
-	//resource.WithTelemetrySDK(), // Discover and provide information about the OpenTelemetry SDK used.
-	//resource.WithProcess(),      // Discover and provide process information.
-	//resource.WithOS(),           // Discover and provide OS information.
-	//resource.WithContainer(), // Discover and provide container information.
-	//resource.WithHost(),         // Discover and provide host information.
 
-	if err != nil {
-		return nil, err
-	}
 	return sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(traceExporter, sdktrace.WithBatchTimeout(time.Second)),
 		sdktrace.WithResource(res),
-		sdktrace.WithSampler(sdktrace.TraceIDRatioBased(0.5)),
+		sdktrace.WithSampler(sdktrace.TraceIDRatioBased(0.1)),
 	), nil
 }
 
-func newMeterProvider(ctx context.Context) (*sdkmetric.MeterProvider, error) {
-	res, err := resource.New(ctx)
+func (c *TelemetryConfig) newMeterProvider(ctx context.Context, res *resource.Resource) (*sdkmetric.MeterProvider, error) {
+
 	var reader sdkmetric.Reader
-	exporter, err := stdoutmetric.New()
-	if err != nil {
-		return nil, err
+	if c.EnablePrometheus {
+		var err error
+		reader, err = prometheus.New(c.prometheusOpts...)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		exporter, err := stdoutmetric.New()
+		if err != nil {
+			return nil, err
+		}
+		reader = sdkmetric.NewPeriodicReader(exporter,
+			sdkmetric.WithInterval(time.Minute))
 	}
-	reader = sdkmetric.NewPeriodicReader(exporter,
-		sdkmetric.WithInterval(time.Minute))
 
 	return sdkmetric.NewMeterProvider(
 		sdkmetric.WithResource(res),

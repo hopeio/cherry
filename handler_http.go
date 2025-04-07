@@ -13,6 +13,7 @@ import (
 	"github.com/hopeio/utils/net/http/consts"
 	gini "github.com/hopeio/utils/net/http/gin"
 	"github.com/hopeio/utils/net/http/gin/apidoc"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"io"
 	"strings"
@@ -40,7 +41,9 @@ func (s *Server) httpHandler() http.Handler {
 			ginServer.Static(fs.Prefix, fs.Root)
 		}
 	}
-
+	if s.Telemetry.Enable && s.Telemetry.EnablePrometheus {
+		http.Handle("/metrics", promhttp.Handler())
+	}
 	// http.Handle("/", ginServer)
 	var excludes = s.HttpOption.ExcludeLogPrefixes
 	var includes = s.HttpOption.IncludeLogPrefixes
