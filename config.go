@@ -16,6 +16,8 @@ import (
 	"github.com/hopeio/utils/validation/validator"
 	"github.com/quic-go/quic-go/http3"
 	"github.com/rs/cors"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/propagation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -30,12 +32,11 @@ func NewServer(options ...Option) *Server {
 	c.Http.Addr = ":8080"
 	c.Http.ReadTimeout = 5 * time.Second
 	c.Http.WriteTimeout = 5 * time.Second
-	c.StopTimeout = 5 * time.Second
 	gin.SetMode(gin.ReleaseMode)
 	gin.DisableBindValidation()
 	validator.DefaultValidator = nil // 自己做校验
-	c.EnableCors = true
-	c.EnableTelemetry = true
+	c.Cors.Enable = true
+	c.Telemetry.Enable = true
 	c.EnableDebugApi = true
 	for _, option := range options {
 		option(c)
@@ -47,8 +48,11 @@ type Http struct {
 	http.Server
 	CertFile string
 	KeyFile  string
+	HttpOption
 }
+
 type Http3 struct {
+	Enable bool
 	http3.Server
 	CertFile string
 	KeyFile  string
@@ -68,39 +72,55 @@ type StaticFsConfig struct {
 }
 
 type Server struct {
-	Name        string
-	Http        Http
-	Http2       http2.Server
-	Http3       *Http3
-	StopTimeout time.Duration
-	Gin         gini.Config
-	EnableCors  bool
-	Cors        *cors.Options
-	Middlewares []http.HandlerFunc
-	HttpOption  HttpOption
-	// Grpc options
-	GrpcOptions                                   []grpc.ServerOption
-	EnableGrpcWeb                                 bool
-	GrpcWebOptions                                []web.Option
-	EnableTelemetry, EnableDebugApi, EnableApiDoc bool
-	ApiDocUriPrefix, ApiDocDir                    string
-	TelemetryConfig
-	BaseContext context.Context
+	Http
+	HTTP2          http2.Server
+	HTTP3          Http3
+	Gin            gini.Config
+	Cors           CorsConfig
+	Grpc           GrpcConfig
+	EnableDebugApi bool
+	ApiDoc         ApiDocConfig
+	Telemetry      TelemetryConfig
+	BaseContext    context.Context
 	// 注册 grpc 服务
 	GrpcHandler func(*grpc.Server)
 	// 注册 gin 服务
 	GinHandler func(*gin.Engine)
-	// 各种钩子函数
-	OnStart func(context.Context)
-	OnStop  func(context.Context)
+}
+
+type ApiDocConfig struct {
+	Enable         bool
+	UriPrefix, Dir string
+}
+
+type GrpcConfig struct {
+	EnableGrpcWeb  bool
+	GrpcWebOptions []web.Option
+	Options        []grpc.ServerOption
+}
+
+type CorsConfig struct {
+	Enable bool
+	cors.Options
 }
 
 type TelemetryConfig struct {
+	Enable         bool
 	EnableMetrics  bool
 	EnableTracing  bool
+	otelhttpOpts   []otelhttp.Option
+	otelgrpcOpts   []otelgrpc.Option
 	propagator     propagation.TextMapPropagator
 	tracerProvider *sdktrace.TracerProvider
 	meterProvider  *sdkmetric.MeterProvider
+}
+
+func (c *TelemetryConfig) SetOtelhttpHandlerOpts(otelhttpOpts []otelhttp.Option) {
+	c.otelhttpOpts = otelhttpOpts
+}
+
+func (c *TelemetryConfig) SetOtelgrpcOptsHandlerOpts(otelgrpcOpts []otelgrpc.Option) {
+	c.otelgrpcOpts = otelgrpcOpts
 }
 
 func (c *TelemetryConfig) SetTextMapPropagator(propagator propagation.TextMapPropagator) {
@@ -116,19 +136,14 @@ func (c *TelemetryConfig) SetMeterProvider(meterProvider *sdkmetric.MeterProvide
 }
 
 func (s *Server) Init() {
-
 	if s.Http.Addr == "" {
 		s.Http.Addr = ":8080"
 	}
-	if s.Http3 != nil && s.Http3.Addr == "" {
-		s.Http3.Addr = ":8080"
+	if s.HTTP3.Enable && s.HTTP3.Addr == "" {
+		s.HTTP3.Addr = ":8080"
 	}
 	log.DurationNotify("ReadTimeout", s.Http.ReadTimeout, time.Second)
 	log.DurationNotify("WriteTimeout", s.Http.WriteTimeout, time.Second)
-	if s.StopTimeout == 0 {
-		s.StopTimeout = 5 * time.Second
-	}
-	log.DurationNotify("StopTimeout", s.StopTimeout, time.Second)
 	if s.Http.CertFile != "" && s.Http.KeyFile != "" {
 		tlsConfig, err := tls.NewServerTLSConfig(s.Http.CertFile, s.Http.KeyFile)
 		if err != nil {
@@ -136,12 +151,12 @@ func (s *Server) Init() {
 		}
 		s.Http.TLSConfig = tlsConfig
 	}
-	if s.Http3 != nil && s.Http3.CertFile != "" && s.Http3.KeyFile != "" {
-		tlsConfig, err := tls.NewServerTLSConfig(s.Http3.CertFile, s.Http3.KeyFile)
+	if s.HTTP3.Enable && s.HTTP3.CertFile != "" && s.HTTP3.KeyFile != "" {
+		tlsConfig, err := tls.NewServerTLSConfig(s.HTTP3.CertFile, s.HTTP3.KeyFile)
 		if err != nil {
 			log.Fatal(err)
 		}
-		s.Http3.TLSConfig = tlsConfig
+		s.HTTP3.TLSConfig = tlsConfig
 	}
 	if s.BaseContext == nil {
 		s.BaseContext = context.Background()

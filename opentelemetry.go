@@ -110,7 +110,7 @@ func newPropagator() propagation.TextMapPropagator {
 
 func newTraceProvider(ctx context.Context) (*sdktrace.TracerProvider, error) {
 	traceExporter, err := stdouttrace.New(
-		//stdouttrace.WithPrettyPrint(),
+	//stdouttrace.WithPrettyPrint(),
 	)
 	if err != nil {
 		return nil, err

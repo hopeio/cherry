@@ -10,7 +10,6 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/utils/errors/errcode"
-
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	"strconv"
 
@@ -32,10 +31,13 @@ func (u *UserService) Signup(ctx context.Context, req *user.SignupReq) (*wrapper
 	return &wrapperspb.StringValue{Value: "注册成功"}, nil
 }
 
+func (u *UserService) GetUser(ctx context.Context, req *user.GetUserReq) (*user.User, error) {
+	return &user.User{Id: req.Id}, nil
+}
 func Test(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, _ := strconv.Atoi(idStr)
 	ctxi, _ := httpctx.FromContextValue(ctx.Request.Context())
 	defer ctxi.StartSpanEnd("")()
-	ctx.JSON(200, id)
+	ctx.JSON(200, user.User{Id: uint64(id)})
 }

@@ -10,21 +10,24 @@ import (
 	"context"
 	"fmt"
 	"github.com/hopeio/context/httpctx"
+	"github.com/hopeio/utils/crypto/tls"
 	httpi "github.com/hopeio/utils/net/http"
 	"github.com/hopeio/utils/net/http/consts"
 	"github.com/hopeio/utils/net/http/grpc/web"
 	"github.com/quic-go/quic-go"
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
 	"net"
 	"net/http"
 	"os/signal"
+	"reflect"
 	"strings"
 	"syscall"
 
 	"github.com/hopeio/utils/log"
-	"golang.org/x/net/http2/h2c"
 )
 
 func (s *Server) Run() {
@@ -41,39 +44,35 @@ func (s *Server) Run() {
 	)
 	defer stop()
 
-	if s.OnStart != nil {
-		s.OnStart(sigCtx)
-	}
-
 	grpcServer := s.grpcHandler()
 	httpHandler := s.httpHandler()
 
 	// cors
-	if s.EnableCors {
+	if s.Cors.Enable {
 		var corsServer *cors.Cors
-		if s.Cors == nil {
+		if reflect.ValueOf(&s.Cors.Options).Elem().IsZero() {
 			corsServer = cors.AllowAll()
 		} else {
-			corsServer = cors.New(*s.Cors)
+			corsServer = cors.New(s.Cors.Options)
 		}
-		httpHandler = corsServer.Handler(httpHandler).(http.HandlerFunc)
+		httpHandler = corsServer.Handler(httpHandler)
 	}
 
 	// grpc-web
 	var wrappedGrpc *web.WrappedGrpcServer
-	if s.EnableGrpcWeb {
-		wrappedGrpc = web.WrapServer(grpcServer, s.GrpcWebOptions...)
+	if s.Grpc.EnableGrpcWeb {
+		wrappedGrpc = web.WrapServer(grpcServer, s.Grpc.GrpcWebOptions...)
 	}
 
 	//systemTracing := serviceConfig.SystemTracing
-	if s.EnableTelemetry {
-		if s.TelemetryConfig.EnableTracing {
+	if s.Telemetry.Enable {
+		if s.Telemetry.EnableTracing {
 			grpc.EnableTracing = true
 			http.DefaultClient = otelhttp.DefaultClient
 		}
 		// Set up OpenTelemetry.
 
-		otelShutdown, err := setupOTelSDK(sigCtx, &s.TelemetryConfig)
+		otelShutdown, err := setupOTelSDK(sigCtx, &s.Telemetry)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -118,41 +117,42 @@ func (s *Server) Run() {
 		ctx.RootSpan().End()
 	})
 
-	if s.EnableTelemetry {
-
-		/*		handlerBack := handler
-
-				handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					//apiCounter.Add(r.Context(), 1)
-					attr := semconv.HTTPRouteKey.String(r.RequestURI)
-
-					span := trace.SpanFromContext(r.Context())
-					span.SetAttributes(attr)
-
-					labeler, _ := otelhttp.LabelerFromContext(r.Context())
-					labeler.Add(attr)
-
-					handlerBack.ServeHTTP(w, r)
-				})*/
-		handler = otelhttp.NewHandler(handler, "server")
-	}
 	server := &s.Http
 	server.BaseContext = func(_ net.Listener) context.Context {
 		return sigCtx
 	}
 	// 为了提供grpc服务,默认启用http2
-	h2Handler := h2c.NewHandler(handler, &s.Http2)
-	server.Handler = h2Handler
-
+	if s.TLSConfig != nil {
+		err := http2.ConfigureServer(&server.Server, &s.HTTP2)
+		if err != nil {
+			log.Fatal(err)
+		}
+		server.Handler = handler
+	} else {
+		h2Handler := h2c.NewHandler(handler, &s.HTTP2)
+		server.Handler = h2Handler
+	}
 	srvErr := make(chan error, 1)
-	if s.Http3 != nil && s.Http3.TLSConfig != nil {
-		s.Http3.Handler = handler
-		s.Http3.ConnContext = func(ctx context.Context, c quic.Connection) context.Context {
+	if s.HTTP3.Enable {
+		if s.HTTP3.TLSConfig == nil {
+			if s.HTTP3.CertFile != "" && s.HTTP3.KeyFile != "" {
+				var err error
+				s.HTTP3.TLSConfig, err = tls.NewServerTLSConfig(s.HTTP3.CertFile, s.HTTP3.KeyFile)
+				if err != nil {
+					log.Fatal(err)
+				}
+			} else {
+				log.Fatal("http3 need certFile and keyFile")
+			}
+		}
+
+		s.HTTP3.Handler = handler
+		s.HTTP3.ConnContext = func(ctx context.Context, c quic.Connection) context.Context {
 			return sigCtx
 		}
 		go func() {
-			log.Infof("http3 listening: %s", s.Http3.Addr)
-			srvErr <- s.Http3.ListenAndServe()
+			log.Infof("http3 listening: %s", s.HTTP3.Addr)
+			srvErr <- s.HTTP3.ListenAndServe()
 		}()
 	}
 	go func() {
@@ -178,9 +178,5 @@ func (s *Server) Run() {
 	}
 	if err := server.Shutdown(context.Background()); err != nil {
 		log.Error(err)
-	}
-
-	if s.OnStop != nil {
-		s.OnStop(sigCtx)
 	}
 }

@@ -9,11 +9,9 @@ package cherry
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/utils/net/http/grpc/web"
 	"github.com/rs/cors"
 	"google.golang.org/grpc"
 	"net/http"
-	"time"
 )
 
 type Option func(server *Server)
@@ -24,27 +22,15 @@ func WithContext(ctx context.Context) Option {
 	}
 }
 
-func WithHttpAddr(addr string) Option {
+func WithHttp(http Http) Option {
 	return func(server *Server) {
-		server.Http.Addr = addr
+		server.Http = http
 	}
 }
 
-func WithHttp3Addr(addr string) Option {
+func WithHTTP3(http3 Http3) Option {
 	return func(server *Server) {
-		server.Http3.Addr = addr
-	}
-}
-
-func WithName(name string) Option {
-	return func(server *Server) {
-		server.Name = name
-	}
-}
-
-func WithStopTimeout(stopTimeout time.Duration) Option {
-	return func(server *Server) {
-		server.StopTimeout = stopTimeout
+		server.HTTP3 = http3
 	}
 }
 
@@ -60,35 +46,16 @@ func WithGinHandler(ginHandler func(*gin.Engine)) Option {
 	}
 }
 
-func WithGrpcWeb(options ...web.Option) Option {
+func WithGrpc(option GrpcConfig) Option {
 	return func(server *Server) {
-		server.EnableGrpcWeb = true
-		server.GrpcWebOptions = append(server.GrpcWebOptions, options...)
+		server.Grpc = option
 	}
 }
 
-func WithOnStart(onStart func(context.Context)) Option {
+func WithCors(cors cors.Options) Option {
 	return func(server *Server) {
-		server.OnStart = onStart
-	}
-}
-
-func WithOnStop(onStop func(context.Context)) Option {
-	return func(server *Server) {
-		server.OnStop = onStop
-	}
-}
-
-func WithGrpcOptions(options ...grpc.ServerOption) Option {
-	return func(server *Server) {
-		server.GrpcOptions = append(server.GrpcOptions, options...)
-	}
-}
-
-func WithCors(cors *cors.Options) Option {
-	return func(server *Server) {
-		server.EnableCors = true
-		server.Cors = cors
+		server.Cors.Enable = true
+		server.Cors.Options = cors
 	}
 }
 
@@ -100,7 +67,6 @@ func WithMiddlewares(middlewares ...http.HandlerFunc) Option {
 
 func WithTelemetry(telemetry TelemetryConfig) Option {
 	return func(server *Server) {
-		server.EnableTelemetry = true
-		server.TelemetryConfig = telemetry
+		server.Telemetry = telemetry
 	}
 }

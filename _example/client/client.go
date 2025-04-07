@@ -1,0 +1,19 @@
+package main
+
+import (
+	"context"
+	"github.com/hopeio/cherry/_example/protobuf/user"
+	"github.com/hopeio/utils/log"
+	grpci "github.com/hopeio/utils/net/http/grpc"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"google.golang.org/grpc"
+)
+
+func main() {
+	conn, err := grpci.NewClient("localhost:8080", grpc.WithStatsHandler(otelgrpc.NewClientHandler()))
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	client := user.NewUserServiceClient(conn)
+	log.Info(client.GetUser(context.Background(), &user.GetUserReq{Id: 1}))
+}

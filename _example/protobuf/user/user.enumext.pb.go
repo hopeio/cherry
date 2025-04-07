@@ -1,9 +1,3 @@
-/*
- * Copyright 2024 hopeio. All rights reserved.
- * Licensed under the MIT License that can be found in the LICENSE file.
- * @Created by jyb
- */
-
 package user
 
 import (
@@ -15,8 +9,7 @@ import (
 	io "io"
 )
 
-func (x Gender) String() string {
-
+func (x Gender) Text() string {
 	switch x {
 	case GenderPlaceholder:
 		return "占位"
@@ -42,8 +35,7 @@ func (x *Gender) UnmarshalGQL(v interface{}) error {
 	return errors.New("enum need integer type")
 }
 
-func (x Role) String() string {
-
+func (x Role) Text() string {
 	switch x {
 	case PlaceholderRole:
 		return "占位"
@@ -69,8 +61,7 @@ func (x *Role) UnmarshalGQL(v interface{}) error {
 	return errors.New("enum need integer type")
 }
 
-func (x UserStatus) String() string {
-
+func (x UserStatus) Text() string {
 	switch x {
 	case UserStatusPlaceholder:
 		return "占位"
@@ -98,8 +89,7 @@ func (x *UserStatus) UnmarshalGQL(v interface{}) error {
 	return errors.New("enum need integer type")
 }
 
-func (x UserErr) String() string {
-
+func (x UserErr) Text() string {
 	switch x {
 	case UserErrPlaceholder:
 		return "占位"
@@ -120,11 +110,11 @@ func (x UserErr) String() string {
 }
 
 func (x UserErr) Error() string {
-	return x.String()
+	return x.Text()
 }
 
 func (x UserErr) ErrRep() *errcode.ErrRep {
-	return &errcode.ErrRep{Code: errcode.ErrCode(x), Msg: x.String()}
+	return &errcode.ErrRep{Code: errcode.ErrCode(x), Msg: x.Text()}
 }
 
 func (x UserErr) Msg(msg string) *errcode.ErrRep {
@@ -136,7 +126,17 @@ func (x UserErr) Wrap(err error) *errcode.ErrRep {
 }
 
 func (x UserErr) GRPCStatus() *status.Status {
-	return status.New(codes.Code(x), x.String())
+	return status.New(codes.Code(x), x.Text())
+}
+
+func (x UserErr) ErrCode() errcode.ErrCode {
+	return errcode.ErrCode(x)
+}
+
+func init() {
+	for code := range UserErr_name {
+		errcode.Register(errcode.ErrCode(code), UserErr(code).Text())
+	}
 }
 
 func (x UserErr) MarshalGQL(w io.Writer) {

@@ -57,15 +57,15 @@ func (s *Server) grpcHandler() *grpc.Server {
 
 		stream = append(stream, grpc_validator.StreamServerInterceptor())
 		unary = append(unary, grpc_validator.UnaryServerInterceptor())
-		s.GrpcOptions = append([]grpc.ServerOption{
+		s.Grpc.Options = append([]grpc.ServerOption{
 			grpc.ChainStreamInterceptor(stream...),
 			grpc.ChainUnaryInterceptor(unary...),
-		}, s.GrpcOptions...)
-		if s.EnableTelemetry {
-			s.GrpcOptions = append(s.GrpcOptions, grpc.StatsHandler(otelgrpc.NewServerHandler()))
+		}, s.Grpc.Options...)
+		if s.Telemetry.Enable {
+			s.Grpc.Options = append(s.Grpc.Options, grpc.StatsHandler(otelgrpc.NewServerHandler(s.Telemetry.otelgrpcOpts...)))
 		}
 
-		grpcServer := grpc.NewServer(s.GrpcOptions...)
+		grpcServer := grpc.NewServer(s.Grpc.Options...)
 		/*		if conf.EnableMetrics {
 				srvMetrics.InitializeMetrics(grpcServer)
 			}*/

@@ -59,7 +59,6 @@ message SignupReq {
 
 // 用户性别
 enum Gender{
-  option (go.enum) = {stringer_name: 'OrigString'};
   GenderPlaceholder = 0 [(enum.text)= "占位"];
   GenderUnfilled = 1 [(enum.text)= "未填"];
   GenderMale = 2 [(enum.text)= "男"];
@@ -68,7 +67,6 @@ enum Gender{
 
 // 用户角色
 enum Role {
-  option (go.enum) = {stringer_name: 'OrigString'};
   PlaceholderRole = 0 [(enum.text)= "占位"];
   RoleNormal = 1 [(enum.text)= "普通用户"];
   RoleAdmin = 2 [(enum.text)= "管理员"];
@@ -77,7 +75,6 @@ enum Role {
 
 // 用户角色
 enum UserStatus {
-  option (go.enum) = {stringer_name: 'OrigString'};
   option (enum.jsonmarshal) = false;
   UserStatusPlaceholder = 0 [(enum.text)= "占位"];
   UserStatusInActive = 1 [(enum.text)= "未激活"];
@@ -87,7 +84,6 @@ enum UserStatus {
 }
 
 enum UserErr {
-  option (go.enum) = {stringer_name: 'OrigString'};
   option (enum.errcode) = true;
   option (enum.jsonmarshal) = false;
   UserErrPlaceholder = 0 [(enum.text)= "占位"];
@@ -97,6 +93,10 @@ enum UserErr {
   UserErrLoginTimeout = 1003 [(enum.text)= "登录超时"];
   UserErrInvalidToken = 1004 [(enum.text)= "Token错误"];
   UserErrNoLogin = 1005 [(enum.text)= "未登录"];
+}
+
+message GetUserReq {
+  uint64 id = 1 [(go.field) = {tags:'gorm:"primaryKey;"'}];
 }
 
 service UserService {
@@ -112,5 +112,17 @@ service UserService {
       description : "注册接口"
     };
     option (danielvladco.protobuf.graphql.rpc) = {type: MUTATION};
+  }
+
+  rpc GetUser (GetUserReq) returns (User) {
+    option (google.api.http) = {
+      get: "/api/v1/{id}"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags:["用户相关接口", "v1.0.0"]
+      summary : "详情"
+      description : "详情接口"
+    };
+    option (danielvladco.protobuf.graphql.rpc) = {type: QUERY};
   }
 }

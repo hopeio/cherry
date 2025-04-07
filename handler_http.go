@@ -13,6 +13,7 @@ import (
 	"github.com/hopeio/utils/net/http/consts"
 	gini "github.com/hopeio/utils/net/http/gin"
 	"github.com/hopeio/utils/net/http/gin/apidoc"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"io"
 	"strings"
 
@@ -20,14 +21,14 @@ import (
 	"net/http"
 )
 
-func (s *Server) httpHandler() http.HandlerFunc {
+func (s *Server) httpHandler() http.Handler {
 
 	//enablePrometheus := conf.EnablePrometheus
 	// 默认使用gin
 	ginServer := s.Gin.New()
 	// TODO: 不记录日志
-	if s.EnableApiDoc {
-		apidoc.OpenApi(ginServer, s.ApiDocUriPrefix, s.ApiDocDir)
+	if s.ApiDoc.Enable {
+		apidoc.OpenApi(ginServer, s.ApiDoc.UriPrefix, s.ApiDoc.Dir)
 	}
 	s.GinHandler(ginServer)
 	if s.EnableDebugApi {
@@ -43,7 +44,8 @@ func (s *Server) httpHandler() http.HandlerFunc {
 	// http.Handle("/", ginServer)
 	var excludes = s.HttpOption.ExcludeLogPrefixes
 	var includes = s.HttpOption.IncludeLogPrefixes
-	return func(w http.ResponseWriter, r *http.Request) {
+	var handler http.Handler
+	handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		for _, middlewares := range s.HttpOption.Middlewares {
 			middlewares(w, r)
 		}
@@ -93,5 +95,24 @@ func (s *Server) httpHandler() http.HandlerFunc {
 		/*		if enablePrometheus {
 				defaultMetricsRecord(ctxi, r.RequestURI, r.Method, recorder.Code)
 			}*/
+	})
+	if s.Telemetry.Enable {
+
+		/*		handlerBack := handler
+
+				handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					//apiCounter.Add(r.Context(), 1)
+					attr := semconv.HTTPRouteKey.String(r.RequestURI)
+
+					span := trace.SpanFromContext(r.Context())
+					span.SetAttributes(attr)
+
+					labeler, _ := otelhttp.LabelerFromContext(r.Context())
+					labeler.Add(attr)
+
+					handlerBack.ServeHTTP(w, r)
+				})*/
+		handler = otelhttp.NewHandler(handler, "server", s.Telemetry.otelhttpOpts...)
 	}
+	return handler
 }

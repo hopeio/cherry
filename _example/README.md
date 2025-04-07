@@ -1,2 +1,1 @@
-建议proto集中管理最好单独一个仓库,protobuf也是,供各个模块引用
-user为业务模块
+protogen go -e -w -q -v -p proto -o protobuf
