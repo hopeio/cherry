@@ -11,15 +11,14 @@ import (
 	"github.com/hopeio/context/httpctx"
 	httpi "github.com/hopeio/utils/net/http"
 	"github.com/hopeio/utils/net/http/consts"
-	gini "github.com/hopeio/utils/net/http/gin"
+	_ "github.com/hopeio/utils/net/http/debug"
 	"github.com/hopeio/utils/net/http/gin/apidoc"
+	stringsi "github.com/hopeio/utils/strings"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"io"
-	"strings"
-
-	stringsi "github.com/hopeio/utils/strings"
 	"net/http"
+	"strings"
 )
 
 func (s *Server) httpHandler() http.Handler {
@@ -27,14 +26,10 @@ func (s *Server) httpHandler() http.Handler {
 	//enablePrometheus := conf.EnablePrometheus
 	// 默认使用gin
 	ginServer := s.Gin.New()
-	// TODO: 不记录日志
 	if s.ApiDoc.Enable {
 		apidoc.OpenApi(ginServer, s.ApiDoc.UriPrefix, s.ApiDoc.Dir)
 	}
 	s.GinHandler(ginServer)
-	if s.EnableDebugApi {
-		gini.Debug(ginServer)
-	}
 
 	if len(s.HttpOption.StaticFs) > 0 {
 		for _, fs := range s.HttpOption.StaticFs {

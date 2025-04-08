@@ -39,7 +39,6 @@ func NewServer(options ...Option) *Server {
 	c.Cors.Enable = true
 	c.Telemetry.Enable = true
 	c.Telemetry.EnablePrometheus = true
-	c.EnableDebugApi = true
 	for _, option := range options {
 		option(c)
 	}
@@ -75,15 +74,14 @@ type StaticFsConfig struct {
 
 type Server struct {
 	Http
-	HTTP2          http2.Server
-	HTTP3          Http3
-	Gin            gini.Config
-	Cors           CorsConfig
-	Grpc           GrpcConfig
-	EnableDebugApi bool
-	ApiDoc         ApiDocConfig
-	Telemetry      TelemetryConfig
-	BaseContext    context.Context
+	HTTP2       http2.Server
+	HTTP3       Http3
+	Gin         gini.Config
+	Cors        CorsConfig
+	Grpc        GrpcConfig
+	ApiDoc      ApiDocConfig
+	Telemetry   TelemetryConfig
+	BaseContext context.Context
 	// 注册 grpc 服务
 	GrpcHandler func(*grpc.Server)
 	// 注册 gin 服务
