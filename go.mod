@@ -23,11 +23,10 @@ require (
 )
 
 require (
-	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.0.1
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0
-	github.com/hopeio/context v0.3.2
-	github.com/hopeio/protobuf v0.3.11
-	github.com/hopeio/utils v0.15.1
+	github.com/hopeio/context v0.3.4
+	github.com/hopeio/protobuf v0.3.12
+	github.com/hopeio/utils v0.16.0
 	github.com/quic-go/quic-go v0.50.0
 	github.com/rs/cors v1.11.1
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.53.0
@@ -36,7 +35,6 @@ require (
 	go.opentelemetry.io/otel/exporters/prometheus v0.49.0
 	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.27.0
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.27.0
-	go.opentelemetry.io/otel/metric v1.34.0
 	go.opentelemetry.io/otel/sdk v1.32.0
 	go.opentelemetry.io/otel/sdk/metric v1.32.0
 )
@@ -84,6 +82,7 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go v1.2.12 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
+	go.opentelemetry.io/otel/metric v1.34.0 // indirect
 	go.opentelemetry.io/otel/trace v1.34.0 // indirect
 	go.uber.org/mock v0.5.0 // indirect
 	golang.org/x/arch v0.14.0 // indirect

@@ -1,0 +1,103 @@
+directive @UserService on FIELD_DEFINITION
+"""
+ 用户性别
+
+"""
+enum Gender {
+	GenderPlaceholder
+	GenderUnfilled
+	GenderMale
+	GenderFemale
+}
+input GetUserReqInput {
+	id: Int!
+}
+type Mutation {
+	"""
+	注册
+	
+	"""
+	userServiceSignup(in: SignupReqInput): StringValue @UserService
+}
+type Query {
+	userServiceGetUser(in: GetUserReqInput): User @UserService
+}
+"""
+ 用户角色
+
+"""
+enum Role {
+	PlaceholderRole
+	RoleNormal
+	RoleAdmin
+	RoleSuperAdmin
+}
+input SignupReqInput {
+	"""
+	 密码
+	
+	"""
+	password: String!
+	name: String!
+	gender: Gender!
+	"""
+	 邮箱
+	
+	"""
+	mail: String!
+	"""
+	 手机号
+	
+	"""
+	phone: String!
+	"""
+	 验证码
+	
+	"""
+	vCode: String!
+}
+"""
+ Wrapper message for `string`.
+
+ The JSON representation for `StringValue` is JSON string.
+
+"""
+type StringValue {
+	"""
+	 The string value.
+	
+	"""
+	value: String!
+}
+type User {
+	id: Int!
+	name: String!
+	password: String!
+	mail: String!
+	phone: String!
+	"""
+	 性别，0未填写，1男，2女
+	
+	"""
+	gender: Gender!
+	role: Role!
+	status: UserStatus!
+	createdAt: String!
+	activatedAt: String!
+	"""
+	 uint32 isDeleted = 29 [(go.field) = {tags:'gorm:"default:0"'}];
+	
+	"""
+	deletedAt: String!
+}
+"""
+ 用户角色
+
+"""
+enum UserStatus {
+	UserStatusPlaceholder
+	UserStatusInActive
+	UserStatusActivated
+	UserStatusFrozen
+	UserStatusDeleted
+}
