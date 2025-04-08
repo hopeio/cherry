@@ -42,7 +42,7 @@ func (c *TelemetryConfig) setupOTelSDK(ctx context.Context) (shutdown func(conte
 	handleErr := func(inErr error) {
 		err = errors.Join(inErr, shutdown(ctx))
 	}
-	if c.Enable {
+	if c.Enabled {
 		if c.propagator == nil {
 			c.propagator = c.newPropagator()
 		}
@@ -92,7 +92,7 @@ func (c *TelemetryConfig) newPropagator() propagation.TextMapPropagator {
 
 func (c *TelemetryConfig) newTraceProvider(ctx context.Context, res *resource.Resource) (*sdktrace.TracerProvider, error) {
 	traceExporter, err := stdouttrace.New(
-		//stdouttrace.WithPrettyPrint(),
+	//stdouttrace.WithPrettyPrint(),
 	)
 	if err != nil {
 		return nil, err

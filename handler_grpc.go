@@ -61,12 +61,12 @@ func (s *Server) grpcHandler() *grpc.Server {
 			grpc.ChainStreamInterceptor(stream...),
 			grpc.ChainUnaryInterceptor(unary...),
 		}, s.Grpc.Options...)
-		if s.Telemetry.Enable {
+		if s.Telemetry.Enabled {
 			s.Grpc.Options = append(s.Grpc.Options, grpc.StatsHandler(otelgrpc.NewServerHandler(s.Telemetry.otelgrpcOpts...)))
 		}
 
 		grpcServer := grpc.NewServer(s.Grpc.Options...)
-		/*		if conf.EnableMetrics {
+		/*		if conf.EnabledMetrics {
 				srvMetrics.InitializeMetrics(grpcServer)
 			}*/
 		s.GrpcHandler(grpcServer)
@@ -77,7 +77,7 @@ func (s *Server) grpcHandler() *grpc.Server {
 }
 
 func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-	//enablePrometheus := conf.EnableMetrics
+	//enabledPrometheus := conf.EnabledMetrics
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -121,7 +121,7 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 			StatusCode: code,
 		})
 	}
-	/*		if enablePrometheus {
+	/*		if enabledPrometheus {
 			defaultMetricsRecord(ctxi, info.FullMethod, "grpc", code)
 		}*/
 	return resp, err

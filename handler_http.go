@@ -26,7 +26,7 @@ func (s *Server) httpHandler() http.Handler {
 	//enablePrometheus := conf.EnablePrometheus
 	// 默认使用gin
 	ginServer := s.Gin.New()
-	if s.ApiDoc.Enable {
+	if s.ApiDoc.Enabled {
 		apidoc.OpenApi(ginServer, s.ApiDoc.UriPrefix, s.ApiDoc.Dir)
 	}
 	s.GinHandler(ginServer)
@@ -36,7 +36,7 @@ func (s *Server) httpHandler() http.Handler {
 			ginServer.Static(fs.Prefix, fs.Root)
 		}
 	}
-	if s.Telemetry.Enable && s.Telemetry.EnablePrometheus {
+	if s.Telemetry.Enabled && s.Telemetry.EnablePrometheus {
 		http.Handle("/metrics", promhttp.Handler())
 	}
 	// http.Handle("/", ginServer)
@@ -94,7 +94,7 @@ func (s *Server) httpHandler() http.Handler {
 				defaultMetricsRecord(ctxi, r.RequestURI, r.Method, recorder.Code)
 			}*/
 	})
-	if s.Telemetry.Enable {
+	if s.Telemetry.Enabled {
 
 		/*		handlerBack := handler
 

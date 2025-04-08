@@ -54,7 +54,7 @@ func WithGrpc(option GrpcConfig) Option {
 
 func WithCors(cors cors.Options) Option {
 	return func(server *Server) {
-		server.Cors.Enable = true
+		server.Cors.Enabled = true
 		server.Cors.Options = cors
 	}
 }

@@ -36,8 +36,8 @@ func NewServer(options ...Option) *Server {
 	gin.SetMode(gin.ReleaseMode)
 	gin.DisableBindValidation()
 	validator.DefaultValidator = nil // 自己做校验
-	c.Cors.Enable = true
-	c.Telemetry.Enable = true
+	c.Cors.Enabled = true
+	c.Telemetry.Enabled = true
 	c.Telemetry.EnablePrometheus = true
 	for _, option := range options {
 		option(c)
@@ -53,7 +53,7 @@ type Http struct {
 }
 
 type Http3 struct {
-	Enable bool
+	Enabled bool
 	http3.Server
 	CertFile string
 	KeyFile  string
@@ -89,7 +89,7 @@ type Server struct {
 }
 
 type ApiDocConfig struct {
-	Enable         bool
+	Enabled        bool
 	UriPrefix, Dir string
 }
 
@@ -100,12 +100,12 @@ type GrpcConfig struct {
 }
 
 type CorsConfig struct {
-	Enable bool
+	Enabled bool
 	cors.Options
 }
 
 type TelemetryConfig struct {
-	Enable           bool
+	Enabled          bool
 	EnablePrometheus bool
 	prometheusOpts   []prometheus.Option
 	otelhttpOpts     []otelhttp.Option
@@ -143,7 +143,7 @@ func (s *Server) Init() {
 	if s.Http.Addr == "" {
 		s.Http.Addr = ":8080"
 	}
-	if s.HTTP3.Enable && s.HTTP3.Addr == "" {
+	if s.HTTP3.Enabled && s.HTTP3.Addr == "" {
 		s.HTTP3.Addr = ":8080"
 	}
 	log.DurationNotify("ReadTimeout", s.Http.ReadTimeout, time.Second)
@@ -155,7 +155,7 @@ func (s *Server) Init() {
 		}
 		s.Http.TLSConfig = tlsConfig
 	}
-	if s.HTTP3.Enable && s.HTTP3.CertFile != "" && s.HTTP3.KeyFile != "" {
+	if s.HTTP3.Enabled && s.HTTP3.CertFile != "" && s.HTTP3.KeyFile != "" {
 		tlsConfig, err := tls.NewServerTLSConfig(s.HTTP3.CertFile, s.HTTP3.KeyFile)
 		if err != nil {
 			log.Fatal(err)

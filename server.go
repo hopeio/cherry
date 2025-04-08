@@ -47,7 +47,7 @@ func (s *Server) Run() {
 	httpHandler := s.httpHandler()
 
 	// cors
-	if s.Cors.Enable {
+	if s.Cors.Enabled {
 		var corsServer *cors.Cors
 		if reflect.ValueOf(&s.Cors.Options).Elem().IsZero() {
 			corsServer = cors.AllowAll()
@@ -64,7 +64,7 @@ func (s *Server) Run() {
 	}
 
 	// Set up OpenTelemetry.
-	if s.Telemetry.Enable {
+	if s.Telemetry.Enabled {
 
 		grpc.EnableTracing = true
 		http.DefaultClient = otelhttp.DefaultClient
@@ -129,7 +129,7 @@ func (s *Server) Run() {
 		server.Handler = h2Handler
 	}
 	srvErr := make(chan error, 1)
-	if s.HTTP3.Enable {
+	if s.HTTP3.Enabled {
 		if s.HTTP3.TLSConfig == nil {
 			if s.HTTP3.CertFile != "" && s.HTTP3.KeyFile != "" {
 				var err error
