@@ -172,7 +172,7 @@ func (s *Server) Run() {
 	if grpcServer != nil {
 		grpcServer.GracefulStop()
 	}
-	if err := server.Shutdown(context.Background()); err != nil {
+	if err := server.Shutdown(sigCtx); err != nil {
 		log.Error(err)
 	}
 }
