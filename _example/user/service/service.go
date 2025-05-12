@@ -32,6 +32,8 @@ func (u *UserService) Signup(ctx context.Context, req *user.SignupReq) (*wrapper
 }
 
 func (u *UserService) GetUser(ctx context.Context, req *user.GetUserReq) (*user.User, error) {
+	ctxi, _ := httpctx.FromContextValue(ctx)
+	defer ctxi.StartSpanEnd("")()
 	return &user.User{Id: req.Id}, nil
 }
 func Test(ctx *gin.Context) {

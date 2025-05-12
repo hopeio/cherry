@@ -30,7 +30,7 @@ var _ io.Reader
 var _ status.Status
 var _ = grpc_0.String
 var _ = metadata.Join
-var _ = binding.BindBody
+var _ = binding.Bind
 
 func request_UserService_Signup_0(ctx *gin.Context, client UserServiceClient) (proto.Message, grpc_0.ServerMetadata, error) {
 	var protoReq SignupReq
