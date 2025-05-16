@@ -79,6 +79,10 @@ func (s *Server) Run() {
 
 	var handler http.Handler
 	handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if h, p := http.DefaultServeMux.Handler(r); p != "" {
+			h.ServeHTTP(w, r)
+			return
+		}
 		defer func() {
 			if err := recover(); err != nil {
 				log.StackLogger().Errorw(fmt.Sprintf("panic: %v", err))

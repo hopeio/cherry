@@ -39,6 +39,8 @@ func NewServer(options ...Option) *Server {
 	c.Cors.Enabled = true
 	c.Telemetry.Enabled = true
 	c.Telemetry.EnablePrometheus = true
+	c.Telemetry.PromHttpUri = "/metrics"
+	c.DebugHandler.Enabled = true
 	for _, option := range options {
 		option(c)
 	}
@@ -63,29 +65,29 @@ type HttpOption struct {
 	AccessLog          AccessLog
 	ExcludeLogPrefixes []string
 	IncludeLogPrefixes []string
-	StaticFs           []StaticFsConfig
-	Middlewares        []http.HandlerFunc
-}
-
-type StaticFsConfig struct {
-	Prefix string
-	Root   string
 }
 
 type Server struct {
 	Http
-	HTTP2       http2.Server
-	HTTP3       Http3
-	Gin         gini.Config
-	Cors        CorsConfig
-	Grpc        GrpcConfig
-	ApiDoc      ApiDocConfig
-	Telemetry   TelemetryConfig
-	BaseContext context.Context
+	HTTP2        http2.Server
+	HTTP3        Http3
+	Gin          gini.Config
+	Cors         CorsConfig
+	Grpc         GrpcConfig
+	ApiDoc       ApiDocConfig
+	Telemetry    TelemetryConfig
+	DebugHandler DebugHandlerConfig
+	BaseContext  context.Context
+	Middlewares  []http.HandlerFunc
 	// 注册 grpc 服务
 	GrpcHandler func(*grpc.Server)
 	// 注册 gin 服务
 	GinHandler func(*gin.Engine)
+}
+
+type DebugHandlerConfig struct {
+	Enabled   bool
+	UriPrefix string
 }
 
 type ApiDocConfig struct {
@@ -107,6 +109,7 @@ type CorsConfig struct {
 type TelemetryConfig struct {
 	Enabled          bool
 	EnablePrometheus bool
+	PromHttpUri      string
 	prometheusOpts   []prometheus.Option
 	otelhttpOpts     []otelhttp.Option
 	otelgrpcOpts     []otelgrpc.Option

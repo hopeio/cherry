@@ -72,6 +72,8 @@ github.com/hopeio/protobuf v0.3.18 h1:UDHFsFwDTLq23v+oz8B8WXcQUVTu3zuCkfcE/7W9vN
 github.com/hopeio/protobuf v0.3.18/go.mod h1:ac3Yt8g6SqGayPd82SjddYMDyxmRN2MgZD4Dr0hapfo=
 github.com/hopeio/utils v0.17.0 h1:M+ZnJYgPgXLogGsG2lVSDWXE2SkIBoQi6QLUybdNMNw=
 github.com/hopeio/utils v0.17.0/go.mod h1:RSPijjOsa56ErbqZDGA2kV1SYSMGFPHlgstLx2C8Gvc=
+github.com/hopeio/utils v0.17.2 h1:ZOvwDJ/1ffcRDh3IppL4BtDsVqPQ9amQfSID1wtmOsU=
+github.com/hopeio/utils v0.17.2/go.mod h1:RSPijjOsa56ErbqZDGA2kV1SYSMGFPHlgstLx2C8Gvc=
 github.com/josharian/intern v1.0.0 h1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=
 github.com/josharian/intern v1.0.0/go.mod h1:5DoeVV0s6jJacbCEi61lwdGj/aVlrQvzHFFd8Hwg//Y=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=

@@ -9,16 +9,16 @@ package cherry
 import (
 	"context"
 	"errors"
+	_ "github.com/hopeio/utils/net/http/debug"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
-	"go.opentelemetry.io/otel/sdk/resource"
-	"time"
-
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/propagation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"time"
 )
 
 // setupOTelSDK bootstraps the OpenTelemetry pipeline.

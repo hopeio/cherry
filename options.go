@@ -11,7 +11,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rs/cors"
 	"google.golang.org/grpc"
-	"net/http"
 )
 
 type Option func(server *Server)
@@ -34,15 +33,15 @@ func WithHTTP3(http3 Http3) Option {
 	}
 }
 
-func WithGrpcHandler(grpcHandler func(*grpc.Server)) Option {
+func WithGrpcHandler(handler func(*grpc.Server)) Option {
 	return func(server *Server) {
-		server.GrpcHandler = grpcHandler
+		server.GrpcHandler = handler
 	}
 }
 
-func WithGinHandler(ginHandler func(*gin.Engine)) Option {
+func WithGinHandler(handler func(*gin.Engine)) Option {
 	return func(server *Server) {
-		server.GinHandler = ginHandler
+		server.GinHandler = handler
 	}
 }
 
@@ -56,12 +55,6 @@ func WithCors(cors cors.Options) Option {
 	return func(server *Server) {
 		server.Cors.Enabled = true
 		server.Cors.Options = cors
-	}
-}
-
-func WithMiddlewares(middlewares ...http.HandlerFunc) Option {
-	return func(server *Server) {
-		server.Middlewares = append(server.Middlewares, middlewares...)
 	}
 }
 

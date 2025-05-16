@@ -10,9 +10,9 @@ import (
 	"bytes"
 	"github.com/hopeio/context/httpctx"
 	httpi "github.com/hopeio/utils/net/http"
+	"github.com/hopeio/utils/net/http/apidoc"
 	"github.com/hopeio/utils/net/http/consts"
-	_ "github.com/hopeio/utils/net/http/debug"
-	"github.com/hopeio/utils/net/http/gin/apidoc"
+	"github.com/hopeio/utils/net/http/debug"
 	stringsi "github.com/hopeio/utils/strings"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -21,37 +21,28 @@ import (
 	"strings"
 )
 
-func (s *Server) httpHandler() http.Handler {
-
-	//enablePrometheus := conf.EnablePrometheus
-	// 默认使用gin
-	ginServer := s.Gin.New()
+func (s *Server) InternalHandler() {
 	if s.ApiDoc.Enabled {
-		apidoc.OpenApi(ginServer, s.ApiDoc.UriPrefix, s.ApiDoc.Dir)
-	}
-	s.GinHandler(ginServer)
-
-	if len(s.HttpOption.StaticFs) > 0 {
-		for _, fs := range s.HttpOption.StaticFs {
-			ginServer.Static(fs.Prefix, fs.Root)
-		}
+		apidoc.OpenApi(http.DefaultServeMux, s.ApiDoc.UriPrefix, s.ApiDoc.Dir)
 	}
 	if s.Telemetry.Enabled && s.Telemetry.EnablePrometheus {
-		http.Handle("/metrics", promhttp.Handler())
+		http.Handle(s.Telemetry.PromHttpUri, promhttp.Handler())
 	}
-	// http.Handle("/", ginServer)
+	if s.DebugHandler.Enabled {
+		debug.Handle(s.DebugHandler.UriPrefix)
+	}
+}
+
+func (s *Server) httpHandler() http.Handler {
+	s.InternalHandler()
+	ginServer := s.Gin.New()
+	s.GinHandler(ginServer)
+
 	var excludes = s.HttpOption.ExcludeLogPrefixes
 	var includes = s.HttpOption.IncludeLogPrefixes
 	var handler http.Handler
 	handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		for _, middlewares := range s.HttpOption.Middlewares {
-			middlewares(w, r)
-		}
-		// 暂时解决方法，三个路由
-		if h, p := http.DefaultServeMux.Handler(r); p != "" {
-			h.ServeHTTP(w, r)
-			return
-		}
+
 		// 不记录日志
 		if len(excludes) > 0 {
 			if stringsi.HasPrefixes(r.RequestURI, excludes) && !stringsi.HasPrefixes(r.RequestURI, includes) {

@@ -12,5 +12,5 @@ import (
 )
 
 func main() {
-	cherry.NewServer(cherry.WithGrpcHandler(api.GrpcRegister), cherry.WithGinHandler(api.GinRegister)).Run()
+	cherry.NewServer(cherry.WithGrpcHandler(api.GrpcRegister), cherry.WithHttpHandler(api.GinRegister)).Run()
 }
