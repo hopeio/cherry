@@ -68,6 +68,8 @@ github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0 h1:pRhl55Yx1eC7BZ1N+BBWwn
 github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0/go.mod h1:XKMd7iuf/RGPSMJ/U4HP0zS2Z9Fh8Ps9a+6X26m/tmI=
 github.com/hopeio/context v0.3.8 h1:7Hk4PTE4t11QQXGE9ZKzhnnFXggLRmqFOeLj1/Fm1AE=
 github.com/hopeio/context v0.3.8/go.mod h1:cik9wNdOPXtB44rITr5gE97uQ/OIDLbhohsWzyRAe2c=
+github.com/hopeio/context v0.3.9 h1:TeOEFlqzwIvu8x8MFeG7ESB/gumKE5k0oqz/ZP9iXhI=
+github.com/hopeio/context v0.3.9/go.mod h1:NH7tspU95Cvem/PmM2spwLkMachnDgmvIzrUo4ssXgo=
 github.com/hopeio/protobuf v0.3.18 h1:UDHFsFwDTLq23v+oz8B8WXcQUVTu3zuCkfcE/7W9vNY=
 github.com/hopeio/protobuf v0.3.18/go.mod h1:ac3Yt8g6SqGayPd82SjddYMDyxmRN2MgZD4Dr0hapfo=
 github.com/hopeio/utils v0.17.0 h1:M+ZnJYgPgXLogGsG2lVSDWXE2SkIBoQi6QLUybdNMNw=
