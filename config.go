@@ -96,9 +96,11 @@ type ApiDocConfig struct {
 }
 
 type GrpcConfig struct {
-	EnableGrpcWeb  bool
-	GrpcWebOptions []web.Option
-	Options        []grpc.ServerOption
+	EnableGrpcWeb            bool
+	GrpcWebOptions           []web.Option
+	Options                  []grpc.ServerOption
+	UnaryServerInterceptors  []grpc.UnaryServerInterceptor
+	StreamServerInterceptors []grpc.StreamServerInterceptor
 }
 
 type CorsConfig struct {

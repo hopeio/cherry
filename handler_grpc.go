@@ -10,7 +10,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/validator"
 	"github.com/hopeio/context/httpctx"
 	"github.com/hopeio/utils/errors/errcode"
 
@@ -33,8 +32,8 @@ func (s *Server) grpcHandler() *grpc.Server {
 	//conf := s.Config
 	grpclog.SetLoggerV2(zapgrpc.NewLogger(log.CallerSkipLogger(4).Logger))
 	if s.GrpcHandler != nil {
-		var stream = []grpc.StreamServerInterceptor{StreamAccess, StreamValidator}
-		var unary = []grpc.UnaryServerInterceptor{s.UnaryAccess, UnaryValidator}
+		var stream = append([]grpc.StreamServerInterceptor{StreamAccess, StreamValidator}, s.Grpc.StreamServerInterceptors...)
+		var unary = append([]grpc.UnaryServerInterceptor{s.UnaryAccess, UnaryValidator}, s.Grpc.UnaryServerInterceptors...)
 		// 想做的大而全几乎不可能,为了更高的自由度,这里不做实现,均由使用者自行实现,后续可提供默认实现,但同样要由用户自己调用
 		/*		var srvMetrics *grpcprom.ServerMetrics
 				if conf.EnableMetrics {
@@ -55,8 +54,6 @@ func (s *Server) grpcHandler() *grpc.Server {
 					unary = append(unary, srvMetrics.UnaryServerInterceptor(grpcprom.WithExemplarFromContext(exemplarFromContext)))
 				}*/
 
-		stream = append(stream, grpc_validator.StreamServerInterceptor())
-		unary = append(unary, grpc_validator.UnaryServerInterceptor())
 		s.Grpc.Options = append([]grpc.ServerOption{
 			grpc.ChainStreamInterceptor(stream...),
 			grpc.ChainUnaryInterceptor(unary...),
