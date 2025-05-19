@@ -13,7 +13,6 @@ import (
 	"github.com/hopeio/utils/log"
 	gini "github.com/hopeio/utils/net/http/gin"
 	"github.com/hopeio/utils/net/http/grpc/web"
-	"github.com/hopeio/utils/validation/validator"
 	"github.com/quic-go/quic-go/http3"
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -31,11 +30,8 @@ import (
 func NewServer(options ...Option) *Server {
 	c := &Server{}
 	c.Http.Addr = ":8080"
-	c.Http.ReadTimeout = 5 * time.Second
-	c.Http.WriteTimeout = 5 * time.Second
 	gin.SetMode(gin.ReleaseMode)
 	gin.DisableBindValidation()
-	validator.DefaultValidator = nil // 自己做校验
 	c.Cors.Enabled = true
 	c.Telemetry.Enabled = true
 	c.Telemetry.EnablePrometheus = true
