@@ -1,1 +1,1 @@
-protogen go -e -w -q -v -p proto -o protobuf
+protogen go -e -w -v -p proto -o protobuf
