@@ -2,8 +2,8 @@ package user
 
 import (
 	errors "errors"
-	errcode "github.com/hopeio/utils/errors/errcode"
-	strings "github.com/hopeio/utils/strings"
+	errcode "github.com/hopeio/gox/errors/errcode"
+	strings "github.com/hopeio/gox/strings"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	io "io"

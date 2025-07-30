@@ -10,10 +10,10 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/protobuf/oauth"
-	"github.com/hopeio/utils/reflect/mtos"
+	"github.com/hopeio/gox/reflect/mtos"
 
 	"github.com/hopeio/protobuf/response"
-	httpi "github.com/hopeio/utils/net/http"
+	httpi "github.com/hopeio/gox/net/http"
 	"google.golang.org/grpc/metadata"
 )
 

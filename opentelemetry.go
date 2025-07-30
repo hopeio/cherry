@@ -9,7 +9,7 @@ package cherry
 import (
 	"context"
 	"errors"
-	_ "github.com/hopeio/utils/net/http/debug"
+	_ "github.com/hopeio/gox/net/http/debug"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"

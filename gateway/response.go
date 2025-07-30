@@ -9,8 +9,8 @@ package gateway
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/protobuf/response"
-	"github.com/hopeio/utils/net/http/grpc"
-	gin2 "github.com/hopeio/utils/net/http/grpc/gateway/gin"
+	"github.com/hopeio/gox/net/http/grpc"
+	gin2 "github.com/hopeio/gox/net/http/grpc/gateway/gin"
 	"google.golang.org/protobuf/proto"
 )
 

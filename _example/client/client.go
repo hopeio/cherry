@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"github.com/hopeio/cherry/_example/protobuf/user"
-	"github.com/hopeio/utils/log"
-	grpci "github.com/hopeio/utils/net/http/grpc"
+	"github.com/hopeio/gox/log"
+	grpci "github.com/hopeio/gox/net/http/grpc"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 )

@@ -7,7 +7,7 @@
 package cherry
 
 import (
-	httpi "github.com/hopeio/utils/net/http"
+	httpi "github.com/hopeio/gox/net/http"
 	"log"
 	"net/http"
 	"net/http/httptest"

@@ -10,7 +10,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"net/http"
 
-	"github.com/hopeio/utils/log"
+	"github.com/hopeio/gox/log"
 )
 
 func Log(w http.ResponseWriter, r *http.Request) {
