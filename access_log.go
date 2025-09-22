@@ -10,7 +10,7 @@ import (
 	"encoding/json"
 	"github.com/hopeio/context/httpctx"
 	"github.com/hopeio/gox/log"
-	stringsi "github.com/hopeio/gox/strings"
+	stringsx "github.com/hopeio/gox/strings"
 	"go.uber.org/zap"
 )
 
@@ -33,7 +33,7 @@ func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 		if param.ReqBody.IsJson {
 			reqBodyField = zap.Reflect("body", json.RawMessage(param.ReqBody.Data))
 		} else {
-			reqBodyField = zap.String("body", stringsi.BytesToString(param.ReqBody.Data))
+			reqBodyField = zap.String("body", stringsx.BytesToString(param.ReqBody.Data))
 		}
 	}
 	respBodyField := zap.Skip()
@@ -41,7 +41,7 @@ func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 		if param.RespBody.IsJson {
 			respBodyField = zap.Reflect("result", json.RawMessage(param.RespBody.Data))
 		} else {
-			respBodyField = zap.String("result", stringsi.BytesToString(param.RespBody.Data))
+			respBodyField = zap.String("result", stringsx.BytesToString(param.RespBody.Data))
 		}
 	}
 	// log 里time now 浪费性能

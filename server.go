@@ -12,7 +12,7 @@ import (
 	"github.com/hopeio/context/httpctx"
 	"github.com/hopeio/gox/crypto/tls"
 	"github.com/hopeio/gox/log"
-	httpi "github.com/hopeio/gox/net/http"
+	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/consts"
 	"github.com/hopeio/gox/net/http/grpc/web"
 	"github.com/quic-go/quic-go"
@@ -87,7 +87,7 @@ func (s *Server) Run() {
 			if err := recover(); err != nil {
 				log.StackLogger().Errorw(fmt.Sprintf("panic: %v", err))
 				w.Header().Set(consts.HeaderContentType, consts.ContentTypeJson)
-				_, err := w.Write(httpi.ResponseSysErr)
+				_, err := w.Write(httpx.ResponseSysErr)
 				if err != nil {
 					log.Error(err)
 				}

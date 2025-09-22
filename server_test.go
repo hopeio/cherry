@@ -7,7 +7,7 @@
 package cherry
 
 import (
-	httpi "github.com/hopeio/gox/net/http"
+	httpx "github.com/hopeio/gox/net/http"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -46,9 +46,9 @@ func TestPtr(t *testing.T) {
 }
 
 func TestGinCtxPtr(t *testing.T) {
-	recorder := httpi.NewRecorder(http.Header{})
+	recorder := httpx.NewRecorder(http.Header{})
 	ctx := new(gin.Context)
-	*(*httpi.ResponseRecorder)(unsafe.Pointer(uintptr(*(*int64)(unsafe.Pointer(ctx))))) = *recorder
+	*(*httpx.ResponseRecorder)(unsafe.Pointer(uintptr(*(*int64)(unsafe.Pointer(ctx))))) = *recorder
 	log.Println(*(*int64)(unsafe.Pointer(ctx)))
 	log.Println(recorder.Code)
 }

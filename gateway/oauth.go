@@ -9,11 +9,11 @@ package gateway
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/protobuf/oauth"
 	"github.com/hopeio/gox/reflect/mtos"
+	"github.com/hopeio/protobuf/oauth"
 
+	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/protobuf/response"
-	httpi "github.com/hopeio/gox/net/http"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -29,7 +29,7 @@ func RegisterOauthServiceHandlerServer(r *gin.Engine, server OauthServiceServer)
 		res, _ := server.OauthAuthorize(
 			metadata.NewIncomingContext(
 				ctx.Request.Context(),
-				metadata.MD{"auth": {httpi.GetToken(ctx.Request)}}),
+				metadata.MD{"auth": {httpx.GetToken(ctx.Request)}}),
 			&protoReq)
 
 		res.Response(ctx.Writer)

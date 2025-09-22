@@ -9,11 +9,11 @@ package cherry
 import (
 	"bytes"
 	"github.com/hopeio/context/httpctx"
-	httpi "github.com/hopeio/gox/net/http"
+	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/apidoc"
 	"github.com/hopeio/gox/net/http/consts"
 	"github.com/hopeio/gox/net/http/debug"
-	stringsi "github.com/hopeio/gox/strings"
+	stringsx "github.com/hopeio/gox/strings"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"io"
@@ -45,7 +45,7 @@ func (s *Server) httpHandler() http.Handler {
 
 		// 不记录日志
 		if len(excludes) > 0 {
-			if stringsi.HasPrefixes(r.RequestURI, excludes) && !stringsi.HasPrefixes(r.RequestURI, includes) {
+			if stringsx.HasPrefixes(r.RequestURI, excludes) && !stringsx.HasPrefixes(r.RequestURI, includes) {
 				ginServer.ServeHTTP(w, r)
 				return
 			}
@@ -56,7 +56,7 @@ func (s *Server) httpHandler() http.Handler {
 			body, _ = io.ReadAll(r.Body)
 			r.Body = io.NopCloser(bytes.NewReader(body))
 		}
-		recorder := httpi.NewRecorder(w.Header())
+		recorder := httpx.NewRecorder(w.Header())
 
 		ginServer.ServeHTTP(recorder, r)
 

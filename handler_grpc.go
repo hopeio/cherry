@@ -10,11 +10,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/hopeio/context/httpctx"
 	"github.com/hopeio/gox/errors/errcode"
 
+	"reflect"
+	"runtime/debug"
+
 	"github.com/hopeio/gox/log"
-	runtimei "github.com/hopeio/gox/runtime"
+	runtimex "github.com/hopeio/gox/runtime"
 	"github.com/hopeio/gox/validation/validator"
 	"github.com/modern-go/reflect2"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -24,8 +28,6 @@ import (
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
-	"reflect"
-	"runtime/debug"
 )
 
 func (s *Server) grpcHandler() *grpc.Server {
@@ -128,7 +130,7 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 func StreamAccess(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			frame, _ := runtimei.GetCallerFrame(2)
+			frame, _ := runtimex.GetCallerFrame(2)
 			log.Errorw(fmt.Sprintf("panic: %v", r), zap.String(log.FieldStack, fmt.Sprintf("%s:%d (%#x)\n\t%s\n", frame.File, frame.Line, frame.PC, frame.Function)))
 			err = errcode.Internal.ErrRep()
 		}
