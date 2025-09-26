@@ -8,17 +8,17 @@ package cherry
 
 import (
 	"bytes"
+	"io"
+	"net/http"
+	"strings"
+
 	"github.com/hopeio/context/httpctx"
 	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/apidoc"
-	"github.com/hopeio/gox/net/http/consts"
 	"github.com/hopeio/gox/net/http/debug"
 	stringsx "github.com/hopeio/gox/strings"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"io"
-	"net/http"
-	"strings"
 )
 
 func (s *Server) InternalHandler() {
@@ -71,11 +71,11 @@ func (s *Server) httpHandler() http.Handler {
 			s.HttpOption.AccessLog(ctxi, &AccessLogParam{
 				r.Method, r.RequestURI,
 				Body{
-					IsJson: strings.HasPrefix(r.Header.Get(consts.HeaderContentType), consts.ContentTypeJson),
+					IsJson: strings.HasPrefix(r.Header.Get(httpx.HeaderContentType), httpx.ContentTypeJson),
 					Data:   body,
 				},
 				Body{
-					IsJson: strings.HasPrefix(w.Header().Get(consts.HeaderContentType), consts.ContentTypeJson),
+					IsJson: strings.HasPrefix(w.Header().Get(httpx.HeaderContentType), httpx.ContentTypeJson),
 					Data:   recorder.Body.Bytes(),
 				},
 				recorder.Code,

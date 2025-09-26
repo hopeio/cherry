@@ -2,11 +2,12 @@ package user
 
 import (
 	errors "errors"
-	errcode "github.com/hopeio/gox/errors/errcode"
+	io "io"
+
+	errors2 "github.com/hopeio/gox/errors"
 	strings "github.com/hopeio/gox/strings"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	io "io"
 )
 
 func (x Gender) Text() string {
@@ -113,29 +114,29 @@ func (x UserErr) Error() string {
 	return x.Text()
 }
 
-func (x UserErr) ErrRep() *errcode.ErrRep {
-	return &errcode.ErrRep{Code: errcode.ErrCode(x), Msg: x.Text()}
+func (x UserErr) ErrRep() *errors2.ErrRep {
+	return &errors2.ErrRep{Code: errors2.ErrCode(x), Msg: x.Text()}
 }
 
-func (x UserErr) Msg(msg string) *errcode.ErrRep {
-	return &errcode.ErrRep{Code: errcode.ErrCode(x), Msg: msg}
+func (x UserErr) Msg(msg string) *errors2.ErrRep {
+	return &errors2.ErrRep{Code: errors2.ErrCode(x), Msg: msg}
 }
 
-func (x UserErr) Wrap(err error) *errcode.ErrRep {
-	return &errcode.ErrRep{Code: errcode.ErrCode(x), Msg: err.Error()}
+func (x UserErr) Wrap(err error) *errors2.ErrRep {
+	return &errors2.ErrRep{Code: errors2.ErrCode(x), Msg: err.Error()}
 }
 
 func (x UserErr) GRPCStatus() *status.Status {
 	return status.New(codes.Code(x), x.Text())
 }
 
-func (x UserErr) ErrCode() errcode.ErrCode {
-	return errcode.ErrCode(x)
+func (x UserErr) ErrCode() errors2.ErrCode {
+	return errors2.ErrCode(x)
 }
 
 func init() {
 	for code := range UserErr_name {
-		errcode.Register(errcode.ErrCode(code), UserErr(code).Text())
+		errors2.Register(errors2.ErrCode(code), UserErr(code).Text())
 	}
 }
 

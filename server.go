@@ -9,11 +9,17 @@ package cherry
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/http"
+	"os/signal"
+	"reflect"
+	"strings"
+	"syscall"
+
 	"github.com/hopeio/context/httpctx"
 	"github.com/hopeio/gox/crypto/tls"
 	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
-	"github.com/hopeio/gox/net/http/consts"
 	"github.com/hopeio/gox/net/http/grpc/web"
 	"github.com/quic-go/quic-go"
 	"github.com/rs/cors"
@@ -21,12 +27,6 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
-	"net"
-	"net/http"
-	"os/signal"
-	"reflect"
-	"strings"
-	"syscall"
 )
 
 func (s *Server) Run() {
@@ -86,7 +86,7 @@ func (s *Server) Run() {
 		defer func() {
 			if err := recover(); err != nil {
 				log.StackLogger().Errorw(fmt.Sprintf("panic: %v", err))
-				w.Header().Set(consts.HeaderContentType, consts.ContentTypeJson)
+				w.Header().Set(httpx.HeaderContentType, httpx.ContentTypeJson)
 				_, err := w.Write(httpx.ResponseSysErr)
 				if err != nil {
 					log.Error(err)
@@ -99,13 +99,13 @@ func (s *Server) Run() {
 			middleware(w, r)
 		}
 
-		ctx := httpctx.FromRequest(httpctx.RequestCtx{Request: r, Response: w})
+		ctx := httpctx.FromRequest(httpctx.RequestCtx{Request: r, ResponseWriter: w})
 
 		r = r.WithContext(ctx.Wrapper())
 
-		contentType := r.Header.Get(consts.HeaderContentType)
-		if strings.HasPrefix(contentType, consts.ContentTypeGrpc) {
-			if strings.HasPrefix(contentType[len(consts.ContentTypeGrpc):], "-web") && wrappedGrpc != nil {
+		contentType := r.Header.Get(httpx.HeaderContentType)
+		if strings.HasPrefix(contentType, httpx.ContentTypeGrpc) {
+			if strings.HasPrefix(contentType[len(httpx.ContentTypeGrpc):], "-web") && wrappedGrpc != nil {
 				wrappedGrpc.ServeHTTP(w, r)
 			} else if r.ProtoMajor == 2 && grpcServer != nil {
 				grpcServer.ServeHTTP(w, r) // gRPC Server

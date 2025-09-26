@@ -11,11 +11,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/hopeio/context/httpctx"
-	"github.com/hopeio/gox/errors/errcode"
-
 	"reflect"
 	"runtime/debug"
+
+	"github.com/hopeio/context/httpctx"
+	grpcx "github.com/hopeio/gox/net/http/grpc"
 
 	"github.com/hopeio/gox/log"
 	runtimex "github.com/hopeio/gox/runtime"
@@ -82,7 +82,7 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 		if r := recover(); r != nil {
 			frame := debug.Stack()
 			log.Errorw(fmt.Sprintf("panic: %v", r), zap.ByteString(log.FieldStack, frame))
-			err = errcode.Internal.ErrRep()
+			err = grpcx.Internal.ErrRep()
 		}
 	}()
 
@@ -91,8 +91,8 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 	//不能添加错误处理，除非所有返回的结构相同
 	if err != nil {
 		if v, ok := err.(interface{ GRPCStatus() *status.Status }); !ok {
-			err = errcode.Unknown.Msg(err.Error())
-			code = int(errcode.Unknown)
+			err = grpcx.Unknown.Msg(err.Error())
+			code = int(grpcx.Unknown)
 		} else {
 			code = int(v.GRPCStatus().Code())
 		}
@@ -132,12 +132,12 @@ func StreamAccess(srv interface{}, stream grpc.ServerStream, info *grpc.StreamSe
 		if r := recover(); r != nil {
 			frame, _ := runtimex.GetCallerFrame(2)
 			log.Errorw(fmt.Sprintf("panic: %v", r), zap.String(log.FieldStack, fmt.Sprintf("%s:%d (%#x)\n\t%s\n", frame.File, frame.Line, frame.PC, frame.Function)))
-			err = errcode.Internal.ErrRep()
+			err = grpcx.Internal.ErrRep()
 		}
 		//不能添加错误处理，除非所有返回的结构相同
 		if err != nil {
 			if _, ok := err.(interface{ GRPCStatus() *status.Status }); !ok {
-				err = errcode.Unknown.Msg(err.Error())
+				err = grpcx.Unknown.Msg(err.Error())
 			}
 		}
 	}()
@@ -155,7 +155,7 @@ func (s *recvWrapper) SendMsg(m interface{}) error {
 
 func (s *recvWrapper) RecvMsg(m interface{}) error {
 	if err := validator.Validator.Struct(m); err != nil {
-		return errcode.InvalidArgument.Msg(validator.TransError(err))
+		return grpcx.InvalidArgument.Msg(validator.TransError(err))
 	}
 	if err := s.ServerStream.RecvMsg(m); err != nil {
 		return err
@@ -170,7 +170,7 @@ func UnaryValidator(
 ) (resp interface{}, err error) {
 
 	if err = validator.Validator.Struct(req); err != nil {
-		return nil, errcode.InvalidArgument.Msg(validator.TransError(err))
+		return nil, grpcx.InvalidArgument.Msg(validator.TransError(err))
 	}
 	return handler(ctx, req)
 }

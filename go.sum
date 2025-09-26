@@ -37,6 +37,7 @@ github.com/gin-gonic/gin v1.10.0/go.mod h1:4PMNQiOhvDRa013RKVbsiNwoyezlm2rm0uX/T
 github.com/go-logr/logr v1.2.2/go.mod h1:jdQByPbusPIv2/zmleS9BjJVeZ6kBagPoEUsqbVz/1A=
 github.com/go-logr/logr v1.4.2 h1:6pFjapn8bFcIbiKo3XT4j/BhANplGihG6tvd+8rYgrY=
 github.com/go-logr/logr v1.4.2/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
+github.com/go-logr/logr v1.4.3 h1:CjnDlHq8ikf6E492q6eKboGOC0T8CDaOvkHCIg8idEI=
 github.com/go-logr/logr v1.4.3/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
 github.com/go-logr/stdr v1.2.2 h1:hSWxHoqTgW2S2qGc0LTAI563KZ5YKYRhT3MFKZMbjag=
 github.com/go-logr/stdr v1.2.2/go.mod h1:mMo/vtBO5dYbehREoey6XUKy/eSumjCCveDpRre4VKE=
@@ -75,6 +76,8 @@ github.com/hopeio/context v0.3.10 h1:LoDjAvNNEYwo+vXU01AHmlrd1ILgsKm42jjSpzuHrzE
 github.com/hopeio/context v0.3.10/go.mod h1:xSba2ejsoYMFyVwcCnxNovhWD1FtAnZpWC/aVoGciDQ=
 github.com/hopeio/context v0.3.12 h1:bEJLjnmHDowsrhGL1aFm2z2li6rzAU4AyQFtJX9I+bQ=
 github.com/hopeio/context v0.3.12/go.mod h1:tYQPInZvy/xk09w8B4clNQ3tJDf6+wE1vW8f2Ibjqo8=
+github.com/hopeio/context v0.4.0 h1:S2zL9N7FmxpgEAOzyspmDiSS3tBu1r5cRP2usTXdsVw=
+github.com/hopeio/context v0.4.0/go.mod h1:+52HypvlwWDTv7avRph9MYLZzbrQET01Wm4h1eWHSq4=
 github.com/hopeio/gox v0.17.3-0.20250521102136-fe7549a800ef h1:YfFrdShAqq4PlTTKXFXrU1pytGcK4aSCPdd7cNpMlfE=
 github.com/hopeio/gox v0.17.3-0.20250521102136-fe7549a800ef/go.mod h1:RSPijjOsa56ErbqZDGA2kV1SYSMGFPHlgstLx2C8Gvc=
 github.com/hopeio/gox v0.21.0 h1:x54iXlY0Cdmq86fVYgxFyi4hWOVMSCOExE7Tp9xlr8w=
@@ -85,10 +88,14 @@ github.com/hopeio/gox v1.2.0 h1:Sd/dQ2gJq1ZyjRyhql0NOKL6tlcvHJK1gvCXHSYYNlY=
 github.com/hopeio/gox v1.2.0/go.mod h1:Pv9sgZKm74G1Rm1D0Uf68iVHfFfCryGPfCG1wm53F+I=
 github.com/hopeio/gox v1.3.0 h1:QxTgSqxnP/4c5m4GPNmz0onOIDZujpY1I6uJoZ2Kk1I=
 github.com/hopeio/gox v1.3.0/go.mod h1:Pv9sgZKm74G1Rm1D0Uf68iVHfFfCryGPfCG1wm53F+I=
+github.com/hopeio/gox v1.3.1 h1:if0RVUPbldnusHRxRs/an17a3LylQg5ehQ+/YScTJ0Y=
+github.com/hopeio/gox v1.3.1/go.mod h1:jQLUOqwafPv3TmBVUsBMil9XmZxqJU+u9fwqp8/xq+c=
 github.com/hopeio/protobuf v0.3.20 h1:VYkcJoHhb7wbovMJLmVFqdEoEBs6SAuqsengnZg6uYk=
 github.com/hopeio/protobuf v0.3.20/go.mod h1:Jou1p3vIPPZok9oeobWx6Dg1Cdt8x9ekWbOfVnFclFI=
 github.com/hopeio/protobuf v0.3.22 h1:1LP7s/ce2/uPFPU1H5b8qOxGZGtXjyhMwcIfodNxp04=
 github.com/hopeio/protobuf v0.3.22/go.mod h1:KyGWy1YBu0RxPmx6lD3b8Mxp7w87luXnLtADLQduhBk=
+github.com/hopeio/protobuf v0.5.0 h1:I958Ks3AweifxwXVDPjLFIgi4SwnnfdbsnHkq55fXTs=
+github.com/hopeio/protobuf v0.5.0/go.mod h1:mmaM8N8qA9fVY4TZyfaL7D2fMblM7QKYski8EnpKclE=
 github.com/josharian/intern v1.0.0 h1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=
 github.com/josharian/intern v1.0.0/go.mod h1:5DoeVV0s6jJacbCEi61lwdGj/aVlrQvzHFFd8Hwg//Y=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
@@ -182,6 +189,7 @@ go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.52.0 h1:9l89oX4
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.52.0/go.mod h1:XLZfZboOJWHNKUv7eH0inh0E9VV6eWDFB/9yJyTLPp0=
 go.opentelemetry.io/otel v1.34.0 h1:zRLXxLCgL1WyKsPVrgbSdMN4c0FMkDAskSTQP+0hdUY=
 go.opentelemetry.io/otel v1.34.0/go.mod h1:OWFPOQ+h4G8xpyjgqo4SxJYdDQ/qmRH+wivy7zzx9oI=
+go.opentelemetry.io/otel v1.38.0 h1:RkfdswUDRimDg0m2Az18RKOsnI8UDzppJAtj01/Ymk8=
 go.opentelemetry.io/otel v1.38.0/go.mod h1:zcmtmQ1+YmQM9wrNsTGV/q/uyusom3P8RxwExxkZhjM=
 go.opentelemetry.io/otel/exporters/prometheus v0.49.0 h1:Er5I1g/YhfYv9Affk9nJLfH/+qCCVVg1f2R9AbJfqDQ=
 go.opentelemetry.io/otel/exporters/prometheus v0.49.0/go.mod h1:KfQ1wpjf3zsHjzP149P4LyAwWRupc6c7t1ZJ9eXpKQM=
@@ -191,6 +199,7 @@ go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.27.0 h1:/0YaXu3755A/cFb
 go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.27.0/go.mod h1:m7SFxp0/7IxmJPLIY3JhOcU9CoFzDaCPL6xxQIxhA+o=
 go.opentelemetry.io/otel/metric v1.34.0 h1:+eTR3U0MyfWjRDhmFMxe2SsW64QrZ84AOhvqS7Y+PoQ=
 go.opentelemetry.io/otel/metric v1.34.0/go.mod h1:CEDrp0fy2D0MvkXE+dPV7cMi8tWZwX3dmaIhwPOaqHE=
+go.opentelemetry.io/otel/metric v1.38.0 h1:Kl6lzIYGAh5M159u9NgiRkmoMKjvbsKtYRwgfrA6WpA=
 go.opentelemetry.io/otel/metric v1.38.0/go.mod h1:kB5n/QoRM8YwmUahxvI3bO34eVtQf2i4utNVLr9gEmI=
 go.opentelemetry.io/otel/sdk v1.34.0 h1:95zS4k/2GOy069d321O8jWgYsW3MzVV+KuSPKp7Wr1A=
 go.opentelemetry.io/otel/sdk v1.34.0/go.mod h1:0e/pNiaMAqaykJGKbi+tSjWfNNHMTxoC9qANsCzbyxU=
@@ -198,6 +207,7 @@ go.opentelemetry.io/otel/sdk/metric v1.34.0 h1:5CeK9ujjbFVL5c1PhLuStg1wxA7vQv7ce
 go.opentelemetry.io/otel/sdk/metric v1.34.0/go.mod h1:jQ/r8Ze28zRKoNRdkjCZxfs6YvBTG1+YIqyFVFYec5w=
 go.opentelemetry.io/otel/trace v1.34.0 h1:+ouXS2V8Rd4hp4580a8q23bg0azF2nI8cqLYnC8mh/k=
 go.opentelemetry.io/otel/trace v1.34.0/go.mod h1:Svm7lSjQD7kG7KJ/MUHPVXSDGz2OX4h0M2jHBhmSfRE=
+go.opentelemetry.io/otel/trace v1.38.0 h1:Fxk5bKrDZJUH+AMyyIXGcFAPah0oRcT+LuNtJrmcNLE=
 go.opentelemetry.io/otel/trace v1.38.0/go.mod h1:j1P9ivuFsTceSWe1oY+EeW3sc+Pp42sO++GHkg4wwhs=
 go.uber.org/automaxprocs v1.6.0 h1:O3y2/QNTOdbF+e/dpXNNW7Rx2hZ4sTIPyybbxyNqTUs=
 go.uber.org/automaxprocs v1.6.0/go.mod h1:ifeIMSnPZuznNm6jmdzmU3/bfk01Fe2fotchwEFJ8r8=
