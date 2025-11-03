@@ -23,9 +23,9 @@ require (
 )
 
 require (
-	github.com/hopeio/context v0.4.0
-	github.com/hopeio/gox v1.3.1
-	github.com/hopeio/protobuf v0.5.0
+	github.com/hopeio/context v0.5.0
+	github.com/hopeio/gox v1.3.3
+	github.com/hopeio/protobuf v0.5.1
 	github.com/quic-go/quic-go v0.51.0
 	github.com/rs/cors v1.11.1
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.53.0
