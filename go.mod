@@ -23,9 +23,9 @@ require (
 )
 
 require (
-	github.com/hopeio/context v0.5.0
-	github.com/hopeio/gox v1.3.3
-	github.com/hopeio/protobuf v0.5.1
+	github.com/hopeio/context v0.5.1
+	github.com/hopeio/gox v1.3.4
+	github.com/hopeio/protobuf v0.5.2
 	github.com/quic-go/quic-go v0.51.0
 	github.com/rs/cors v1.11.1
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.53.0
@@ -39,7 +39,9 @@ require (
 )
 
 require (
+	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/bytedance/gopkg v0.1.3 // indirect
 	github.com/bytedance/sonic v1.14.1 // indirect
 	github.com/bytedance/sonic/loader v0.3.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
@@ -53,11 +55,23 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.21.1 // indirect
+	github.com/go-openapi/swag/cmdutils v0.24.0 // indirect
+	github.com/go-openapi/swag/conv v0.24.0 // indirect
+	github.com/go-openapi/swag/fileutils v0.24.0 // indirect
+	github.com/go-openapi/swag/jsonname v0.24.0 // indirect
+	github.com/go-openapi/swag/jsonutils v0.24.0 // indirect
+	github.com/go-openapi/swag/loading v0.24.0 // indirect
+	github.com/go-openapi/swag/mangling v0.24.0 // indirect
+	github.com/go-openapi/swag/netutils v0.24.0 // indirect
+	github.com/go-openapi/swag/stringutils v0.24.0 // indirect
+	github.com/go-openapi/swag/typeutils v0.24.0 // indirect
+	github.com/go-openapi/swag/yamlutils v0.24.0 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/pprof v0.0.0-20250403155104-27863c87afa6 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
@@ -82,6 +96,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.38.0 // indirect
 	go.uber.org/automaxprocs v1.6.0 // indirect
 	go.uber.org/mock v0.5.2 // indirect
+	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	golang.org/x/arch v0.14.0 // indirect
 	golang.org/x/crypto v0.41.0 // indirect
 	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6 // indirect
@@ -90,5 +105,4 @@ require (
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250303144028-a0af3efb3deb // indirect
-	nhooyr.io/websocket v1.8.17 // indirect
 )
