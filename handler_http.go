@@ -23,7 +23,7 @@ import (
 
 func (s *Server) InternalHandler() {
 	if s.ApiDoc.Enabled {
-		apidoc.OpenApi(http.DefaultServeMux, s.ApiDoc.UriPrefix, s.ApiDoc.Dir)
+		apidoc.ApiDoc(http.DefaultServeMux, s.ApiDoc.UriPrefix, s.ApiDoc.Dir)
 	}
 	if s.Telemetry.Enabled && s.Telemetry.EnablePrometheus {
 		http.Handle(s.Telemetry.PromHttpUri, promhttp.Handler())
