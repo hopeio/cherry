@@ -114,16 +114,16 @@ func (x UserErr) Error() string {
 	return x.Text()
 }
 
-func (x UserErr) ErrRep() *errors2.ErrRep {
-	return &errors2.ErrRep{Code: errors2.ErrCode(x), Msg: x.Text()}
+func (x UserErr) ErrResp() *errors2.ErrResp {
+	return &errors2.ErrResp{Code: errors2.ErrCode(x), Msg: x.Text()}
 }
 
-func (x UserErr) Msg(msg string) *errors2.ErrRep {
-	return &errors2.ErrRep{Code: errors2.ErrCode(x), Msg: msg}
+func (x UserErr) Msg(msg string) *errors2.ErrResp {
+	return &errors2.ErrResp{Code: errors2.ErrCode(x), Msg: msg}
 }
 
-func (x UserErr) Wrap(err error) *errors2.ErrRep {
-	return &errors2.ErrRep{Code: errors2.ErrCode(x), Msg: err.Error()}
+func (x UserErr) Wrap(err error) *errors2.ErrResp {
+	return &errors2.ErrResp{Code: errors2.ErrCode(x), Msg: err.Error()}
 }
 
 func (x UserErr) GRPCStatus() *status.Status {

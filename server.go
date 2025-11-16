@@ -87,7 +87,7 @@ func (s *Server) Run() {
 			if err := recover(); err != nil {
 				log.StackLogger().Errorw(fmt.Sprintf("panic: %v", err))
 				w.Header().Set(httpx.HeaderContentType, httpx.ContentTypeJson)
-				_, err := w.Write(httpx.ResponseSysErr)
+				_, err := w.Write(httpx.RespSysErr)
 				if err != nil {
 					log.Error(err)
 				}

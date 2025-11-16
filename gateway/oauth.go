@@ -32,13 +32,13 @@ func RegisterOauthServiceHandlerServer(r *gin.Engine, server OauthServiceServer)
 				metadata.MD{"auth": {httpx.GetToken(ctx.Request)}}),
 			&protoReq)
 
-		res.Response(ctx.Writer)
+		res.Respond(ctx.Writer)
 	})
 
 	r.POST("/oauth/access_token", func(ctx *gin.Context) {
 		var protoReq oauth.OauthReq
 		mtos.DefaultDecoder().Decode(&protoReq, ctx.Request.PostForm)
 		res, _ := server.OauthToken(ctx.Request.Context(), &protoReq)
-		res.Response(ctx.Writer)
+		res.Respond(ctx.Writer)
 	})
 }

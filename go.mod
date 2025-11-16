@@ -1,6 +1,6 @@
 module github.com/hopeio/cherry
 
-go 1.23.0
+go 1.24.0
 
 require (
 	github.com/gin-gonic/gin v1.10.0
@@ -17,14 +17,14 @@ require (
 	go.uber.org/zap v1.27.0
 	golang.org/x/net v0.43.0
 	golang.org/x/tools v0.36.0 // indirect
-	google.golang.org/grpc v1.72.0
+	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.8
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 require (
-	github.com/hopeio/context v0.5.1
-	github.com/hopeio/gox v1.3.4
+	github.com/hopeio/context v0.5.3
+	github.com/hopeio/gox v1.3.9
 	github.com/hopeio/protobuf v0.5.2
 	github.com/quic-go/quic-go v0.51.0
 	github.com/rs/cors v1.11.1
@@ -34,8 +34,8 @@ require (
 	go.opentelemetry.io/otel/exporters/prometheus v0.49.0
 	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.27.0
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.27.0
-	go.opentelemetry.io/otel/sdk v1.34.0
-	go.opentelemetry.io/otel/sdk/metric v1.34.0
+	go.opentelemetry.io/otel/sdk v1.37.0
+	go.opentelemetry.io/otel/sdk/metric v1.37.0
 )
 
 require (
@@ -50,7 +50,7 @@ require (
 	github.com/danielvladco/go-proto-gql v0.10.1-0.20221227181908-22fca0a9469c // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.10 // indirect
-	github.com/getkin/kin-openapi v0.132.0 // indirect
+	github.com/getkin/kin-openapi v0.133.0 // indirect
 	github.com/gin-contrib/sse v1.1.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -104,5 +104,5 @@ require (
 	golang.org/x/sync v0.16.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250303144028-a0af3efb3deb // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250804133106-a7a43d27e69b // indirect
 )

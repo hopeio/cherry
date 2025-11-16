@@ -82,7 +82,7 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 		if r := recover(); r != nil {
 			frame := debug.Stack()
 			log.Errorw(fmt.Sprintf("panic: %v", r), zap.ByteString(log.FieldStack, frame))
-			err = grpcx.Internal.ErrRep()
+			err = grpcx.Internal.ErrResp()
 		}
 	}()
 
@@ -132,7 +132,7 @@ func StreamAccess(srv interface{}, stream grpc.ServerStream, info *grpc.StreamSe
 		if r := recover(); r != nil {
 			frame, _ := runtimex.GetCallerFrame(2)
 			log.Errorw(fmt.Sprintf("panic: %v", r), zap.String(log.FieldStack, fmt.Sprintf("%s:%d (%#x)\n\t%s\n", frame.File, frame.Line, frame.PC, frame.Function)))
-			err = grpcx.Internal.ErrRep()
+			err = grpcx.Internal.ErrResp()
 		}
 		//不能添加错误处理，除非所有返回的结构相同
 		if err != nil {
