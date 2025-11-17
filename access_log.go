@@ -40,9 +40,9 @@ func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 	respBodyField := zap.Skip()
 	if len(param.RespBody.Data) > 0 {
 		if param.RespBody.IsJson {
-			respBodyField = zap.Reflect("result", json.RawMessage(param.RespBody.Data))
+			respBodyField = zap.Reflect("resp", json.RawMessage(param.RespBody.Data))
 		} else {
-			respBodyField = zap.String("result", stringsx.BytesToString(param.RespBody.Data))
+			respBodyField = zap.String("resp", stringsx.BytesToString(param.RespBody.Data))
 		}
 	}
 	// log 里time now 浪费性能
