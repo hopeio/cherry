@@ -99,7 +99,7 @@ func (s *Server) httpHandler() http.Handler {
 					labeler, _ := otelhttp.LabelerFromContext(r.Context())
 					labeler.Add(attr)
 
-					handlerBack.ServeHTTP(w, r)
+					handlerBack.Respond(w, r)
 				})*/
 		handler = otelhttp.NewHandler(handler, "server", s.Telemetry.otelhttpOpts...)
 	}
