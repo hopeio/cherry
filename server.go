@@ -147,7 +147,7 @@ func (s *Server) Run() {
 		}
 
 		s.HTTP3.Handler = handler
-		s.HTTP3.ConnContext = func(ctx context.Context, c quic.Connection) context.Context {
+		s.HTTP3.ConnContext = func(ctx context.Context, c *quic.Conn) context.Context {
 			return sigCtx
 		}
 		go func() {
