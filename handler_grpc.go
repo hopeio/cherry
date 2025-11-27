@@ -105,8 +105,8 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 	body, _ := json.Marshal(req)
 	result, _ := json.Marshal(resp)
 	ctxi, _ := httpctx.FromContext(ctx)
-	if s.HttpOption.AccessLog != nil {
-		s.HttpOption.AccessLog(ctxi, &AccessLogParam{
+	if s.AccessLog.RecordFunc != nil {
+		s.AccessLog.RecordFunc(ctxi, &AccessLogParam{
 			Method: "grpc",
 			Url:    info.FullMethod,
 			ReqBody: Body{
@@ -154,8 +154,8 @@ func (s *recvWrapper) SendMsg(m interface{}) error {
 }
 
 func (s *recvWrapper) RecvMsg(m interface{}) error {
-	if err := validator.Validator.Struct(m); err != nil {
-		return grpcx.InvalidArgument.Msg(validator.TransError(err))
+	if err := validator.ValidateStruct(m); err != nil {
+		return grpcx.InvalidArgument.Wrap(err)
 	}
 	if err := s.ServerStream.RecvMsg(m); err != nil {
 		return err
@@ -169,8 +169,8 @@ func UnaryValidator(
 	handler grpc.UnaryHandler,
 ) (resp interface{}, err error) {
 
-	if err = validator.Validator.Struct(req); err != nil {
-		return nil, grpcx.InvalidArgument.Msg(validator.TransError(err))
+	if err = validator.ValidateStruct(req); err != nil {
+		return nil, grpcx.InvalidArgument.Wrap(err)
 	}
 	return handler(ctx, req)
 }

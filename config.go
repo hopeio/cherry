@@ -14,7 +14,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/gox/crypto/tls"
 	"github.com/hopeio/gox/log"
-	gini "github.com/hopeio/gox/net/http/gin"
 	"github.com/hopeio/gox/net/http/grpc/web"
 	"github.com/quic-go/quic-go/http3"
 	"github.com/rs/cors"
@@ -30,25 +29,17 @@ import (
 
 func NewServer(options ...Option) *Server {
 	c := &Server{}
-	c.Http.Addr = ":8080"
+	c.Addr = ":8080"
 	gin.SetMode(gin.ReleaseMode)
 	gin.DisableBindValidation()
 	c.Cors.Enabled = true
 	c.Telemetry.Enabled = true
-	c.Telemetry.EnablePrometheus = true
-	c.Telemetry.PromHttpUri = "/metrics"
+	c.Telemetry.Prometheus.Enabled = true
 	c.DebugHandler.Enabled = true
 	for _, option := range options {
 		option(c)
 	}
 	return c
-}
-
-type Http struct {
-	http.Server
-	CertFile string
-	KeyFile  string
-	HttpOption
 }
 
 type Http3 struct {
@@ -58,17 +49,19 @@ type Http3 struct {
 	KeyFile  string
 }
 
-type HttpOption struct {
-	AccessLog          AccessLog
-	ExcludeLogPrefixes []string
-	IncludeLogPrefixes []string
+type AccessLogConfig struct {
+	RecordFunc      AccessLog
+	ExcludePrefixes []string
+	IncludePrefixes []string
 }
 
 type Server struct {
-	Http
+	http.Server
+	CertFile     string
+	KeyFile      string
+	AccessLog    AccessLogConfig
 	HTTP2        http2.Server
 	HTTP3        Http3
-	Gin          gini.Config
 	Cors         CorsConfig
 	Grpc         GrpcConfig
 	ApiDoc       ApiDocConfig
@@ -76,10 +69,9 @@ type Server struct {
 	DebugHandler DebugHandlerConfig
 	BaseContext  context.Context
 	Middlewares  []http.HandlerFunc
+	GinServer    *gin.Engine
 	// 注册 grpc 服务
 	GrpcHandler func(*grpc.Server)
-	// 注册 gin 服务
-	GinHandler func(*gin.Engine)
 }
 
 type DebugHandlerConfig struct {
@@ -106,15 +98,19 @@ type CorsConfig struct {
 }
 
 type TelemetryConfig struct {
-	Enabled          bool
-	EnablePrometheus bool
-	PromHttpUri      string
-	prometheusOpts   []prometheus.Option
-	otelhttpOpts     []otelhttp.Option
-	otelgrpcOpts     []otelgrpc.Option
-	propagator       propagation.TextMapPropagator
-	tracerProvider   *sdktrace.TracerProvider
-	meterProvider    *sdkmetric.MeterProvider
+	Enabled        bool
+	otelhttpOpts   []otelhttp.Option
+	otelgrpcOpts   []otelgrpc.Option
+	propagator     propagation.TextMapPropagator
+	tracerProvider *sdktrace.TracerProvider
+	meterProvider  *sdkmetric.MeterProvider
+	Prometheus     PrometheusConfig
+}
+
+type PrometheusConfig struct {
+	Enabled bool
+	HttpUri string
+	opts    []prometheus.Option
 }
 
 func (c *TelemetryConfig) SetOtelhttpHandlerOpts(otelhttpOpts []otelhttp.Option) {
@@ -126,7 +122,7 @@ func (c *TelemetryConfig) SetOtelgrpcOptsHandlerOpts(otelgrpcOpts []otelgrpc.Opt
 }
 
 func (c *TelemetryConfig) SetPrometheusOpts(prometheusOpts []prometheus.Option) {
-	c.prometheusOpts = prometheusOpts
+	c.Prometheus.opts = prometheusOpts
 }
 
 func (c *TelemetryConfig) SetTextMapPropagator(propagator propagation.TextMapPropagator) {
@@ -142,20 +138,26 @@ func (c *TelemetryConfig) SetMeterProvider(meterProvider *sdkmetric.MeterProvide
 }
 
 func (s *Server) Init() {
-	if s.Http.Addr == "" {
-		s.Http.Addr = ":8080"
+	if s.Addr == "" {
+		s.Addr = ":8080"
 	}
 	if s.HTTP3.Enabled && s.HTTP3.Addr == "" {
 		s.HTTP3.Addr = ":8080"
 	}
-	log.ValueLevelNotify("ReadTimeout", s.Http.ReadTimeout, time.Second)
-	log.ValueLevelNotify("WriteTimeout", s.Http.WriteTimeout, time.Second)
-	if s.Http.CertFile != "" && s.Http.KeyFile != "" {
-		tlsConfig, err := tls.NewServerTLSConfig(s.Http.CertFile, s.Http.KeyFile)
+	if s.Telemetry.Enabled && s.Telemetry.Prometheus.Enabled {
+		if s.Telemetry.Prometheus.HttpUri == "" {
+			s.Telemetry.Prometheus.HttpUri = "/metrics"
+		}
+	}
+
+	log.ValueLevelNotify("ReadTimeout", s.ReadTimeout, time.Second)
+	log.ValueLevelNotify("WriteTimeout", s.WriteTimeout, time.Second)
+	if s.CertFile != "" && s.KeyFile != "" {
+		tlsConfig, err := tls.NewServerTLSConfig(s.CertFile, s.KeyFile)
 		if err != nil {
 			log.Fatal(err)
 		}
-		s.Http.TLSConfig = tlsConfig
+		s.TLSConfig = tlsConfig
 	}
 	if s.HTTP3.Enabled && s.HTTP3.CertFile != "" && s.HTTP3.KeyFile != "" {
 		tlsConfig, err := tls.NewServerTLSConfig(s.HTTP3.CertFile, s.HTTP3.KeyFile)
@@ -167,7 +169,10 @@ func (s *Server) Init() {
 	if s.BaseContext == nil {
 		s.BaseContext = context.Background()
 	}
-	s.HttpOption.AccessLog = DefaultAccessLog
+	s.AccessLog.RecordFunc = DefaultAccessLog
+	if s.GinServer == nil {
+		s.GinServer = gin.New()
+	}
 }
 
 // implement initialize

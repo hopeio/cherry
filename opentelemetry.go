@@ -9,6 +9,8 @@ package cherry
 import (
 	"context"
 	"errors"
+	"time"
+
 	_ "github.com/hopeio/gox/net/http/debug"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/prometheus"
@@ -18,7 +20,6 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"time"
 )
 
 // setupOTelSDK bootstraps the OpenTelemetry pipeline.
@@ -108,9 +109,9 @@ func (c *TelemetryConfig) newTraceProvider(ctx context.Context, res *resource.Re
 func (c *TelemetryConfig) newMeterProvider(ctx context.Context, res *resource.Resource) (*sdkmetric.MeterProvider, error) {
 
 	var reader sdkmetric.Reader
-	if c.EnablePrometheus {
+	if c.Prometheus.Enabled {
 		var err error
-		reader, err = prometheus.New(c.prometheusOpts...)
+		reader, err = prometheus.New(c.Prometheus.opts...)
 		if err != nil {
 			return nil, err
 		}

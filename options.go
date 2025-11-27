@@ -8,8 +8,11 @@ package cherry
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/rs/cors"
+	"golang.org/x/net/http2"
 	"google.golang.org/grpc"
 )
 
@@ -21,15 +24,21 @@ func WithContext(ctx context.Context) Option {
 	}
 }
 
-func WithHttp(http Http) Option {
+func WithHttp(handler func(s *http.Server)) Option {
 	return func(server *Server) {
-		server.Http = http
+		handler(&server.Server)
 	}
 }
 
-func WithHTTP3(http3 Http3) Option {
+func WithHttp2(handler func(s *http2.Server)) Option {
 	return func(server *Server) {
-		server.HTTP3 = http3
+		handler(&server.HTTP2)
+	}
+}
+
+func WithHTTP3(handler func(s *Http3)) Option {
+	return func(server *Server) {
+		handler(&server.HTTP3)
 	}
 }
 
@@ -41,25 +50,24 @@ func WithGrpcHandler(handler func(*grpc.Server)) Option {
 
 func WithGinHandler(handler func(*gin.Engine)) Option {
 	return func(server *Server) {
-		server.GinHandler = handler
+		handler(server.GinServer)
 	}
 }
 
-func WithGrpc(option GrpcConfig) Option {
+func WithGrpc(handler func(option *GrpcConfig)) Option {
 	return func(server *Server) {
-		server.Grpc = option
+		handler(&server.Grpc)
 	}
 }
 
-func WithCors(cors cors.Options) Option {
+func WithCors(handler func(cors *cors.Options)) Option {
 	return func(server *Server) {
-		server.Cors.Enabled = true
-		server.Cors.Options = cors
+		handler(&server.Cors.Options)
 	}
 }
 
-func WithTelemetry(telemetry TelemetryConfig) Option {
+func WithTelemetry(handler func(telemetry *TelemetryConfig)) Option {
 	return func(server *Server) {
-		server.Telemetry = telemetry
+		handler(&server.Telemetry)
 	}
 }

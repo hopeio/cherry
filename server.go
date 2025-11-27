@@ -117,20 +117,19 @@ func (s *Server) Run() {
 		ctx.RootSpan().End()
 	})
 
-	server := &s.Http
-	server.BaseContext = func(_ net.Listener) context.Context {
+	s.Server.BaseContext = func(_ net.Listener) context.Context {
 		return sigCtx
 	}
 	// 为了提供grpc服务,默认启用http2
 	if s.TLSConfig != nil {
-		err := http2.ConfigureServer(&server.Server, &s.HTTP2)
+		err := http2.ConfigureServer(&s.Server, &s.HTTP2)
 		if err != nil {
 			log.Fatal(err)
 		}
-		server.Handler = handler
+		s.Handler = handler
 	} else {
 		h2Handler := h2c.NewHandler(handler, &s.HTTP2)
-		server.Handler = h2Handler
+		s.Handler = h2Handler
 	}
 	srvErr := make(chan error, 1)
 	if s.HTTP3.Enabled {
@@ -156,8 +155,8 @@ func (s *Server) Run() {
 		}()
 	}
 	go func() {
-		log.Infof("listening: %s", s.Http.Addr)
-		srvErr <- server.ListenAndServe()
+		log.Infof("listening: %s", s.Addr)
+		srvErr <- s.ListenAndServe()
 	}()
 
 	// Wait for interruption.
@@ -176,7 +175,7 @@ func (s *Server) Run() {
 	if grpcServer != nil {
 		grpcServer.GracefulStop()
 	}
-	if err := server.Shutdown(sigCtx); err != nil {
+	if err := s.Shutdown(sigCtx); err != nil {
 		log.Error(err)
 	}
 }

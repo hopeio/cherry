@@ -25,8 +25,8 @@ func (s *Server) InternalHandler() {
 	if s.ApiDoc.Enabled {
 		apidoc.ApiDoc(http.DefaultServeMux, s.ApiDoc.UriPrefix, s.ApiDoc.Dir)
 	}
-	if s.Telemetry.Enabled && s.Telemetry.EnablePrometheus {
-		http.Handle(s.Telemetry.PromHttpUri, promhttp.Handler())
+	if s.Telemetry.Enabled && s.Telemetry.Prometheus.Enabled {
+		http.Handle(s.Telemetry.Prometheus.HttpUri, promhttp.Handler())
 	}
 	if s.DebugHandler.Enabled {
 		debug.Handle(s.DebugHandler.UriPrefix)
@@ -35,18 +35,16 @@ func (s *Server) InternalHandler() {
 
 func (s *Server) httpHandler() http.Handler {
 	s.InternalHandler()
-	ginServer := s.Gin.New()
-	s.GinHandler(ginServer)
 
-	var excludes = s.HttpOption.ExcludeLogPrefixes
-	var includes = s.HttpOption.IncludeLogPrefixes
+	var excludes = s.AccessLog.ExcludePrefixes
+	var includes = s.AccessLog.IncludePrefixes
 	var handler http.Handler
 	handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// 不记录日志
 		if len(excludes) > 0 {
 			if stringsx.HasPrefixes(r.RequestURI, excludes) && !stringsx.HasPrefixes(r.RequestURI, includes) {
-				ginServer.ServeHTTP(w, r)
+				s.GinServer.ServeHTTP(w, r)
 				return
 			}
 		}
@@ -58,7 +56,7 @@ func (s *Server) httpHandler() http.Handler {
 		}
 		recorder := httpx.NewRecorder(w.Header())
 
-		ginServer.ServeHTTP(recorder, r)
+		s.GinServer.ServeHTTP(recorder, r)
 
 		// 提取 recorder 中记录的状态码，写入到 ResponseWriter 中
 		w.WriteHeader(recorder.Code)
@@ -67,8 +65,8 @@ func (s *Server) httpHandler() http.Handler {
 			w.Write(recorder.Body.Bytes())
 		}
 		ctxi, _ := httpctx.FromContext(r.Context())
-		if s.HttpOption.AccessLog != nil {
-			s.HttpOption.AccessLog(ctxi, &AccessLogParam{
+		if s.AccessLog.RecordFunc != nil {
+			s.AccessLog.RecordFunc(ctxi, &AccessLogParam{
 				r.Method, r.RequestURI,
 				Body{
 					IsJson: strings.HasPrefix(r.Header.Get(httpx.HeaderContentType), httpx.ContentTypeJson),

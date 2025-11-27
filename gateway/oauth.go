@@ -8,6 +8,7 @@ package gateway
 
 import (
 	"context"
+
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/gox/reflect/mtos"
 	"github.com/hopeio/protobuf/oauth"
@@ -32,13 +33,13 @@ func RegisterOauthServiceHandlerServer(r *gin.Engine, server OauthServiceServer)
 				metadata.MD{"auth": {httpx.GetToken(ctx.Request)}}),
 			&protoReq)
 
-		res.Respond(ctx.Writer)
+		res.Respond(ctx, ctx.Writer)
 	})
 
 	r.POST("/oauth/access_token", func(ctx *gin.Context) {
 		var protoReq oauth.OauthReq
 		mtos.DefaultDecoder().Decode(&protoReq, ctx.Request.PostForm)
 		res, _ := server.OauthToken(ctx.Request.Context(), &protoReq)
-		res.Respond(ctx.Writer)
+		res.Respond(ctx, ctx.Writer)
 	})
 }
