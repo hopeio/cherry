@@ -178,6 +178,7 @@ func (s *Server) Init() {
 // implement initialize
 func (s *Server) BeforeInject() {
 	*s = *NewServer()
+	s.GinServer = gin.New()
 }
 func (s *Server) AfterInject() {
 	s.Init()
