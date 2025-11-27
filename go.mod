@@ -24,7 +24,7 @@ require (
 
 require (
 	github.com/hopeio/context v0.5.7
-	github.com/hopeio/gox v1.3.14
+	github.com/hopeio/gox v1.3.15
 	github.com/hopeio/protobuf v0.5.6
 	github.com/quic-go/quic-go v0.57.0
 	github.com/rs/cors v1.11.1

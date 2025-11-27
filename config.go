@@ -8,6 +8,9 @@ package cherry
 
 import (
 	"context"
+	"net/http"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/gox/crypto/tls"
 	"github.com/hopeio/gox/log"
@@ -23,8 +26,6 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"golang.org/x/net/http2"
 	"google.golang.org/grpc"
-	"net/http"
-	"time"
 )
 
 func NewServer(options ...Option) *Server {
@@ -147,8 +148,8 @@ func (s *Server) Init() {
 	if s.HTTP3.Enabled && s.HTTP3.Addr == "" {
 		s.HTTP3.Addr = ":8080"
 	}
-	log.DurationNotify("ReadTimeout", s.Http.ReadTimeout, time.Second)
-	log.DurationNotify("WriteTimeout", s.Http.WriteTimeout, time.Second)
+	log.ValueLevelNotify("ReadTimeout", s.Http.ReadTimeout, time.Second)
+	log.ValueLevelNotify("WriteTimeout", s.Http.WriteTimeout, time.Second)
 	if s.Http.CertFile != "" && s.Http.KeyFile != "" {
 		tlsConfig, err := tls.NewServerTLSConfig(s.Http.CertFile, s.Http.KeyFile)
 		if err != nil {
