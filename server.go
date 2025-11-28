@@ -29,10 +29,17 @@ import (
 	"google.golang.org/grpc"
 )
 
-func (s *Server) Run() {
+func NewServer(options ...Option) *Server {
+	s := &Server{}
 	s.Init()
-	baseCtx := context.Background()
+	for _, option := range options {
+		option(s)
+	}
+	return s
+}
 
+func (s *Server) Run() {
+	baseCtx := context.Background()
 	// Handle SIGINT (CTRL+C) gracefully.
 	sigCtx, stop := signal.NotifyContext(baseCtx, // kill -SIGINT XXXX 或 Ctrl+c
 		syscall.SIGINT, // register that too, it should be ok

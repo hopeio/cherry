@@ -36,22 +36,22 @@ func (s *Server) InternalHandler() {
 func (s *Server) httpHandler() http.Handler {
 	s.InternalHandler()
 
-	var excludes = s.AccessLog.ExcludePrefixes
-	var includes = s.AccessLog.IncludePrefixes
 	var handler http.Handler
 	handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// 不记录日志
-		if len(excludes) > 0 {
-			if stringsx.HasPrefixes(r.RequestURI, excludes) && !stringsx.HasPrefixes(r.RequestURI, includes) {
+		if len(s.AccessLog.ExcludePrefixes) > 0 {
+			if stringsx.HasPrefixes(r.RequestURI, s.AccessLog.ExcludePrefixes) &&
+				!stringsx.HasPrefixes(r.RequestURI, s.AccessLog.IncludePrefixes) {
 				s.GinServer.ServeHTTP(w, r)
 				return
 			}
 		}
 
 		var body []byte
-		if r.Method != http.MethodGet {
+		if r.Body != nil {
 			body, _ = io.ReadAll(r.Body)
+			r.Body.Close()
 			r.Body = io.NopCloser(bytes.NewReader(body))
 		}
 		recorder := httpx.NewRecorder(w.Header())

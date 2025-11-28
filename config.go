@@ -27,21 +27,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-func NewServer(options ...Option) *Server {
-	c := &Server{}
-	c.Addr = ":8080"
-	gin.SetMode(gin.ReleaseMode)
-	gin.DisableBindValidation()
-	c.Cors.Enabled = true
-	c.Telemetry.Enabled = true
-	c.Telemetry.Prometheus.Enabled = true
-	c.DebugHandler.Enabled = true
-	for _, option := range options {
-		option(c)
-	}
-	return c
-}
-
 type Http3 struct {
 	Enabled bool
 	http3.Server
@@ -138,6 +123,8 @@ func (c *TelemetryConfig) SetMeterProvider(meterProvider *sdkmetric.MeterProvide
 }
 
 func (s *Server) Init() {
+	gin.SetMode(gin.ReleaseMode)
+	gin.DisableBindValidation()
 	if s.Addr == "" {
 		s.Addr = ":8080"
 	}
@@ -177,11 +164,10 @@ func (s *Server) Init() {
 
 // implement initialize
 func (s *Server) BeforeInject() {
-	*s = *NewServer()
-	s.GinServer = gin.New()
-}
-func (s *Server) AfterInject() {
 	s.Init()
+}
+
+func (s *Server) AfterInject() {
 }
 
 func (s *Server) WithOptions(options ...Option) *Server {

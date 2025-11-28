@@ -25,7 +25,7 @@ func (x Gender) Text() string {
 }
 
 func (x Gender) MarshalGQL(w io.Writer) {
-	w.Write(strings.QuoteToBytes(x.String()))
+	w.Write(strings.SimpleQuoteToBytes(x.String()))
 }
 
 func (x *Gender) UnmarshalGQL(v interface{}) error {
@@ -51,7 +51,7 @@ func (x Role) Text() string {
 }
 
 func (x Role) MarshalGQL(w io.Writer) {
-	w.Write(strings.QuoteToBytes(x.String()))
+	w.Write(strings.SimpleQuoteToBytes(x.String()))
 }
 
 func (x *Role) UnmarshalGQL(v interface{}) error {
@@ -79,7 +79,7 @@ func (x UserStatus) Text() string {
 }
 
 func (x UserStatus) MarshalGQL(w io.Writer) {
-	w.Write(strings.QuoteToBytes(x.String()))
+	w.Write(strings.SimpleQuoteToBytes(x.String()))
 }
 
 func (x *UserStatus) UnmarshalGQL(v interface{}) error {
@@ -141,7 +141,7 @@ func init() {
 }
 
 func (x UserErr) MarshalGQL(w io.Writer) {
-	w.Write(strings.QuoteToBytes(x.String()))
+	w.Write(strings.SimpleQuoteToBytes(x.String()))
 }
 
 func (x *UserErr) UnmarshalGQL(v interface{}) error {
