@@ -8,6 +8,7 @@ package cherry
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/hopeio/context/httpctx"
 	"github.com/hopeio/gox/log"
@@ -56,5 +57,32 @@ func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 			respBodyField,
 			zap.String("auth", ctxi.AuthInfoRaw),
 			zap.Int("status", param.StatusCode))
+	}
+}
+
+type GrpcAccessLogParam struct {
+	Method    string
+	req, resp any
+	err       error
+}
+
+type GrpcAccessLog = func(ctxi *httpctx.Context, pram *GrpcAccessLogParam)
+
+func DefaultGrpcAccessLog(ctxi *httpctx.Context, param *GrpcAccessLogParam) {
+	respBodyField := zap.Skip()
+	if param.err != nil {
+		respBodyField = zap.String("resp", param.err.Error())
+	} else {
+		respBodyField = zap.String("resp", param.resp.(fmt.Stringer).String())
+	}
+	if ce := log.NoCallerLogger().Logger.Check(zap.InfoLevel, "access"); ce != nil {
+		ce.Write(zap.String("url", param.Method),
+			zap.String("method", "grpc"),
+			zap.String("body", param.req.(fmt.Stringer).String()),
+			zap.String("traceId", ctxi.TraceID()),
+			// 性能
+			zap.Duration("duration", ce.Time.Sub(ctxi.RequestAt.Time)),
+			respBodyField,
+			zap.String("auth", ctxi.AuthInfoRaw))
 	}
 }

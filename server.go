@@ -17,7 +17,6 @@ import (
 	"syscall"
 
 	"github.com/hopeio/context/httpctx"
-	"github.com/hopeio/gox/crypto/tls"
 	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/grpc/web"
@@ -84,12 +83,20 @@ func (s *Server) Run() {
 		defer otelShutdown(sigCtx)
 	}
 
-	var handler http.Handler
-	handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if h, p := http.DefaultServeMux.Handler(r); p != "" {
-			h.ServeHTTP(w, r)
-			return
+	mwHandler := httpx.UseMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		contentType := r.Header.Get(httpx.HeaderContentType)
+		if strings.HasPrefix(contentType, httpx.ContentTypeGrpc) {
+			if strings.HasPrefix(contentType[len(httpx.ContentTypeGrpc):], "-web") && wrappedGrpc != nil {
+				wrappedGrpc.ServeHTTP(w, r)
+			} else if r.ProtoMajor == 2 && grpcServer != nil {
+				grpcServer.ServeHTTP(w, r) // gRPC Server
+			}
+		} else {
+			httpHandler.ServeHTTP(w, r)
 		}
+	}), s.Middlewares...)
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
 				log.StackLogger().Errorw(fmt.Sprintf("panic: %v", err))
@@ -101,69 +108,65 @@ func (s *Server) Run() {
 			}
 		}()
 
-		// 简单的中间件支持
-		for _, middleware := range s.Middlewares {
-			middleware(w, r)
-		}
-
 		ctx := httpctx.FromRequest(httpctx.RequestCtx{Request: r, ResponseWriter: w})
-
 		r = r.WithContext(ctx.Wrapper())
-
-		contentType := r.Header.Get(httpx.HeaderContentType)
-		if strings.HasPrefix(contentType, httpx.ContentTypeGrpc) {
-			if strings.HasPrefix(contentType[len(httpx.ContentTypeGrpc):], "-web") && wrappedGrpc != nil {
-				wrappedGrpc.ServeHTTP(w, r)
-			} else if r.ProtoMajor == 2 && grpcServer != nil {
-				grpcServer.ServeHTTP(w, r) // gRPC Server
-			}
-		} else {
-			httpHandler.ServeHTTP(w, r)
-		}
-
+		mwHandler.ServeHTTP(w, r)
 		ctx.RootSpan().End()
 	})
 
-	s.Server.BaseContext = func(_ net.Listener) context.Context {
-		return sigCtx
+	if s.Server.BaseContext == nil {
+		s.Server.BaseContext = func(_ net.Listener) context.Context {
+			return sigCtx
+		}
 	}
+
 	// 为了提供grpc服务,默认启用http2
-	if s.TLSConfig != nil {
+	if s.Server.TLSConfig != nil || (s.CertFile != "" && s.KeyFile != "") {
 		err := http2.ConfigureServer(&s.Server, &s.HTTP2)
 		if err != nil {
 			log.Fatal(err)
 		}
-		s.Handler = handler
+		s.Server.Handler = handler
 	} else {
 		h2Handler := h2c.NewHandler(handler, &s.HTTP2)
-		s.Handler = h2Handler
+		s.Server.Handler = h2Handler
 	}
 	srvErr := make(chan error, 1)
 	if s.HTTP3.Enabled {
-		if s.HTTP3.TLSConfig == nil {
-			if s.HTTP3.CertFile != "" && s.HTTP3.KeyFile != "" {
-				var err error
-				s.HTTP3.TLSConfig, err = tls.NewServerTLSConfig(s.HTTP3.CertFile, s.HTTP3.KeyFile)
-				if err != nil {
-					log.Fatal(err)
-				}
-			} else {
-				log.Fatal("http3 need certFile and keyFile")
-			}
-		}
-
 		s.HTTP3.Handler = handler
-		s.HTTP3.ConnContext = func(ctx context.Context, c *quic.Conn) context.Context {
-			return sigCtx
+		if s.HTTP3.ConnContext == nil {
+			s.HTTP3.ConnContext = func(ctx context.Context, c *quic.Conn) context.Context {
+				return sigCtx
+			}
 		}
 		go func() {
 			log.Infof("http3 listening: %s", s.HTTP3.Addr)
-			srvErr <- s.HTTP3.ListenAndServe()
+			if s.HTTP3.CertFile != "" && s.HTTP3.KeyFile != "" {
+				srvErr <- s.HTTP3.ListenAndServeTLS(s.CertFile, s.KeyFile)
+			} else {
+				srvErr <- s.HTTP3.ListenAndServe()
+			}
 		}()
 	}
 	go func() {
 		log.Infof("listening: %s", s.Addr)
-		srvErr <- s.ListenAndServe()
+		if s.CertFile != "" && s.KeyFile != "" {
+			srvErr <- s.ListenAndServeTLS(s.CertFile, s.KeyFile)
+		} else {
+			srvErr <- s.ListenAndServe()
+		}
+	}()
+
+	go func() {
+		log.Infof("internal listening: %s", s.InternalServer.Addr)
+		s.InternalHandler()
+		if s.InternalServer.BaseContext == nil {
+			s.InternalServer.BaseContext = func(_ net.Listener) context.Context {
+				return sigCtx
+			}
+			s.InternalServer.Handler = http.DefaultServeMux
+		}
+		srvErr <- s.InternalServer.ListenAndServe()
 	}()
 
 	// Wait for interruption.

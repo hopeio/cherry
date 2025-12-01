@@ -34,7 +34,6 @@ func (s *Server) InternalHandler() {
 }
 
 func (s *Server) httpHandler() http.Handler {
-	s.InternalHandler()
 
 	var handler http.Handler
 	handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

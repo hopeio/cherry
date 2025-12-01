@@ -14,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/gox/crypto/tls"
 	"github.com/hopeio/gox/log"
+	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/grpc/web"
 	"github.com/quic-go/quic-go/http3"
 	"github.com/rs/cors"
@@ -42,19 +43,20 @@ type AccessLogConfig struct {
 
 type Server struct {
 	http.Server
-	CertFile     string
-	KeyFile      string
-	AccessLog    AccessLogConfig
-	HTTP2        http2.Server
-	HTTP3        Http3
-	Cors         CorsConfig
-	Grpc         GrpcConfig
-	ApiDoc       ApiDocConfig
-	Telemetry    TelemetryConfig
-	DebugHandler DebugHandlerConfig
-	BaseContext  context.Context
-	Middlewares  []http.HandlerFunc
-	GinServer    *gin.Engine
+	CertFile       string
+	KeyFile        string
+	AccessLog      AccessLogConfig
+	HTTP2          http2.Server
+	HTTP3          Http3
+	Cors           CorsConfig
+	Grpc           GrpcConfig
+	InternalServer http.Server
+	ApiDoc         ApiDocConfig
+	Telemetry      TelemetryConfig
+	DebugHandler   DebugHandlerConfig
+	BaseContext    context.Context
+	Middlewares    []httpx.Middleware
+	GinServer      *gin.Engine
 	// 注册 grpc 服务
 	GrpcHandler func(*grpc.Server)
 }
@@ -70,6 +72,7 @@ type ApiDocConfig struct {
 }
 
 type GrpcConfig struct {
+	RecordFunc               GrpcAccessLog
 	EnableGrpcWeb            bool
 	GrpcWebOptions           []web.Option
 	Options                  []grpc.ServerOption
@@ -124,19 +127,12 @@ func (c *TelemetryConfig) SetMeterProvider(meterProvider *sdkmetric.MeterProvide
 
 func (s *Server) Init() {
 	gin.SetMode(gin.ReleaseMode)
-	gin.DisableBindValidation()
+	if s.BaseContext == nil {
+		s.BaseContext = context.Background()
+	}
 	if s.Addr == "" {
 		s.Addr = ":8080"
 	}
-	if s.HTTP3.Enabled && s.HTTP3.Addr == "" {
-		s.HTTP3.Addr = ":8080"
-	}
-	if s.Telemetry.Enabled && s.Telemetry.Prometheus.Enabled {
-		if s.Telemetry.Prometheus.HttpUri == "" {
-			s.Telemetry.Prometheus.HttpUri = "/metrics"
-		}
-	}
-
 	log.ValueLevelNotify("ReadTimeout", s.ReadTimeout, time.Second)
 	log.ValueLevelNotify("WriteTimeout", s.WriteTimeout, time.Second)
 	if s.CertFile != "" && s.KeyFile != "" {
@@ -146,19 +142,36 @@ func (s *Server) Init() {
 		}
 		s.TLSConfig = tlsConfig
 	}
-	if s.HTTP3.Enabled && s.HTTP3.CertFile != "" && s.HTTP3.KeyFile != "" {
-		tlsConfig, err := tls.NewServerTLSConfig(s.HTTP3.CertFile, s.HTTP3.KeyFile)
-		if err != nil {
-			log.Fatal(err)
+	if s.HTTP3.Enabled {
+		if s.HTTP3.Addr == "" {
+			s.HTTP3.Addr = ":8080"
 		}
-		s.HTTP3.TLSConfig = tlsConfig
+		if s.HTTP3.CertFile != "" && s.HTTP3.KeyFile != "" {
+			tlsConfig, err := tls.NewServerTLSConfig(s.HTTP3.CertFile, s.HTTP3.KeyFile)
+			if err != nil {
+				log.Fatal(err)
+			}
+			s.HTTP3.TLSConfig = tlsConfig
+		}
 	}
-	if s.BaseContext == nil {
-		s.BaseContext = context.Background()
+	if s.AccessLog.RecordFunc == nil {
+		s.AccessLog.RecordFunc = DefaultAccessLog
 	}
-	s.AccessLog.RecordFunc = DefaultAccessLog
+	if s.Grpc.RecordFunc == nil {
+		s.Grpc.RecordFunc = DefaultGrpcAccessLog
+	}
+
 	if s.GinServer == nil {
 		s.GinServer = gin.New()
+	}
+
+	if s.InternalServer.Addr == "" {
+		s.InternalServer.Addr = ":8081"
+	}
+	if s.Telemetry.Enabled && s.Telemetry.Prometheus.Enabled {
+		if s.Telemetry.Prometheus.HttpUri == "" {
+			s.Telemetry.Prometheus.HttpUri = "/metrics"
+		}
 	}
 }
 

@@ -105,19 +105,11 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 	body, _ := json.Marshal(req)
 	result, _ := json.Marshal(resp)
 	ctxi, _ := httpctx.FromContext(ctx)
-	if s.AccessLog.RecordFunc != nil {
-		s.AccessLog.RecordFunc(ctxi, &AccessLogParam{
-			Method: "grpc",
-			Url:    info.FullMethod,
-			ReqBody: Body{
-				IsJson: true,
-				Data:   body,
-			},
-			RespBody: Body{
-				IsJson: true,
-				Data:   result,
-			},
-			StatusCode: code,
+	if s.Grpc.RecordFunc != nil {
+		s.Grpc.RecordFunc(ctxi, &GrpcAccessLogParam{
+			Method: info.FullMethod,
+			req:    req,
+			resp:   resp,
 		})
 	}
 	/*		if enabledPrometheus {

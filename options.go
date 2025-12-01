@@ -11,6 +11,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	httpx "github.com/hopeio/gox/net/http"
 	"github.com/rs/cors"
 	"golang.org/x/net/http2"
 	"google.golang.org/grpc"
@@ -69,5 +70,11 @@ func WithCors(handler func(cors *cors.Options)) Option {
 func WithTelemetry(handler func(telemetry *TelemetryConfig)) Option {
 	return func(server *Server) {
 		handler(&server.Telemetry)
+	}
+}
+
+func WithMiddleware(mw ...httpx.Middleware) Option {
+	return func(server *Server) {
+		server.Middlewares = append(server.Middlewares, mw...)
 	}
 }
