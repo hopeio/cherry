@@ -8,7 +8,6 @@ package cherry
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"reflect"
@@ -75,6 +74,10 @@ func (s *Server) grpcHandler() *grpc.Server {
 	return nil
 }
 
+type GRPCStatus interface {
+	GRPCStatus() *status.Status
+}
+
 func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	//enabledPrometheus := conf.EnabledMetrics
 
@@ -87,29 +90,23 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 	}()
 
 	resp, err = handler(ctx, req)
-	var code int
 	//不能添加错误处理，除非所有返回的结构相同
 	if err != nil {
-		if v, ok := err.(interface{ GRPCStatus() *status.Status }); !ok {
+		if _, ok := err.(GRPCStatus); !ok {
 			err = grpcx.Unknown.Msg(err.Error())
-			code = int(grpcx.Unknown)
-		} else {
-			code = int(v.GRPCStatus().Code())
 		}
 	}
 	if err == nil && reflect2.IsNil(resp) {
 		resp = reflect.New(reflect.TypeOf(resp).Elem()).Interface()
 	}
-	/*		body, _ := protojson.Marshal(req.(proto.Msg)) // 性能比标准库差很多
-			result, _ := protojson.Marshal(resp.(proto.Msg))*/
-	body, _ := json.Marshal(req)
-	result, _ := json.Marshal(resp)
+
 	ctxi, _ := httpctx.FromContext(ctx)
 	if s.Grpc.RecordFunc != nil {
 		s.Grpc.RecordFunc(ctxi, &GrpcAccessLogParam{
 			Method: info.FullMethod,
 			req:    req,
 			resp:   resp,
+			err:    err,
 		})
 	}
 	/*		if enabledPrometheus {
@@ -128,7 +125,7 @@ func StreamAccess(srv interface{}, stream grpc.ServerStream, info *grpc.StreamSe
 		}
 		//不能添加错误处理，除非所有返回的结构相同
 		if err != nil {
-			if _, ok := err.(interface{ GRPCStatus() *status.Status }); !ok {
+			if _, ok := err.(GRPCStatus); !ok {
 				err = grpcx.Unknown.Msg(err.Error())
 			}
 		}
