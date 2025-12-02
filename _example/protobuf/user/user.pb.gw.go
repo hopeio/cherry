@@ -15,7 +15,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/gox/net/http/gin/binding"
 	grpc_0 "github.com/hopeio/gox/net/http/grpc"
-	gin_0 "github.com/hopeio/gox/net/http/grpc/gateway/gin"
+	"github.com/hopeio/protobuf/grpc/gateway"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
@@ -100,11 +101,11 @@ func RegisterUserServiceHandlerServer(mux *gin.Engine, server UserServiceServer)
 		var md grpc_0.ServerMetadata
 		resp, err := local_request_UserService_Signup_0(server, ctx)
 		if err != nil {
-			gin_0.HttpError(ctx, err)
+			gateway.HttpError(ctx, err)
 			return
 		}
 
-		gin_0.ForwardResponseMessage(ctx, md, resp)
+		gateway.ForwardResponseMessage(ctx, md, resp)
 
 	})
 
@@ -112,11 +113,11 @@ func RegisterUserServiceHandlerServer(mux *gin.Engine, server UserServiceServer)
 		var md grpc_0.ServerMetadata
 		resp, err := local_request_UserService_GetUser_0(server, ctx)
 		if err != nil {
-			gin_0.HttpError(ctx, err)
+			gateway.HttpError(ctx, err)
 			return
 		}
 
-		gin_0.ForwardResponseMessage(ctx, md, resp)
+		gateway.ForwardResponseMessage(ctx, md, resp)
 
 	})
 
@@ -164,22 +165,22 @@ func RegisterUserServiceHandlerClient(ctx context.Context, mux *gin.Engine, clie
 	mux.Handle("POST", "/api/v1/user", func(ctx *gin.Context) {
 		resp, md, err := request_UserService_Signup_0(ctx, client)
 		if err != nil {
-			gin_0.HttpError(ctx, err)
+			gateway.HttpError(ctx, err)
 			return
 		}
 
-		gin_0.ForwardResponseMessage(ctx, md, resp)
+		gateway.ForwardResponseMessage(ctx, md, resp)
 
 	})
 
 	mux.Handle("GET", "/api/v1/:id", func(ctx *gin.Context) {
 		resp, md, err := request_UserService_GetUser_0(ctx, client)
 		if err != nil {
-			gin_0.HttpError(ctx, err)
+			gateway.HttpError(ctx, err)
 			return
 		}
 
-		gin_0.ForwardResponseMessage(ctx, md, resp)
+		gateway.ForwardResponseMessage(ctx, md, resp)
 
 	})
 
