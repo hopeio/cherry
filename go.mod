@@ -17,13 +17,13 @@ require (
 	golang.org/x/net v0.47.0
 	golang.org/x/tools v0.39.0 // indirect
 	google.golang.org/grpc v1.77.0
-	google.golang.org/protobuf v1.36.10
+	google.golang.org/protobuf v1.36.10 // indirect
 )
 
 require (
-	github.com/hopeio/context v0.5.11
-	github.com/hopeio/gox v1.3.21
-	github.com/hopeio/protobuf v0.5.9
+	github.com/hopeio/context v0.5.12
+	github.com/hopeio/gox v1.3.22
+	github.com/hopeio/protobuf v0.5.12
 	github.com/quic-go/quic-go v0.57.0
 	github.com/rs/cors v1.11.1
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.63.0
@@ -44,7 +44,6 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
-	github.com/danielvladco/go-proto-gql v0.10.1-0.20221227181908-22fca0a9469c // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.11 // indirect
 	github.com/getkin/kin-openapi v0.133.0 // indirect
@@ -56,7 +55,6 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/goccy/go-yaml v1.18.0 // indirect
-	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
