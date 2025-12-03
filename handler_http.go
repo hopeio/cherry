@@ -10,7 +10,6 @@ import (
 	"bytes"
 	"io"
 	"net/http"
-	"strings"
 
 	"github.com/hopeio/context/httpctx"
 	httpx "github.com/hopeio/gox/net/http"
@@ -68,12 +67,12 @@ func (s *Server) httpHandler() http.Handler {
 			s.AccessLog.RecordFunc(ctxi, &AccessLogParam{
 				r.Method, r.RequestURI,
 				Body{
-					IsJson: strings.HasPrefix(r.Header.Get(httpx.HeaderContentType), httpx.ContentTypeJson),
-					Data:   body,
+					ContentType: r.Header.Get(httpx.HeaderContentType),
+					Data:        body,
 				},
 				Body{
-					IsJson: strings.HasPrefix(w.Header().Get(httpx.HeaderContentType), httpx.ContentTypeJson),
-					Data:   recorder.Body.Bytes(),
+					ContentType: w.Header().Get(httpx.HeaderContentType),
+					Data:        recorder.Body.Bytes(),
 				},
 				recorder.Code,
 			})

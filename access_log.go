@@ -9,16 +9,20 @@ package cherry
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/hopeio/context/httpctx"
 	"github.com/hopeio/gox/log"
+	httpx "github.com/hopeio/gox/net/http"
 	stringsx "github.com/hopeio/gox/strings"
+	"github.com/hopeio/protobuf/response"
 	"go.uber.org/zap"
+	"google.golang.org/grpc/status"
 )
 
 type Body struct {
-	IsJson bool
-	Data   []byte
+	ContentType string
+	Data        []byte
 }
 
 type AccessLogParam struct {
@@ -32,7 +36,7 @@ type AccessLog = func(ctxi *httpctx.Context, pram *AccessLogParam)
 func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 	reqBodyField := zap.Skip()
 	if len(param.ReqBody.Data) > 0 {
-		if param.ReqBody.IsJson {
+		if strings.HasPrefix(param.ReqBody.ContentType, httpx.ContentTypeJson) {
 			reqBodyField = zap.Reflect("body", json.RawMessage(param.ReqBody.Data))
 		} else {
 			reqBodyField = zap.String("body", stringsx.BytesToString(param.ReqBody.Data))
@@ -40,7 +44,7 @@ func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 	}
 	respBodyField := zap.Skip()
 	if len(param.RespBody.Data) > 0 {
-		if param.RespBody.IsJson {
+		if strings.HasPrefix(param.RespBody.ContentType, httpx.ContentTypeJson) {
 			respBodyField = zap.Reflect("resp", json.RawMessage(param.RespBody.Data))
 		} else {
 			respBodyField = zap.String("resp", stringsx.BytesToString(param.RespBody.Data))
@@ -70,7 +74,9 @@ type GrpcAccessLog = func(ctxi *httpctx.Context, pram *GrpcAccessLogParam)
 func DefaultGrpcAccessLog(ctxi *httpctx.Context, param *GrpcAccessLogParam) {
 	respBodyField := zap.Skip()
 	if param.err != nil {
-		respBodyField = zap.String("resp", param.err.Error())
+		s, _ := status.FromError(param.err)
+		se := &response.CommonResp{Code: uint32(s.Code()), Msg: s.Message()}
+		respBodyField = zap.String("resp", se.String())
 	} else {
 		respBodyField = zap.String("resp", param.resp.(fmt.Stringer).String())
 	}
