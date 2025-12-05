@@ -11,7 +11,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/hopeio/context/httpctx"
+	"github.com/hopeio/gox/context/httpctx"
 	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/apidoc"
 	"github.com/hopeio/gox/net/http/debug"

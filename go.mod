@@ -21,9 +21,8 @@ require (
 )
 
 require (
-	github.com/hopeio/context v0.5.15
-	github.com/hopeio/gox v1.3.25
-	github.com/hopeio/protobuf v0.5.15
+	github.com/hopeio/gox v1.4.0
+	github.com/hopeio/protobuf v0.5.16
 	github.com/quic-go/quic-go v0.57.0
 	github.com/rs/cors v1.11.1
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.63.0
@@ -72,7 +71,6 @@ require (
 	github.com/prometheus/common v0.67.4 // indirect
 	github.com/prometheus/procfs v0.19.2 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
-	github.com/spf13/cast v1.10.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/woodsbury/decimal128 v1.4.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect

@@ -10,7 +10,7 @@ import (
 	"context"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/gox/reflect/mtos"
+	"github.com/hopeio/gox/mtos"
 	"github.com/hopeio/protobuf/oauth"
 
 	httpx "github.com/hopeio/gox/net/http"

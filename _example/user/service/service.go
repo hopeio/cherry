@@ -15,7 +15,7 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/hopeio/cherry/_example/protobuf/user"
-	"github.com/hopeio/context/httpctx"
+	"github.com/hopeio/gox/context/httpctx"
 )
 
 type UserService struct {

@@ -13,12 +13,12 @@ import (
 	"reflect"
 	"runtime/debug"
 
-	"github.com/hopeio/context/httpctx"
+	"github.com/hopeio/gox/context/httpctx"
 	grpcx "github.com/hopeio/gox/net/http/grpc"
 
 	"github.com/hopeio/gox/log"
 	runtimex "github.com/hopeio/gox/runtime"
-	"github.com/hopeio/gox/validation/validator"
+	"github.com/hopeio/gox/validator"
 	"github.com/modern-go/reflect2"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/zap"

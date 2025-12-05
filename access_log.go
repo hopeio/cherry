@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hopeio/context/httpctx"
+	"github.com/hopeio/gox/context/httpctx"
 	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
 	stringsx "github.com/hopeio/gox/strings"

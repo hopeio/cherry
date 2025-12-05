@@ -16,9 +16,11 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/hopeio/context/httpctx"
+	"github.com/hopeio/gox/context/httpctx"
+	"github.com/hopeio/gox/errors"
 	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
+	gatewayx "github.com/hopeio/gox/net/http/grpc/gateway"
 	"github.com/hopeio/gox/net/http/grpc/web"
 	"github.com/quic-go/quic-go"
 	"github.com/rs/cors"
@@ -100,8 +102,14 @@ func (s *Server) Run() {
 		defer func() {
 			if err := recover(); err != nil {
 				log.StackLogger().Errorw(fmt.Sprintf("panic: %v", err))
-				w.Header().Set(httpx.HeaderContentType, httpx.ContentTypeJson)
-				_, err := w.Write(httpx.RespSysErr)
+				w.Header().Set(httpx.HeaderContentType, gatewayx.Marshaler.ContentType(nil))
+
+				se := &errors.ErrResp{Code: errors.Aborted, Msg: "system error"}
+				buf, err := gatewayx.Marshaler.Marshal(se)
+				if err != nil {
+					log.Error(err)
+				}
+				_, err = w.Write(buf)
 				if err != nil {
 					log.Error(err)
 				}
