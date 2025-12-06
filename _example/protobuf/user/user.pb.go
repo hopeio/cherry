@@ -17,6 +17,7 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 	reflect "reflect"
 	sync "sync"
@@ -261,12 +262,12 @@ type User struct {
 	Mail     string                 `protobuf:"bytes,6,opt,name=mail,proto3" json:"mail,omitempty" gorm:"size:32" validate:"email" comment:"邮箱"`
 	Phone    string                 `protobuf:"bytes,7,opt,name=phone,proto3" json:"phone,omitempty" gorm:"size:32" validate:"phone" comment:"手机号"`
 	// 性别，0未填写，1男，2女
-	Gender        Gender               `protobuf:"varint,8,opt,name=gender,proto3,enum=user.Gender" json:"gender,omitempty" gorm:"type:int2;default:0"`
-	Role          Role                 `protobuf:"varint,24,opt,name=role,proto3,enum=user.Role" json:"role,omitempty" gorm:"type:int2;default:0"`
-	Status        UserStatus           `protobuf:"varint,28,opt,name=status,proto3,enum=user.UserStatus" json:"status,omitempty" gorm:"type:int2;default:0"`
-	CreatedAt     *timestamp.Timestamp `protobuf:"bytes,25,opt,name=createdAt,proto3" json:"createdAt,omitempty" gorm:"type:timestamptz(6);default:now();index"`
-	ActivatedAt   *timestamp.Timestamp `protobuf:"bytes,3,opt,name=activatedAt,proto3" json:"activatedAt,omitempty" gorm:"<-:false;type:timestamptz(6);index"`
-	DeletedAt     *deletedAt.DeletedAt `protobuf:"bytes,27,opt,name=deletedAt,proto3" json:"deletedAt,omitempty" gorm:"<-:false;type:timestamptz(6);index"` // uint32 isDeleted = 29 [(go.field) = {tags:'gorm:"default:0"'}];
+	Gender        Gender                 `protobuf:"varint,8,opt,name=gender,proto3,enum=user.Gender" json:"gender,omitempty" gorm:"type:int2;default:0"`
+	Role          Role                   `protobuf:"varint,24,opt,name=role,proto3,enum=user.Role" json:"role,omitempty" gorm:"type:int2;default:0"`
+	Status        UserStatus             `protobuf:"varint,28,opt,name=status,proto3,enum=user.UserStatus" json:"status,omitempty" gorm:"type:int2;default:0"`
+	CreatedAt     *timestamp.Timestamp   `protobuf:"bytes,25,opt,name=createdAt,proto3" json:"createdAt,omitempty" gorm:"type:timestamptz(6);default:now();index"`
+	ActivatedAt   *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=activatedAt,proto3" json:"activatedAt,omitempty" gorm:"<-:false;type:timestamptz(6);index"`
+	DeletedAt     *deletedAt.DeletedAt   `protobuf:"bytes,27,opt,name=deletedAt,proto3" json:"deletedAt,omitempty" gorm:"<-:false;type:timestamptz(6);index"` // uint32 isDeleted = 29 [(go.field) = {tags:'gorm:"default:0"'}];
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -364,7 +365,7 @@ func (x *User) GetCreatedAt() *timestamp.Timestamp {
 	return nil
 }
 
-func (x *User) GetActivatedAt() *timestamp.Timestamp {
+func (x *User) GetActivatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.ActivatedAt
 	}
@@ -514,7 +515,7 @@ var File_user_user_proto protoreflect.FileDescriptor
 
 const file_user_user_proto_rawDesc = "" +
 	"\n" +
-	"\x0fuser/user.proto\x12\x04user\x1a\x1chopeio/utils/enum/enum.proto\x1a\x1bhopeio/utils/patch/go.proto\x1a%hopeio/time/timestamp/timestamp.proto\x1a%hopeio/time/deletedAt/deletedAt.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\x1a&hopeio/utils/validator/validator.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a#danielvladco/protobuf/graphql.proto\"\xa3\a\n" +
+	"\x0fuser/user.proto\x12\x04user\x1a\x1chopeio/utils/enum/enum.proto\x1a\x1bhopeio/utils/patch/go.proto\x1a%hopeio/time/timestamp/timestamp.proto\x1a%hopeio/time/deletedAt/deletedAt.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\x1a&hopeio/utils/validator/validator.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a#danielvladco/protobuf/graphql.proto\"\xa9\a\n" +
 	"\x04User\x12)\n" +
 	"\x02id\x18\x01 \x01(\x04B\x19ҵ\x03\x15\xa2\x01\x12gorm:\"primaryKey;\"R\x02id\x12C\n" +
 	"\x04name\x18\x02 \x01(\tB/ҵ\x03+\xa2\x01(gorm:\"size:10;not null\" comment:\"昵称\"R\x04name\x12l\n" +
@@ -525,8 +526,8 @@ const file_user_user_proto_rawDesc = "" +
 	"\x04role\x18\x18 \x01(\x0e2\n" +
 	".user.RoleB!ҵ\x03\x1d\xa2\x01\x1agorm:\"type:int2;default:0\"R\x04role\x12P\n" +
 	"\x06status\x18\x1c \x01(\x0e2\x10.user.UserStatusB&\x92A\x02@\x01ҵ\x03\x1d\xa2\x01\x1agorm:\"type:int2;default:0\"R\x06status\x12i\n" +
-	"\tcreatedAt\x18\x19 \x01(\v2\x14.timestamp.TimestampB5ҵ\x031\xa2\x01.gorm:\"type:timestamptz(6);default:now();index\"R\tcreatedAt\x12h\n" +
-	"\vactivatedAt\x18\x03 \x01(\v2\x14.timestamp.TimestampB0ҵ\x03,\xa2\x01)gorm:\"<-:false;type:timestamptz(6);index\"R\vactivatedAt\x12d\n" +
+	"\tcreatedAt\x18\x19 \x01(\v2\x14.timestamp.TimestampB5ҵ\x031\xa2\x01.gorm:\"type:timestamptz(6);default:now();index\"R\tcreatedAt\x12n\n" +
+	"\vactivatedAt\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampB0ҵ\x03,\xa2\x01)gorm:\"<-:false;type:timestamptz(6);index\"R\vactivatedAt\x12d\n" +
 	"\tdeletedAt\x18\x1b \x01(\v2\x14.deletedAt.DeletedAtB0ҵ\x03,\xa2\x01)gorm:\"<-:false;type:timestamptz(6);index\"R\tdeletedAt\"\x83\x04\n" +
 	"\tSignupReq\x12z\n" +
 	"\bpassword\x18\x04 \x01(\tB^\x92A\v*\x06密码\x80\x01\x06ҵ\x034\xa2\x011validate:\"required,gte=6,lte=15\" comment:\"密码\"\xe2\xdf\x1f\x14*\x10密码最短6位p\x05R\bpassword\x12L\n" +
@@ -603,26 +604,27 @@ var file_user_user_proto_goTypes = []any{
 	(*SignupReq)(nil),              // 5: user.SignupReq
 	(*GetUserReq)(nil),             // 6: user.GetUserReq
 	(*timestamp.Timestamp)(nil),    // 7: timestamp.Timestamp
-	(*deletedAt.DeletedAt)(nil),    // 8: deletedAt.DeletedAt
-	(*wrapperspb.StringValue)(nil), // 9: google.protobuf.StringValue
+	(*timestamppb.Timestamp)(nil),  // 8: google.protobuf.Timestamp
+	(*deletedAt.DeletedAt)(nil),    // 9: deletedAt.DeletedAt
+	(*wrapperspb.StringValue)(nil), // 10: google.protobuf.StringValue
 }
 var file_user_user_proto_depIdxs = []int32{
-	0, // 0: user.User.gender:type_name -> user.Gender
-	1, // 1: user.User.role:type_name -> user.Role
-	2, // 2: user.User.status:type_name -> user.UserStatus
-	7, // 3: user.User.createdAt:type_name -> timestamp.Timestamp
-	7, // 4: user.User.activatedAt:type_name -> timestamp.Timestamp
-	8, // 5: user.User.deletedAt:type_name -> deletedAt.DeletedAt
-	0, // 6: user.SignupReq.gender:type_name -> user.Gender
-	5, // 7: user.UserService.Signup:input_type -> user.SignupReq
-	6, // 8: user.UserService.GetUser:input_type -> user.GetUserReq
-	9, // 9: user.UserService.Signup:output_type -> google.protobuf.StringValue
-	4, // 10: user.UserService.GetUser:output_type -> user.User
-	9, // [9:11] is the sub-list for method output_type
-	7, // [7:9] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	0,  // 0: user.User.gender:type_name -> user.Gender
+	1,  // 1: user.User.role:type_name -> user.Role
+	2,  // 2: user.User.status:type_name -> user.UserStatus
+	7,  // 3: user.User.createdAt:type_name -> timestamp.Timestamp
+	8,  // 4: user.User.activatedAt:type_name -> google.protobuf.Timestamp
+	9,  // 5: user.User.deletedAt:type_name -> deletedAt.DeletedAt
+	0,  // 6: user.SignupReq.gender:type_name -> user.Gender
+	5,  // 7: user.UserService.Signup:input_type -> user.SignupReq
+	6,  // 8: user.UserService.GetUser:input_type -> user.GetUserReq
+	10, // 9: user.UserService.Signup:output_type -> google.protobuf.StringValue
+	4,  // 10: user.UserService.GetUser:output_type -> user.User
+	9,  // [9:11] is the sub-list for method output_type
+	7,  // [7:9] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_user_user_proto_init() }

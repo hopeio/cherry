@@ -8,6 +8,7 @@ import "protoc-gen-openapiv2/options/annotations.proto";
 import "hopeio/utils/validator/validator.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
 import "danielvladco/protobuf/graphql.proto";
 
 option java_package = "cherry.hopeio.protobuf.user";
@@ -37,7 +38,7 @@ message User {
     read_only:true
   }];
   timestamp.Timestamp createdAt = 25 [(go.field) = {tags:'gorm:"type:timestamptz(6);default:now();index"'}];
-  timestamp.Timestamp activatedAt = 3 [(go.field) = {tags:'gorm:"<-:false;type:timestamptz(6);index"'}];
+  google.protobuf.Timestamp activatedAt = 3 [(go.field) = {tags:'gorm:"<-:false;type:timestamptz(6);index"'}];
   deletedAt.DeletedAt deletedAt = 27 [(go.field) = {tags:'gorm:"<-:false;type:timestamptz(6);index"'}];
   // uint32 isDeleted = 29 [(go.field) = {tags:'gorm:"default:0"'}];
 }
