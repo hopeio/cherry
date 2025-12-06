@@ -8,7 +8,6 @@ package cherry
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"net/http"
 	"os/signal"
@@ -17,10 +16,8 @@ import (
 	"syscall"
 
 	"github.com/hopeio/gox/context/httpctx"
-	"github.com/hopeio/gox/errors"
 	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
-	gatewayx "github.com/hopeio/gox/net/http/grpc/gateway"
 	"github.com/hopeio/gox/net/http/grpc/web"
 	"github.com/quic-go/quic-go"
 	"github.com/rs/cors"
@@ -92,6 +89,8 @@ func (s *Server) Run() {
 				wrappedGrpc.ServeHTTP(w, r)
 			} else if r.ProtoMajor == 2 && grpcServer != nil {
 				grpcServer.ServeHTTP(w, r) // gRPC Server
+			} else {
+				http.NotFound(w, r)
 			}
 		} else {
 			httpHandler.ServeHTTP(w, r)
@@ -99,23 +98,6 @@ func (s *Server) Run() {
 	}), s.Middlewares...)
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer func() {
-			if err := recover(); err != nil {
-				log.StackLogger().Errorw(fmt.Sprintf("panic: %v", err))
-				w.Header().Set(httpx.HeaderContentType, gatewayx.Marshaler.ContentType(nil))
-
-				se := &errors.ErrResp{Code: errors.Aborted, Msg: "system error"}
-				buf, err := gatewayx.Marshaler.Marshal(se)
-				if err != nil {
-					log.Error(err)
-				}
-				_, err = w.Write(buf)
-				if err != nil {
-					log.Error(err)
-				}
-			}
-		}()
-
 		ctx := httpctx.FromRequest(httpctx.RequestCtx{Request: r, ResponseWriter: w})
 		r = r.WithContext(ctx.Wrapper())
 		mwHandler.ServeHTTP(w, r)

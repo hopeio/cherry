@@ -11,17 +11,13 @@ import (
 	"fmt"
 
 	"reflect"
-	"runtime/debug"
 
 	"github.com/hopeio/gox/context/httpctx"
-	grpcx "github.com/hopeio/gox/net/http/grpc"
-
 	"github.com/hopeio/gox/log"
-	runtimex "github.com/hopeio/gox/runtime"
+	grpcx "github.com/hopeio/gox/net/http/grpc"
 	"github.com/hopeio/gox/validator"
 	"github.com/modern-go/reflect2"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
-	"go.uber.org/zap"
 	"go.uber.org/zap/zapgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
@@ -33,8 +29,8 @@ func (s *Server) grpcHandler() *grpc.Server {
 	//conf := s.Config
 	grpclog.SetLoggerV2(zapgrpc.NewLogger(log.CallerSkipLogger(4).Logger))
 	if s.GrpcHandler != nil {
-		var stream = append([]grpc.StreamServerInterceptor{StreamAccess, StreamValidator}, s.Grpc.StreamServerInterceptors...)
-		var unary = append([]grpc.UnaryServerInterceptor{s.UnaryAccess, UnaryValidator}, s.Grpc.UnaryServerInterceptors...)
+		var stream = append([]grpc.StreamServerInterceptor{s.StreamAccess}, s.Grpc.StreamServerInterceptors...)
+		var unary = append([]grpc.UnaryServerInterceptor{s.UnaryAccess}, s.Grpc.UnaryServerInterceptors...)
 		// 想做的大而全几乎不可能,为了更高的自由度,这里不做实现,均由使用者自行实现,后续可提供默认实现,但同样要由用户自己调用
 		/*		var srvMetrics *grpcprom.ServerMetrics
 				if conf.EnableMetrics {
@@ -83,11 +79,14 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 
 	defer func() {
 		if r := recover(); r != nil {
-			frame := debug.Stack()
-			log.Errorw(fmt.Sprintf("panic: %v", r), zap.ByteString(log.FieldStack, frame))
-			err = grpcx.Internal.ErrResp()
+			log.StackLogger().Errorw(fmt.Sprintf("panic: %v", err))
+			err = grpcx.Internal.Msg(sysErrMsg)
 		}
 	}()
+
+	if err = validator.ValidateStruct(req); err != nil {
+		return nil, grpcx.InvalidArgument.Wrap(err)
+	}
 
 	resp, err = handler(ctx, req)
 	//不能添加错误处理，除非所有返回的结构相同
@@ -95,8 +94,9 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 		if _, ok := err.(GRPCStatus); !ok {
 			err = grpcx.Unknown.Msg(err.Error())
 		}
+		return nil, err
 	}
-	if err == nil && reflect2.IsNil(resp) {
+	if reflect2.IsNil(resp) {
 		resp = reflect.New(reflect.TypeOf(resp).Elem()).Interface()
 	}
 
@@ -109,40 +109,47 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 			err:    err,
 		})
 	}
-	/*		if enabledPrometheus {
-			defaultMetricsRecord(ctxi, info.FullMethod, "grpc", code)
-		}*/
 	return resp, err
 
 }
 
-func StreamAccess(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
+func (s *Server) StreamAccess(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			frame, _ := runtimex.GetCallerFrame(2)
-			log.Errorw(fmt.Sprintf("panic: %v", r), zap.String(log.FieldStack, fmt.Sprintf("%s:%d (%#x)\n\t%s\n", frame.File, frame.Line, frame.PC, frame.Function)))
-			err = grpcx.Internal.ErrResp()
-		}
-		//不能添加错误处理，除非所有返回的结构相同
-		if err != nil {
-			if _, ok := err.(GRPCStatus); !ok {
-				err = grpcx.Unknown.Msg(err.Error())
-			}
+			log.StackLogger().Errorw(fmt.Sprintf("panic: %v", err))
+			err = grpcx.Internal.Msg(sysErrMsg)
 		}
 	}()
-
-	return handler(srv, stream)
+	wrapper := &recvWrapper{
+		ServerStream: stream,
+	}
+	err = handler(srv, wrapper)
+	if err != nil {
+		if _, ok := err.(GRPCStatus); !ok {
+			err = grpcx.Unknown.Msg(err.Error())
+		}
+	}
+	ctxi, _ := httpctx.FromContext(wrapper.Context())
+	if s.Grpc.RecordFunc != nil {
+		wrapper.err = err
+		wrapper.Method = info.FullMethod
+		s.Grpc.RecordFunc(ctxi, &wrapper.GrpcAccessLogParam)
+	}
+	return err
 }
 
 type recvWrapper struct {
 	grpc.ServerStream
+	GrpcAccessLogParam
 }
 
 func (s *recvWrapper) SendMsg(m interface{}) error {
+	s.resp = m
 	return s.ServerStream.SendMsg(m)
 }
 
 func (s *recvWrapper) RecvMsg(m interface{}) error {
+	s.req = m
 	if err := validator.ValidateStruct(m); err != nil {
 		return grpcx.InvalidArgument.Wrap(err)
 	}
@@ -150,18 +157,6 @@ func (s *recvWrapper) RecvMsg(m interface{}) error {
 		return err
 	}
 	return nil
-}
-
-func UnaryValidator(
-	ctx context.Context, req interface{},
-	info *grpc.UnaryServerInfo,
-	handler grpc.UnaryHandler,
-) (resp interface{}, err error) {
-
-	if err = validator.ValidateStruct(req); err != nil {
-		return nil, grpcx.InvalidArgument.Wrap(err)
-	}
-	return handler(ctx, req)
 }
 
 func StreamValidator(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {

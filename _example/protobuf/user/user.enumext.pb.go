@@ -2,15 +2,15 @@ package user
 
 import (
 	errors "errors"
-	io "io"
-
-	errors2 "github.com/hopeio/gox/errors"
+	errors1 "github.com/hopeio/gox/errors"
+	grpc "github.com/hopeio/gox/net/http/grpc"
 	strings "github.com/hopeio/gox/strings"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	io "io"
 )
 
-func (x Gender) Text() string {
+func (x Gender) Comment() string {
 	switch x {
 	case GenderPlaceholder:
 		return "占位"
@@ -36,7 +36,7 @@ func (x *Gender) UnmarshalGQL(v interface{}) error {
 	return errors.New("enum need integer type")
 }
 
-func (x Role) Text() string {
+func (x Role) Comment() string {
 	switch x {
 	case PlaceholderRole:
 		return "占位"
@@ -62,7 +62,7 @@ func (x *Role) UnmarshalGQL(v interface{}) error {
 	return errors.New("enum need integer type")
 }
 
-func (x UserStatus) Text() string {
+func (x UserStatus) Comment() string {
 	switch x {
 	case UserStatusPlaceholder:
 		return "占位"
@@ -90,7 +90,7 @@ func (x *UserStatus) UnmarshalGQL(v interface{}) error {
 	return errors.New("enum need integer type")
 }
 
-func (x UserErr) Text() string {
+func (x UserErr) Comment() string {
 	switch x {
 	case UserErrPlaceholder:
 		return "占位"
@@ -111,32 +111,28 @@ func (x UserErr) Text() string {
 }
 
 func (x UserErr) Error() string {
-	return x.Text()
+	return x.String()
 }
 
-func (x UserErr) ErrResp() *errors2.ErrResp {
-	return &errors2.ErrResp{Code: errors2.ErrCode(x), Msg: x.Text()}
+func (x UserErr) ErrResp() *grpc.ErrResp {
+	return &grpc.ErrResp{Code: errors1.ErrCode(x), Msg: x.String()}
 }
 
-func (x UserErr) Msg(msg string) *errors2.ErrResp {
-	return &errors2.ErrResp{Code: errors2.ErrCode(x), Msg: msg}
+func (x UserErr) Msg(msg string) *grpc.ErrResp {
+	return &grpc.ErrResp{Code: errors1.ErrCode(x), Msg: msg}
 }
 
-func (x UserErr) Wrap(err error) *errors2.ErrResp {
-	return &errors2.ErrResp{Code: errors2.ErrCode(x), Msg: err.Error()}
+func (x UserErr) Wrap(err error) *grpc.ErrResp {
+	return &grpc.ErrResp{Code: errors1.ErrCode(x), Msg: err.Error()}
 }
 
 func (x UserErr) GRPCStatus() *status.Status {
-	return status.New(codes.Code(x), x.Text())
-}
-
-func (x UserErr) ErrCode() errors2.ErrCode {
-	return errors2.ErrCode(x)
+	return status.New(codes.Code(x), x.String())
 }
 
 func init() {
-	for code := range UserErr_name {
-		errors2.Register(errors2.ErrCode(code), UserErr(code).Text())
+	for code, msg := range UserErr_name {
+		errors1.Register(errors1.ErrCode(code), msg)
 	}
 }
 

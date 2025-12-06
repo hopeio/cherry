@@ -8,14 +8,19 @@ package cherry
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 
 	"github.com/hopeio/gox/context/httpctx"
+	"github.com/hopeio/gox/errors"
+	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/apidoc"
 	"github.com/hopeio/gox/net/http/debug"
+	gatewayx "github.com/hopeio/gox/net/http/grpc/gateway"
 	stringsx "github.com/hopeio/gox/strings"
+	"github.com/hopeio/protobuf/response"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
@@ -36,7 +41,19 @@ func (s *Server) httpHandler() http.Handler {
 
 	var handler http.Handler
 	handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				log.StackLogger().Errorw(fmt.Sprintf("panic: %v", err))
+				w.Header().Set(httpx.HeaderContentType, gatewayx.Marshaler.ContentType(nil))
 
+				se := &response.CommonResp{Code: uint32(errors.Internal), Msg: sysErrMsg}
+				buf, err := gatewayx.Marshaler.Marshal(se)
+				if err != nil {
+					log.Error(err)
+				}
+				w.Write(buf)
+			}
+		}()
 		// 不记录日志
 		if len(s.AccessLog.ExcludePrefixes) > 0 {
 			if stringsx.HasPrefixes(r.RequestURI, s.AccessLog.ExcludePrefixes) &&

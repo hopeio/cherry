@@ -16,7 +16,6 @@ import (
 	"github.com/hopeio/gox/net/http/gin/binding"
 	grpc_0 "github.com/hopeio/gox/net/http/grpc"
 	"github.com/hopeio/protobuf/grpc/gateway"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
@@ -29,7 +28,6 @@ import (
 var _ codes.Code
 var _ io.Reader
 var _ status.Status
-var _ = grpc_0.String
 var _ = metadata.Join
 var _ = binding.Bind
 
@@ -95,7 +93,7 @@ func local_request_UserService_GetUser_0(server UserServiceServer, ctx *gin.Cont
 // UnaryRPC     :call UserServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterUserServiceHandlerFromEndpoint instead.
-func RegisterUserServiceHandlerServer(mux *gin.Engine, server UserServiceServer) error {
+func RegisterUserServiceHandlerServer(mux *gin.Engine, server UserServiceServer) {
 
 	mux.Handle("POST", "/api/v1/user", func(ctx *gin.Context) {
 		var md grpc_0.ServerMetadata
@@ -121,7 +119,6 @@ func RegisterUserServiceHandlerServer(mux *gin.Engine, server UserServiceServer)
 
 	})
 
-	return nil
 }
 
 // RegisterUserServiceHandlerFromEndpoint is same as RegisterUserServiceHandler but

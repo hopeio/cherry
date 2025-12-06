@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/gox/errors"
+	"github.com/hopeio/protobuf/time/timestamp"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/hopeio/cherry/_example/protobuf/user"
@@ -35,12 +36,12 @@ func (u *UserService) Signup(ctx context.Context, req *user.SignupReq) (*wrapper
 func (u *UserService) GetUser(ctx context.Context, req *user.GetUserReq) (*user.User, error) {
 	ctxi, _ := httpctx.FromContext(ctx)
 	defer ctxi.StartSpanEnd("")()
-	return &user.User{Id: req.Id}, nil
+	return &user.User{Id: req.Id, CreatedAt: timestamp.Now()}, nil
 }
 func Test(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, _ := strconv.Atoi(idStr)
 	ctxi, _ := httpctx.FromContext(ctx.Request.Context())
 	defer ctxi.StartSpanEnd("")()
-	ctx.JSON(200, user.User{Id: uint64(id)})
+	ctx.JSON(200, user.User{Id: uint64(id), CreatedAt: timestamp.Now()})
 }
