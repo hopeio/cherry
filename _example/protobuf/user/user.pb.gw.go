@@ -35,31 +35,35 @@ var _ = strconv.Bool
 
 func request_UserService_Signup_0(ctx *gin.Context, client UserServiceClient) (proto.Message, grpc_0.ServerMetadata, error) {
 	var protoReq SignupReq
-	var metadata grpc_0.ServerMetadata
+	var md grpc_0.ServerMetadata
 
 	if err := gateway.Bind(ctx, &protoReq); err != nil {
-		return nil, metadata, err
+		return nil, md, err
 	}
 
-	msg, err := client.Signup(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-	return msg, metadata, err
+	msg, err := client.Signup(metadata.NewOutgoingContext(ctx.Request.Context(), metadata.MD(ctx.Request.Header)), &protoReq, grpc.Header(&md.Header), grpc.Trailer(&md.Trailer))
+	return msg, md, err
 
 }
 
-func local_request_UserService_Signup_0(server UserServiceServer, ctx *gin.Context) (proto.Message, error) {
+func local_request_UserService_Signup_0(server UserServiceServer, ctx *gin.Context) (proto.Message, grpc_0.ServerMetadata, error) {
+	var stream grpc_0.ServerTransportStream
 	var protoReq SignupReq
 
 	if err := gateway.Bind(ctx, &protoReq); err != nil {
-		return nil, err
+		return nil, stream.ServerMetadata(), err
 	}
 
-	return server.Signup(ctx.Request.Context(), &protoReq)
+	ctx.Request = ctx.Request.WithContext(grpc.NewContextWithServerTransportStream(metadata.NewIncomingContext(ctx.Request.Context(), metadata.MD(ctx.Request.Header)), &stream))
+
+	resp, err := server.Signup(ctx.Request.Context(), &protoReq)
+	return resp, stream.ServerMetadata(), err
 
 }
 
 func request_UserService_GetUser_0(ctx *gin.Context, client UserServiceClient) (proto.Message, grpc_0.ServerMetadata, error) {
 	var protoReq GetUserReq
-	var metadata grpc_0.ServerMetadata
+	var md grpc_0.ServerMetadata
 
 	var (
 		err error
@@ -67,16 +71,19 @@ func request_UserService_GetUser_0(ctx *gin.Context, client UserServiceClient) (
 
 	protoReq.Id, err = strconv.Uint64(ctx.Param("id"))
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+		return nil, md, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	msg, err := client.GetUser(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-	return msg, metadata, err
+	msg, err := client.GetUser(metadata.NewOutgoingContext(ctx.Request.Context(), metadata.MD(ctx.Request.Header)), &protoReq, grpc.Header(&md.Header), grpc.Trailer(&md.Trailer))
+	return msg, md, err
 
 }
 
-func local_request_UserService_GetUser_0(server UserServiceServer, ctx *gin.Context) (proto.Message, error) {
+func local_request_UserService_GetUser_0(server UserServiceServer, ctx *gin.Context) (proto.Message, grpc_0.ServerMetadata, error) {
+	var stream grpc_0.ServerTransportStream
 	var protoReq GetUserReq
+
+	ctx.Request = ctx.Request.WithContext(grpc.NewContextWithServerTransportStream(metadata.NewIncomingContext(ctx.Request.Context(), metadata.MD(ctx.Request.Header)), &stream))
 
 	var (
 		err error
@@ -84,10 +91,11 @@ func local_request_UserService_GetUser_0(server UserServiceServer, ctx *gin.Cont
 
 	protoReq.Id, err = strconv.Uint64(ctx.Param("id"))
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+		return nil, stream.ServerMetadata(), status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	return server.GetUser(ctx.Request.Context(), &protoReq)
+	resp, err := server.GetUser(ctx.Request.Context(), &protoReq)
+	return resp, stream.ServerMetadata(), err
 
 }
 
@@ -98,8 +106,7 @@ func local_request_UserService_GetUser_0(server UserServiceServer, ctx *gin.Cont
 func RegisterUserServiceHandlerServer(mux *gin.Engine, server UserServiceServer) {
 
 	mux.Handle("POST", "/api/v1/user", func(ctx *gin.Context) {
-		var md grpc_0.ServerMetadata
-		resp, err := local_request_UserService_Signup_0(server, ctx)
+		resp, md, err := local_request_UserService_Signup_0(server, ctx)
 		if err != nil {
 			gateway.HttpError(ctx, err)
 			return
@@ -110,8 +117,7 @@ func RegisterUserServiceHandlerServer(mux *gin.Engine, server UserServiceServer)
 	})
 
 	mux.Handle("GET", "/api/v1/:id", func(ctx *gin.Context) {
-		var md grpc_0.ServerMetadata
-		resp, err := local_request_UserService_GetUser_0(server, ctx)
+		resp, md, err := local_request_UserService_GetUser_0(server, ctx)
 		if err != nil {
 			gateway.HttpError(ctx, err)
 			return
