@@ -14,8 +14,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/gox"
+	"github.com/hopeio/gox/encoding/text"
 	grpc_0 "github.com/hopeio/gox/net/http/grpc"
-	"github.com/hopeio/gox/strconv"
 	"github.com/hopeio/protobuf/grpc/gateway"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -31,7 +31,7 @@ var _ io.Reader
 var _ status.Status
 var _ = metadata.Join
 var _ = gox.Pointer[bool]
-var _ = strconv.Bool
+var _ = text.Bool
 
 func request_UserService_Signup_0(ctx *gin.Context, client UserServiceClient) (proto.Message, grpc_0.ServerMetadata, error) {
 	var protoReq SignupReq
@@ -69,7 +69,7 @@ func request_UserService_GetUser_0(ctx *gin.Context, client UserServiceClient) (
 		err error
 	)
 
-	protoReq.Id, err = strconv.Uint64(ctx.Param("id"))
+	protoReq.Id, err = text.Uint64(ctx.Param("id"))
 	if err != nil {
 		return nil, md, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
@@ -89,7 +89,7 @@ func local_request_UserService_GetUser_0(server UserServiceServer, ctx *gin.Cont
 		err error
 	)
 
-	protoReq.Id, err = strconv.Uint64(ctx.Param("id"))
+	protoReq.Id, err = text.Uint64(ctx.Param("id"))
 	if err != nil {
 		return nil, stream.ServerMetadata(), status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
