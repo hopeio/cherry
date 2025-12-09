@@ -46,7 +46,7 @@ func (s *Server) httpHandler() http.Handler {
 				log.StackLogger().Errorw(fmt.Sprintf("panic: %v", err))
 				w.Header().Set(httpx.HeaderContentType, gatewayx.Marshaler.ContentType(nil))
 
-				se := &response.CommonResp{Code: uint32(errors.Internal), Msg: sysErrMsg}
+				se := &response.CommonResp{Code: int32(errors.Internal), Msg: sysErrMsg}
 				buf, err := gatewayx.Marshaler.Marshal(se)
 				if err != nil {
 					log.Error(err)
