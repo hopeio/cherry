@@ -44,10 +44,10 @@ func (s *Server) httpHandler() http.Handler {
 		defer func() {
 			if err := recover(); err != nil {
 				log.StackLogger().Errorw(fmt.Sprintf("panic: %v", err))
-				w.Header().Set(httpx.HeaderContentType, gatewayx.Marshaler.ContentType(nil))
+				w.Header().Set(httpx.HeaderContentType, gatewayx.Codec.ContentType(nil))
 
 				se := &response.CommonResp{Code: int32(errors.Internal), Msg: sysErrMsg}
-				buf, err := gatewayx.Marshaler.Marshal(se)
+				buf, err := gatewayx.Codec.Marshal(se)
 				if err != nil {
 					log.Error(err)
 				}

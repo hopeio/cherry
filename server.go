@@ -38,7 +38,7 @@ func NewServer(options ...Option) *Server {
 
 func (s *Server) Run() {
 	baseCtx := context.Background()
-	// Handle SIGINT (CTRL+C) gracefully.
+	// Handler SIGINT (CTRL+C) gracefully.
 	sigCtx, stop := signal.NotifyContext(baseCtx, // kill -SIGINT XXXX 或 Ctrl+c
 		syscall.SIGINT, // register that too, it should be ok
 		// os.Kill等同于syscall.Kill
@@ -78,7 +78,7 @@ func (s *Server) Run() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		// Handle shutdown properly so nothing leaks.
+		// Handler shutdown properly so nothing leaks.
 		defer otelShutdown(sigCtx)
 	}
 

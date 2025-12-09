@@ -14,12 +14,12 @@ import (
 
 	"github.com/hopeio/gox/context/httpctx"
 	"github.com/hopeio/gox/log"
-	grpcx "github.com/hopeio/gox/net/http/grpc"
 	"github.com/hopeio/gox/validator"
 	"github.com/modern-go/reflect2"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/zap/zapgrpc"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
@@ -79,20 +79,20 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 
 	defer func() {
 		if r := recover(); r != nil {
-			log.StackLogger().Errorw(fmt.Sprintf("panic: %v", err))
-			err = grpcx.Internal.Msg(sysErrMsg)
+			log.StackLogger().Errorw(fmt.Sprintf("panic: %v", r))
+			err = status.Error(codes.Internal, sysErrMsg)
 		}
 	}()
 
 	if err = validator.ValidateStruct(req); err != nil {
-		return nil, grpcx.InvalidArgument.Wrap(err)
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	resp, err = handler(ctx, req)
 	//不能添加错误处理，除非所有返回的结构相同
 	if err != nil {
 		if _, ok := err.(GRPCStatus); !ok {
-			err = grpcx.Unknown.Msg(err.Error())
+			err = status.Error(codes.Unknown, err.Error())
 		}
 		return nil, err
 	}
@@ -116,8 +116,8 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 func (s *Server) StreamAccess(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.StackLogger().Errorw(fmt.Sprintf("panic: %v", err))
-			err = grpcx.Internal.Msg(sysErrMsg)
+			log.StackLogger().Errorw(fmt.Sprintf("panic: %v", r))
+			err = status.Error(codes.Internal, sysErrMsg)
 		}
 	}()
 	wrapper := &recvWrapper{
@@ -126,7 +126,7 @@ func (s *Server) StreamAccess(srv interface{}, stream grpc.ServerStream, info *g
 	err = handler(srv, wrapper)
 	if err != nil {
 		if _, ok := err.(GRPCStatus); !ok {
-			err = grpcx.Unknown.Msg(err.Error())
+			err = status.Error(codes.Unknown, err.Error())
 		}
 	}
 	ctxi, _ := httpctx.FromContext(wrapper.Context())
@@ -151,7 +151,7 @@ func (s *recvWrapper) SendMsg(m interface{}) error {
 func (s *recvWrapper) RecvMsg(m interface{}) error {
 	s.req = m
 	if err := validator.ValidateStruct(m); err != nil {
-		return grpcx.InvalidArgument.Wrap(err)
+		return status.Error(codes.InvalidArgument, err.Error())
 	}
 	if err := s.ServerStream.RecvMsg(m); err != nil {
 		return err
