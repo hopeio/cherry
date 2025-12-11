@@ -15,9 +15,9 @@ cherry服务器，各种服务接口的保留，集成支持，一个服务暴�
 - `go run $(go list -m -f {{.Dir}}  github.com/hopeio/protobuf)/tools/install_tools.go`
 ### generate protobuf
 `protogen go -e -w -v -p _example/proto -o _example/protobuf`
--e(enum扩展) -w(gin gateway) -g(graphql) -v(生成校验代码) -p proto目录 -o 输出pb.go目录
+-d(openapi doc) -e(enum扩展) -w(gin gateway) -g(graphql) -v(生成校验代码) -i proto目录 -o 输出pb.go目录
 #### use docker(可选的)
-`docker run --rm -v $project:/work jybl/protogen protogen go -e -w -p $proto_path -o $proto_output_path`
+`docker run --rm -v $project:/work jybl/protogen protogen go -d -e -w -i $proto_path -o $proto_output_path`
 ### run
 `go run _example/user/main.go`
 
