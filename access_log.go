@@ -75,7 +75,7 @@ func DefaultGrpcAccessLog(ctxi *httpctx.Context, param *GrpcAccessLogParam) {
 	respBodyField := zap.Skip()
 	if param.err != nil {
 		s, _ := status.FromError(param.err)
-		se := &response.CommonResp{Code: int32(s.Code()), Msg: s.Message()}
+		se := &response.ErrResp{Code: int32(s.Code()), Msg: s.Message()}
 		respBodyField = zap.String("resp", se.String())
 	} else {
 		respBodyField = zap.String("resp", param.resp.(fmt.Stringer).String())
