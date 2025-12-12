@@ -56,9 +56,9 @@ func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 			zap.String("method", param.Method),
 			reqBodyField,
 			zap.String("traceId", ctxi.TraceID()),
-			zap.Duration("duration", ce.Time.Sub(ctxi.RequestAt.Time)),
+			zap.Duration("duration", ce.Time.Sub(ctxi.RequestTime.Time)),
 			respBodyField,
-			zap.String("auth", ctxi.AuthInfoRaw),
+			zap.String("auth", ctxi.AuthRaw),
 			zap.Int("status", param.StatusCode))
 	}
 }
@@ -86,9 +86,9 @@ func DefaultGrpcAccessLog(ctxi *httpctx.Context, param *GrpcAccessLogParam) {
 			zap.String("method", "grpc"),
 			zap.String("body", param.req.(fmt.Stringer).String()),
 			zap.String("traceId", ctxi.TraceID()),
-			zap.Duration("duration", ce.Time.Sub(ctxi.RequestAt.Time)),
+			zap.Duration("duration", ce.Time.Sub(ctxi.RequestTime.Time)),
 			respBodyField,
-			zap.String("auth", ctxi.AuthInfoRaw),
+			zap.String("auth", ctxi.AuthRaw),
 		)
 	}
 }
