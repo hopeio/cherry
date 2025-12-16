@@ -105,7 +105,7 @@ func local_request_UserService_GetUser_0(server UserServiceServer, ctx *gin.Cont
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterUserServiceHandlerFromEndpoint instead.
 func RegisterUserServiceHandlerServer(mux *gin.Engine, server UserServiceServer) {
 
-	mux.Handle("POST", "/api/v1/user", func(ctx *gin.Context) {
+	mux.Handle("POST", "/api/user", func(ctx *gin.Context) {
 		resp, md, err := local_request_UserService_Signup_0(server, ctx)
 		if err != nil {
 			gateway.HttpError(ctx, err)
@@ -116,7 +116,7 @@ func RegisterUserServiceHandlerServer(mux *gin.Engine, server UserServiceServer)
 
 	})
 
-	mux.Handle("GET", "/api/v1/:id", func(ctx *gin.Context) {
+	mux.Handle("GET", "/api/:id", func(ctx *gin.Context) {
 		resp, md, err := local_request_UserService_GetUser_0(server, ctx)
 		if err != nil {
 			gateway.HttpError(ctx, err)
@@ -167,7 +167,7 @@ func RegisterUserServiceHandler(ctx context.Context, mux *gin.Engine, conn *grpc
 // "UserServiceClient" to call the correct interceptors.
 func RegisterUserServiceHandlerClient(ctx context.Context, mux *gin.Engine, client UserServiceClient) error {
 
-	mux.Handle("POST", "/api/v1/user", func(ctx *gin.Context) {
+	mux.Handle("POST", "/api/user", func(ctx *gin.Context) {
 		resp, md, err := request_UserService_Signup_0(ctx, client)
 		if err != nil {
 			gateway.HttpError(ctx, err)
@@ -178,7 +178,7 @@ func RegisterUserServiceHandlerClient(ctx context.Context, mux *gin.Engine, clie
 
 	})
 
-	mux.Handle("GET", "/api/v1/:id", func(ctx *gin.Context) {
+	mux.Handle("GET", "/api/:id", func(ctx *gin.Context) {
 		resp, md, err := request_UserService_GetUser_0(ctx, client)
 		if err != nil {
 			gateway.HttpError(ctx, err)
