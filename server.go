@@ -11,7 +11,6 @@ import (
 	"net"
 	"net/http"
 	"os/signal"
-	"reflect"
 	"strings"
 	"syscall"
 
@@ -53,13 +52,7 @@ func (s *Server) Run() {
 
 	// cors
 	if s.Cors.Enabled {
-		var corsServer *cors.Cors
-		if reflect.ValueOf(&s.Cors.Options).Elem().IsZero() {
-			corsServer = cors.AllowAll()
-		} else {
-			corsServer = cors.New(s.Cors.Options)
-		}
-		httpHandler = corsServer.Handler(httpHandler)
+		httpHandler = cors.New(s.Cors.Options).Handler(httpHandler)
 	}
 
 	// grpc-web

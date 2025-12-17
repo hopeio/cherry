@@ -173,6 +173,23 @@ func (s *Server) Init() {
 			s.Telemetry.Prometheus.HttpUri = "/metrics"
 		}
 	}
+
+	if s.Cors.Enabled {
+		if len(s.Cors.AllowedOrigins) == 0 {
+			s.Cors.AllowedOrigins = []string{"*"}
+		}
+		if len(s.Cors.AllowedMethods) == 0 {
+			s.Cors.AllowedMethods = []string{http.MethodHead,
+				http.MethodGet,
+				http.MethodPost,
+				http.MethodPut,
+				http.MethodPatch,
+				http.MethodDelete}
+		}
+		if len(s.Cors.AllowedHeaders) == 0 {
+			s.Cors.AllowedHeaders = []string{"*"}
+		}
+	}
 }
 
 // implement initialize
