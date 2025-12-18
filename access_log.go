@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/hopeio/gox/context/httpctx"
+	"github.com/hopeio/gox/encoding/protobuf"
 	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
 	stringsx "github.com/hopeio/gox/strings"
@@ -38,6 +39,13 @@ func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 	if len(param.ReqBody.Data) > 0 {
 		if strings.HasPrefix(param.ReqBody.ContentType, httpx.ContentTypeJson) {
 			reqBodyField = zap.Reflect("body", json.RawMessage(param.ReqBody.Data))
+		} else if strings.HasPrefix(param.ReqBody.ContentType, httpx.ContentTypeProtobuf) {
+			fileds, err := protobuf.DecodeMessage(param.ReqBody.Data)
+			if err != nil {
+				return
+			}
+
+			reqBodyField = zap.Reflect("body", protobuf.FieldsToMap(fileds))
 		} else {
 			reqBodyField = zap.String("body", stringsx.BytesToString(param.ReqBody.Data))
 		}
@@ -46,6 +54,13 @@ func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 	if len(param.RespBody.Data) > 0 {
 		if strings.HasPrefix(param.RespBody.ContentType, httpx.ContentTypeJson) {
 			respBodyField = zap.Reflect("resp", json.RawMessage(param.RespBody.Data))
+		} else if strings.HasPrefix(param.RespBody.ContentType, httpx.ContentTypeProtobuf) {
+			fileds, err := protobuf.DecodeMessage(param.RespBody.Data)
+			if err != nil {
+				return
+			}
+
+			reqBodyField = zap.Reflect("resp", protobuf.FieldsToMap(fileds))
 		} else {
 			respBodyField = zap.String("resp", stringsx.BytesToString(param.RespBody.Data))
 		}

@@ -133,6 +133,22 @@ func (s *Server) Init() {
 	if s.Addr == "" {
 		s.Addr = ":8080"
 	}
+
+	if s.AccessLog.RecordFunc == nil {
+		s.AccessLog.RecordFunc = DefaultAccessLog
+	}
+	if s.Grpc.RecordFunc == nil {
+		s.Grpc.RecordFunc = DefaultGrpcAccessLog
+	}
+
+	if s.GinServer == nil {
+		s.GinServer = gin.New()
+	}
+
+	if s.InternalServer.Addr == "" {
+		s.InternalServer.Addr = ":8081"
+	}
+
 	log.ValueLevelNotify("ReadTimeout", s.ReadTimeout, time.Second)
 	log.ValueLevelNotify("WriteTimeout", s.WriteTimeout, time.Second)
 	if s.CertFile != "" && s.KeyFile != "" {
@@ -154,26 +170,6 @@ func (s *Server) Init() {
 			s.HTTP3.TLSConfig = tlsConfig
 		}
 	}
-	if s.AccessLog.RecordFunc == nil {
-		s.AccessLog.RecordFunc = DefaultAccessLog
-	}
-	if s.Grpc.RecordFunc == nil {
-		s.Grpc.RecordFunc = DefaultGrpcAccessLog
-	}
-
-	if s.GinServer == nil {
-		s.GinServer = gin.New()
-	}
-
-	if s.InternalServer.Addr == "" {
-		s.InternalServer.Addr = ":8081"
-	}
-	if s.Telemetry.Enabled && s.Telemetry.Prometheus.Enabled {
-		if s.Telemetry.Prometheus.HttpUri == "" {
-			s.Telemetry.Prometheus.HttpUri = "/metrics"
-		}
-	}
-
 	if s.Cors.Enabled {
 		if len(s.Cors.AllowedOrigins) == 0 {
 			s.Cors.AllowedOrigins = []string{"*"}
@@ -190,6 +186,13 @@ func (s *Server) Init() {
 			s.Cors.AllowedHeaders = []string{"*"}
 		}
 	}
+
+	if s.Telemetry.Enabled && s.Telemetry.Prometheus.Enabled {
+		if s.Telemetry.Prometheus.HttpUri == "" {
+			s.Telemetry.Prometheus.HttpUri = "/metrics"
+		}
+	}
+
 }
 
 // implement initialize
@@ -198,6 +201,7 @@ func (s *Server) BeforeInject() {
 }
 
 func (s *Server) AfterInject() {
+	s.Init()
 }
 
 func (s *Server) WithOptions(options ...Option) *Server {
