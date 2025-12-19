@@ -31,9 +31,9 @@ func (s *Server) grpcHandler() *grpc.Server {
 	if s.GrpcHandler != nil {
 		var stream = append([]grpc.StreamServerInterceptor{s.StreamAccess}, s.Grpc.StreamServerInterceptors...)
 		var unary = append([]grpc.UnaryServerInterceptor{s.UnaryAccess}, s.Grpc.UnaryServerInterceptors...)
-		// 想做的大而全几乎不可能,为了更高的自由度,这里不做实现,均由使用者自行实现,后续可提供默认实现,但同样要由用户自己调用
+
 		/*		var srvMetrics *grpcprom.ServerMetrics
-				if conf.EnableMetrics {
+				if s.Telemetry.Enabled && s.Telemetry.Prometheus.Enabled {
 					// Setup metrics.
 					srvMetrics = grpcprom.NewServerMetrics(
 						grpcprom.WithServerHandlingTimeHistogram(
@@ -60,7 +60,7 @@ func (s *Server) grpcHandler() *grpc.Server {
 		}
 
 		grpcServer := grpc.NewServer(s.Grpc.Options...)
-		/*		if conf.EnabledMetrics {
+		/*		if s.Telemetry.Enabled && s.Telemetry.Prometheus.Enabled && srvMetrics != nil {
 				srvMetrics.InitializeMetrics(grpcServer)
 			}*/
 		s.GrpcHandler(grpcServer)

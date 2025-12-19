@@ -21,7 +21,6 @@ import (
 	stringsx "github.com/hopeio/gox/strings"
 	"github.com/hopeio/protobuf/response"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 func (s *Server) InternalHandler() {
@@ -77,27 +76,22 @@ func (s *Server) httpHandler() http.Handler {
 			})
 		}
 		recorder.Reset()
-		/*		if enablePrometheus {
-				defaultMetricsRecord(ctxi, r.RequestURI, r.Method, recorder.Code)
-			}*/
 	})
-	if s.Telemetry.Enabled {
+	/*	if s.Telemetry.Enabled {
+		handlerBack := handler
+		handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			//apiCounter.Add(r.Context(), 1)
+			attr := semconv.HTTPRouteKey.String(r.RequestURI)
 
-		/*		handlerBack := handler
+			span := trace.SpanFromContext(r.Context())
+			span.SetAttributes(attr)
 
-				handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					//apiCounter.Add(r.Context(), 1)
-					attr := semconv.HTTPRouteKey.String(r.RequestURI)
+			labeler, _ := otelhttp.LabelerFromContext(r.Context())
+			labeler.Add(attr)
 
-					span := trace.SpanFromContext(r.Context())
-					span.SetAttributes(attr)
-
-					labeler, _ := otelhttp.LabelerFromContext(r.Context())
-					labeler.Add(attr)
-
-					handlerBack.Respond(w, r)
-				})*/
+			handlerBack.ServeHTTP(w, r)
+		})
 		handler = otelhttp.NewHandler(handler, "server", s.Telemetry.otelhttpOpts...)
-	}
+	}*/
 	return handler
 }
