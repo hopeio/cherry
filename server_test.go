@@ -48,7 +48,7 @@ func TestPtr(t *testing.T) {
 func TestGinCtxPtr(t *testing.T) {
 	recorder := httpx.NewRecorder(http.Header{})
 	ctx := new(gin.Context)
-	*(*httpx.ResponseRecorder)(unsafe.Pointer(uintptr(*(*int64)(unsafe.Pointer(ctx))))) = *recorder
+	*(*httpx.Recorder)(unsafe.Pointer(uintptr(*(*int64)(unsafe.Pointer(ctx))))) = *recorder
 	log.Println(*(*int64)(unsafe.Pointer(ctx)))
 	log.Println(recorder.Code)
 }

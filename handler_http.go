@@ -7,10 +7,9 @@
 package cherry
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/hopeio/gox/context/httpctx"
 	"github.com/hopeio/gox/errors"
@@ -45,7 +44,9 @@ func (s *Server) httpHandler() http.Handler {
 			if err := recover(); err != nil {
 				log.StackLogger().Errorw(fmt.Sprintf("panic: %v", err))
 				w.Header().Set(httpx.HeaderContentType, gatewayx.DefaultMarshaler.ContentType(nil))
-
+				code := strconv.Itoa(int(errors.Internal))
+				w.Header().Set(httpx.HeaderErrorCode, code)
+				w.Header().Set(httpx.HeaderGrpcStatus, code)
 				se := &response.ErrResp{Code: int32(errors.Internal), Msg: sysErrMsg}
 				buf, err := gatewayx.DefaultMarshaler.Marshal(se)
 				if err != nil {
@@ -63,37 +64,19 @@ func (s *Server) httpHandler() http.Handler {
 			}
 		}
 
-		var body []byte
-		if r.Body != nil {
-			body, _ = io.ReadAll(r.Body)
-			r.Body.Close()
-			r.Body = io.NopCloser(bytes.NewReader(body))
-		}
-		recorder := httpx.NewRecorder(w.Header())
-
+		recorder := httpx.NewRecorder(w, r)
+		r.Body = recorder
 		s.GinServer.ServeHTTP(recorder, r)
-
-		// 提取 recorder 中记录的状态码，写入到 ResponseWriter 中
-		w.WriteHeader(recorder.Code)
-		if recorder.Body != nil {
-			// 将 recorder 记录的 Response Body 写入到 ResponseWriter 中，客户端收到响应报文体
-			w.Write(recorder.Body.Bytes())
-		}
 		ctxi, _ := httpctx.FromContext(r.Context())
 		if s.AccessLog.RecordFunc != nil {
+			recorder.Request.ContentType = r.Header.Get(httpx.HeaderContentType)
+			recorder.Reponse.ContentType = recorder.Header().Get(httpx.HeaderContentType)
 			s.AccessLog.RecordFunc(ctxi, &AccessLogParam{
 				r.Method, r.RequestURI,
-				Body{
-					ContentType: r.Header.Get(httpx.HeaderContentType),
-					Data:        body,
-				},
-				Body{
-					ContentType: w.Header().Get(httpx.HeaderContentType),
-					Data:        recorder.Body.Bytes(),
-				},
-				recorder.Code,
+				recorder,
 			})
 		}
+		recorder.Reset()
 		/*		if enablePrometheus {
 				defaultMetricsRecord(ctxi, r.RequestURI, r.Method, recorder.Code)
 			}*/

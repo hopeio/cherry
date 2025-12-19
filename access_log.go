@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/hopeio/gox/context/httpctx"
-	"github.com/hopeio/gox/encoding/protobuf"
 	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
 	stringsx "github.com/hopeio/gox/strings"
@@ -23,46 +22,42 @@ import (
 
 type Body struct {
 	ContentType string
-	Data        []byte
+	Raw         []byte
+	Data        any
 }
 
 type AccessLogParam struct {
-	Method, Url       string
-	ReqBody, RespBody Body
-	StatusCode        int
+	Method, Url string
+	*httpx.Recorder
 }
 
 type AccessLog = func(ctxi *httpctx.Context, pram *AccessLogParam)
 
 func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 	reqBodyField := zap.Skip()
-	if len(param.ReqBody.Data) > 0 {
-		if strings.HasPrefix(param.ReqBody.ContentType, httpx.ContentTypeJson) {
-			reqBodyField = zap.Reflect("body", json.RawMessage(param.ReqBody.Data))
-		} else if strings.HasPrefix(param.ReqBody.ContentType, httpx.ContentTypeProtobuf) {
-			fileds, err := protobuf.DecodeMessage(param.ReqBody.Data)
-			if err != nil {
-				return
-			}
-
-			reqBodyField = zap.Reflect("body", protobuf.FieldsToMap(fileds))
+	if len(param.Request.Raw) > 0 || param.Request.Value != nil || param.Request.Body != nil {
+		if param.Request.Raw == nil && param.Request.Body != nil {
+			param.Request.Raw = param.Request.Body.Bytes()
+		}
+		if strings.HasPrefix(param.Request.ContentType, httpx.ContentTypeJson) {
+			reqBodyField = zap.Reflect("body", json.RawMessage(param.Request.Raw))
+		} else if strings.HasPrefix(param.Request.ContentType, httpx.ContentTypeProtobuf) {
+			reqBodyField = zap.String("body", param.Request.Value.(fmt.Stringer).String())
 		} else {
-			reqBodyField = zap.String("body", stringsx.BytesToString(param.ReqBody.Data))
+			reqBodyField = zap.String("body", stringsx.BytesToString(param.Request.Raw))
 		}
 	}
 	respBodyField := zap.Skip()
-	if len(param.RespBody.Data) > 0 {
-		if strings.HasPrefix(param.RespBody.ContentType, httpx.ContentTypeJson) {
-			respBodyField = zap.Reflect("resp", json.RawMessage(param.RespBody.Data))
-		} else if strings.HasPrefix(param.RespBody.ContentType, httpx.ContentTypeProtobuf) {
-			fileds, err := protobuf.DecodeMessage(param.RespBody.Data)
-			if err != nil {
-				return
-			}
-
-			reqBodyField = zap.Reflect("resp", protobuf.FieldsToMap(fileds))
+	if len(param.Reponse.Raw) > 0 || param.Reponse.Value != nil || param.Reponse.Body != nil {
+		if param.Reponse.Raw == nil && param.Reponse.Body != nil {
+			param.Reponse.Raw = param.Reponse.Body.Bytes()
+		}
+		if strings.HasPrefix(param.Reponse.ContentType, httpx.ContentTypeJson) {
+			respBodyField = zap.Reflect("resp", json.RawMessage(param.Reponse.Raw))
+		} else if strings.HasPrefix(param.Reponse.ContentType, httpx.ContentTypeProtobuf) {
+			reqBodyField = zap.String("resp", param.Reponse.Value.(fmt.Stringer).String())
 		} else {
-			respBodyField = zap.String("resp", stringsx.BytesToString(param.RespBody.Data))
+			respBodyField = zap.String("resp", stringsx.BytesToString(param.Reponse.Raw))
 		}
 	}
 	// log 里time now 浪费性能
@@ -74,7 +69,7 @@ func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 			zap.Duration("duration", ce.Time.Sub(ctxi.RequestTime.Time)),
 			respBodyField,
 			zap.String("auth", ctxi.AuthRaw),
-			zap.Int("status", param.StatusCode))
+			zap.Int("status", param.Code))
 	}
 }
 
