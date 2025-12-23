@@ -42,15 +42,12 @@ func (s *Server) httpHandler() http.Handler {
 		defer func() {
 			if err := recover(); err != nil {
 				log.StackLogger().Errorw(fmt.Sprintf("panic: %v", err))
-				w.Header().Set(httpx.HeaderContentType, gatewayx.DefaultMarshaler.ContentType(nil))
 				code := strconv.Itoa(int(errors.Internal))
 				w.Header().Set(httpx.HeaderErrorCode, code)
 				w.Header().Set(httpx.HeaderGrpcStatus, code)
 				se := &response.ErrResp{Code: int32(errors.Internal), Msg: sysErrMsg}
-				buf, err := gatewayx.DefaultMarshaler.Marshal(se)
-				if err != nil {
-					log.Error(err)
-				}
+				buf, contentType := gatewayx.DefaultMarshal(r.Header.Get(httpx.HeaderAccept), se)
+				w.Header().Set(httpx.HeaderContentType, contentType)
 				w.Write(buf)
 			}
 		}()
