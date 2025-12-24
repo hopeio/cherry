@@ -35,29 +35,29 @@ type AccessLog = func(ctxi *httpctx.Context, pram *AccessLogParam)
 
 func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 	reqBodyField := zap.Skip()
-	if len(param.Request.Raw) > 0 || param.Request.Value != nil || param.Request.Body != nil {
-		if param.Request.Raw == nil && param.Request.Body != nil {
-			param.Request.Raw = param.Request.Body.Bytes()
+	if len(param.RequestRecorder.Raw) > 0 || param.RequestRecorder.Value != nil || param.RequestRecorder.Body != nil {
+		if param.RequestRecorder.Raw == nil && param.RequestRecorder.Body != nil {
+			param.RequestRecorder.Raw = param.RequestRecorder.Body.Bytes()
 		}
-		if strings.HasPrefix(param.Request.ContentType, httpx.ContentTypeJson) {
-			reqBodyField = zap.Reflect("body", json.RawMessage(param.Request.Raw))
-		} else if strings.HasPrefix(param.Request.ContentType, httpx.ContentTypeProtobuf) {
-			reqBodyField = zap.String("body", param.Request.Value.(fmt.Stringer).String())
+		if strings.HasPrefix(param.RequestRecorder.ContentType, httpx.ContentTypeJson) {
+			reqBodyField = zap.Reflect("body", json.RawMessage(param.RequestRecorder.Raw))
+		} else if strings.HasPrefix(param.RequestRecorder.ContentType, httpx.ContentTypeProtobuf) {
+			reqBodyField = zap.String("body", param.RequestRecorder.Value.(fmt.Stringer).String())
 		} else {
-			reqBodyField = zap.String("body", stringsx.BytesToString(param.Request.Raw))
+			reqBodyField = zap.String("body", stringsx.BytesToString(param.RequestRecorder.Raw))
 		}
 	}
 	respBodyField := zap.Skip()
-	if len(param.Reponse.Raw) > 0 || param.Reponse.Value != nil || param.Reponse.Body != nil {
-		if param.Reponse.Raw == nil && param.Reponse.Body != nil {
-			param.Reponse.Raw = param.Reponse.Body.Bytes()
+	if len(param.ResponseRecorder.Raw) > 0 || param.ResponseRecorder.Value != nil || param.ResponseRecorder.Body != nil {
+		if param.ResponseRecorder.Raw == nil && param.ResponseRecorder.Body != nil {
+			param.ResponseRecorder.Raw = param.ResponseRecorder.Body.Bytes()
 		}
-		if strings.HasPrefix(param.Reponse.ContentType, httpx.ContentTypeJson) {
-			respBodyField = zap.Reflect("resp", json.RawMessage(param.Reponse.Raw))
-		} else if strings.HasPrefix(param.Reponse.ContentType, httpx.ContentTypeProtobuf) {
-			reqBodyField = zap.String("resp", param.Reponse.Value.(fmt.Stringer).String())
+		if strings.HasPrefix(param.ResponseRecorder.ContentType, httpx.ContentTypeJson) {
+			respBodyField = zap.Reflect("resp", json.RawMessage(param.ResponseRecorder.Raw))
+		} else if strings.HasPrefix(param.ResponseRecorder.ContentType, httpx.ContentTypeProtobuf) {
+			respBodyField = zap.String("resp", param.ResponseRecorder.Value.(fmt.Stringer).String())
 		} else {
-			respBodyField = zap.String("resp", stringsx.BytesToString(param.Reponse.Raw))
+			respBodyField = zap.String("resp", stringsx.BytesToString(param.ResponseRecorder.Raw))
 		}
 	}
 	// log 里time now 浪费性能
@@ -68,7 +68,7 @@ func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 			zap.String("traceId", ctxi.TraceID()),
 			zap.Duration("duration", ce.Time.Sub(ctxi.RequestTime.Time)),
 			respBodyField,
-			zap.String("auth", ctxi.AuthRaw),
+			zap.Reflect("auth", json.RawMessage(ctxi.AuthRaw)),
 			zap.Int("status", param.Code))
 	}
 }

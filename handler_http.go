@@ -61,12 +61,12 @@ func (s *Server) httpHandler() http.Handler {
 		}
 
 		recorder := httpx.NewRecorder(w, r)
-		r.Body = recorder
-		s.GinServer.ServeHTTP(recorder, r)
+		r.Body = &recorder.RequestRecorder
+		s.GinServer.ServeHTTP(&recorder.ResponseRecorder, r)
 		ctxi, _ := httpctx.FromContext(r.Context())
 		if s.AccessLog.RecordFunc != nil {
-			recorder.Request.ContentType = r.Header.Get(httpx.HeaderContentType)
-			recorder.Reponse.ContentType = recorder.Header().Get(httpx.HeaderContentType)
+			recorder.RequestRecorder.ContentType = r.Header.Get(httpx.HeaderContentType)
+			recorder.ResponseRecorder.ContentType = recorder.Header().Get(httpx.HeaderContentType)
 			s.AccessLog.RecordFunc(ctxi, &AccessLogParam{
 				r.Method, r.RequestURI,
 				recorder,
