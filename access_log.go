@@ -60,6 +60,10 @@ func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 			respBodyField = zap.String("resp", stringsx.BytesToString(param.ResponseRecorder.Raw))
 		}
 	}
+	authField := zap.Skip()
+	if len(ctxi.AuthRaw) > 0 {
+		zap.Reflect("auth", json.RawMessage(ctxi.AuthRaw))
+	}
 	// log 里time now 浪费性能
 	if ce := log.NoCallerLogger().Logger.Check(zap.InfoLevel, "access"); ce != nil {
 		ce.Write(zap.String("url", param.Url),
@@ -68,7 +72,7 @@ func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 			zap.String("traceId", ctxi.TraceID()),
 			zap.Duration("duration", ce.Time.Sub(ctxi.RequestTime.Time)),
 			respBodyField,
-			zap.Reflect("auth", json.RawMessage(ctxi.AuthRaw)),
+			authField,
 			zap.Int("status", param.Code))
 	}
 }

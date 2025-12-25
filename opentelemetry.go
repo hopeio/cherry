@@ -11,7 +11,7 @@ import (
 	"errors"
 	"time"
 
-	_ "github.com/hopeio/gox/net/http/debug"
+	_ "github.com/hopeio/gox/net/http"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"

@@ -16,7 +16,6 @@ import (
 	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/apidoc"
-	"github.com/hopeio/gox/net/http/debug"
 	gatewayx "github.com/hopeio/gox/net/http/grpc/gateway"
 	stringsx "github.com/hopeio/gox/strings"
 	"github.com/hopeio/protobuf/response"
@@ -31,12 +30,11 @@ func (s *Server) InternalHandler() {
 		http.Handle(s.Telemetry.Prometheus.HttpUri, promhttp.Handler())
 	}
 	if s.DebugHandler.Enabled {
-		debug.Handle(s.DebugHandler.UriPrefix)
+		httpx.HandleDebug(s.DebugHandler.UriPrefix)
 	}
 }
 
 func (s *Server) httpHandler() http.Handler {
-
 	var handler http.Handler
 	handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
@@ -46,7 +44,7 @@ func (s *Server) httpHandler() http.Handler {
 				w.Header().Set(httpx.HeaderErrorCode, code)
 				w.Header().Set(httpx.HeaderGrpcStatus, code)
 				se := &response.ErrResp{Code: int32(errors.Internal), Msg: sysErrMsg}
-				buf, contentType := gatewayx.DefaultMarshal(r.Header.Get(httpx.HeaderAccept), se)
+				buf, contentType := gatewayx.DefaultMarshal(r, se)
 				w.Header().Set(httpx.HeaderContentType, contentType)
 				w.Write(buf)
 			}

@@ -91,7 +91,7 @@ func (s *Server) Run() {
 	}), s.Middlewares...)
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := httpctx.FromRequest(httpctx.RequestCtx{Request: r, ResponseWriter: w})
+		ctx := httpctx.FromRequest(w, r)
 		r = r.WithContext(ctx.Wrapper())
 		mwHandler.ServeHTTP(w, r)
 		ctx.RootSpan().End()
