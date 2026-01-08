@@ -44,7 +44,7 @@ func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 		} else if strings.HasPrefix(param.RequestRecorder.ContentType, httpx.ContentTypeProtobuf) {
 			reqBodyField = zap.String("body", param.RequestRecorder.Value.(fmt.Stringer).String())
 		} else {
-			reqBodyField = zap.String("body", stringsx.BytesToString(param.RequestRecorder.Raw))
+			reqBodyField = zap.String("body", stringsx.FromBytes(param.RequestRecorder.Raw))
 		}
 	}
 	respBodyField := zap.Skip()
@@ -57,7 +57,7 @@ func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 		} else if strings.HasPrefix(param.ResponseRecorder.ContentType, httpx.ContentTypeProtobuf) {
 			respBodyField = zap.String("resp", param.ResponseRecorder.Value.(fmt.Stringer).String())
 		} else {
-			respBodyField = zap.String("resp", stringsx.BytesToString(param.ResponseRecorder.Raw))
+			respBodyField = zap.String("resp", stringsx.FromBytes(param.ResponseRecorder.Raw))
 		}
 	}
 	authField := zap.Skip()
