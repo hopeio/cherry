@@ -9,7 +9,7 @@ require (
 	github.com/go-playground/validator/v10 v10.28.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/modern-go/reflect2 v1.0.2
+	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/prometheus/client_golang v1.23.2
 	github.com/ugorji/go/codec v1.3.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
@@ -21,8 +21,8 @@ require (
 )
 
 require (
-	github.com/hopeio/gox v1.7.15
-	github.com/hopeio/protobuf v0.7.19
+	github.com/hopeio/gox v1.7.16
+	github.com/hopeio/protobuf v0.7.20
 	github.com/quic-go/quic-go v0.57.0
 	github.com/rs/cors v1.11.1
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.63.0

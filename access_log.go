@@ -15,7 +15,6 @@ import (
 	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
 	stringsx "github.com/hopeio/gox/strings"
-	"github.com/hopeio/protobuf/response"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/status"
 )
@@ -61,8 +60,9 @@ func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 		}
 	}
 	authField := zap.Skip()
-	if len(ctxi.AuthRaw) > 0 {
-		zap.Reflect("auth", json.RawMessage(ctxi.AuthRaw))
+	authRaw := ctxi.Auth().Raw
+	if len(authRaw) > 0 {
+		zap.Reflect("auth", json.RawMessage(authRaw))
 	}
 	// log 里time now 浪费性能
 	if ce := log.NoCallerLogger().Logger.Check(zap.InfoLevel, "access"); ce != nil {
@@ -87,22 +87,28 @@ type GrpcAccessLog = func(ctxi *httpctx.Context, pram *GrpcAccessLogParam)
 
 func DefaultGrpcAccessLog(ctxi *httpctx.Context, param *GrpcAccessLogParam) {
 	respBodyField := zap.Skip()
+	codeField := zap.Int32("code", 0)
 	if param.err != nil {
 		s, _ := status.FromError(param.err)
-		se := &response.ErrResp{Code: int32(s.Code()), Msg: s.Message()}
-		respBodyField = zap.String("resp", se.String())
+		codeField = zap.Int32("code", int32(s.Code()))
+		respBodyField = zap.String("resp", s.Message())
 	} else {
 		respBodyField = zap.String("resp", param.resp.(fmt.Stringer).String())
 	}
-
+	authField := zap.Skip()
+	authRaw := ctxi.Auth().Raw
+	if len(authRaw) > 0 {
+		zap.Reflect("auth", json.RawMessage(authRaw))
+	}
 	if ce := log.NoCallerLogger().Logger.Check(zap.InfoLevel, "access"); ce != nil {
 		ce.Write(zap.String("url", param.Method),
 			zap.String("method", "grpc"),
 			zap.String("body", param.req.(fmt.Stringer).String()),
 			zap.String("traceId", ctxi.TraceID()),
 			zap.Duration("duration", ce.Time.Sub(ctxi.RequestTime.Time)),
+			codeField,
 			respBodyField,
-			zap.String("auth", ctxi.AuthRaw),
+			authField,
 		)
 	}
 }

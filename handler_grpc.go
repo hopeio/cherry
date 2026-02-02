@@ -9,13 +9,11 @@ package cherry
 import (
 	"context"
 	"fmt"
-
 	"reflect"
 
 	"github.com/hopeio/gox/context/httpctx"
 	"github.com/hopeio/gox/log"
 	"github.com/hopeio/gox/validator"
-	"github.com/modern-go/reflect2"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/zap/zapgrpc"
 	"google.golang.org/grpc"
@@ -94,10 +92,6 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 		if _, ok := err.(GRPCStatus); !ok {
 			err = status.Error(codes.Unknown, err.Error())
 		}
-		return nil, err
-	}
-	if reflect2.IsNil(resp) {
-		resp = reflect.New(reflect.TypeOf(resp).Elem()).Interface()
 	}
 
 	ctxi, _ := httpctx.FromContext(ctx)
@@ -108,6 +102,9 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 			resp:   resp,
 			err:    err,
 		})
+	}
+	if err == nil && resp == nil {
+		resp = reflect.New(reflect.TypeOf(resp).Elem()).Interface()
 	}
 	return resp, err
 
