@@ -50,12 +50,12 @@ func (c *TelemetryConfig) setupOTelSDK(ctx context.Context) (shutdown func(conte
 		// Set up propagator.
 		otel.SetTextMapPropagator(c.propagator)
 		var res *resource.Resource
-		res, err = resource.New(ctx) //resource.WithFromEnv(), // Discover and provide attributes from OTEL_RESOURCE_ATTRIBUTES and OTEL_SERVICE_NAME environment variables.
-		//resource.WithTelemetrySDK(), // Discover and provide information about the OpenTelemetry SDK used.
-		//resource.WithProcess(),      // Discover and provide process information.
-		//resource.WithOS(),           // Discover and provide OS information.
-		//resource.WithContainer(), // Discover and provide container information.
-		//resource.WithHost(),         // Discover and provide host information.
+		res, err = resource.New(ctx, resource.WithFromEnv(), // Discover and provide attributes from OTEL_RESOURCE_ATTRIBUTES and OTEL_SERVICE_NAME environment variables.
+			resource.WithTelemetrySDK(), // Discover and provide information about the OpenTelemetry SDK used.
+			resource.WithProcess(),      // Discover and provide process information.
+			resource.WithOS(),           // Discover and provide OS information.
+			resource.WithContainer(),    // Discover and provide container information.
+			resource.WithHost())         // Discover and provide host information.
 
 		if err != nil {
 			return nil, err
@@ -93,7 +93,7 @@ func (c *TelemetryConfig) newPropagator() propagation.TextMapPropagator {
 
 func (c *TelemetryConfig) newTraceProvider(ctx context.Context, res *resource.Resource) (*sdktrace.TracerProvider, error) {
 	traceExporter, err := stdouttrace.New(
-	//stdouttrace.WithPrettyPrint(),
+		stdouttrace.WithPrettyPrint(),
 	)
 	if err != nil {
 		return nil, err
@@ -127,11 +127,11 @@ func (c *TelemetryConfig) newMeterProvider(ctx context.Context, res *resource.Re
 	return sdkmetric.NewMeterProvider(
 		sdkmetric.WithResource(res),
 		sdkmetric.WithReader(reader),
-		/*		sdkmetric.WithView(sdkmetric.NewView(
-				sdkmetric.Instrument{Name: "histogram_*"},
-				sdkmetric.Stream{Aggregation: sdkmetric.AggregationExplicitBucketHistogram{
-					Boundaries: []float64{0, 5, 10, 25, 50, 75, 100, 250, 500, 1000},
-				}},
-			)),*/
+		sdkmetric.WithView(sdkmetric.NewView(
+			sdkmetric.Instrument{Name: "histogram_dealy"},
+			sdkmetric.Stream{Aggregation: sdkmetric.AggregationExplicitBucketHistogram{
+				Boundaries: []float64{0, 5, 10, 25, 50, 75, 100, 250, 500, 1000},
+			}},
+		)),
 	), nil
 }

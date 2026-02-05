@@ -10,6 +10,7 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"net/http/httptrace"
 	"os/signal"
 	"strings"
 	"syscall"
@@ -20,6 +21,7 @@ import (
 	"github.com/hopeio/gox/net/http/grpc/web"
 	"github.com/quic-go/quic-go"
 	"github.com/rs/cors"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -65,7 +67,14 @@ func (s *Server) Run() {
 	if s.Telemetry.Enabled {
 
 		grpc.EnableTracing = true
-		http.DefaultClient = otelhttp.DefaultClient
+		http.DefaultClient = &http.Client{
+			Transport: otelhttp.NewTransport(
+				http.DefaultTransport,
+				otelhttp.WithClientTrace(func(ctx context.Context) *httptrace.ClientTrace {
+					return otelhttptrace.NewClientTrace(ctx)
+				}),
+			),
+		}
 
 		otelShutdown, err := s.Telemetry.setupOTelSDK(sigCtx)
 		if err != nil {
