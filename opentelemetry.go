@@ -9,7 +9,6 @@ package cherry
 import (
 	"context"
 	"errors"
-	"time"
 
 	_ "github.com/hopeio/gox/net/http"
 	"go.opentelemetry.io/otel"
@@ -44,13 +43,14 @@ func (c *TelemetryConfig) setupOTelSDK(ctx context.Context) (shutdown func(conte
 		err = errors.Join(inErr, shutdown(ctx))
 	}
 	if c.Enabled {
-		if c.propagator == nil {
-			c.propagator = c.newPropagator()
+		if c.Propagator == nil {
+			c.Propagator = c.newPropagator()
 		}
-		// Set up propagator.
-		otel.SetTextMapPropagator(c.propagator)
+		// Set up Propagator.
+		otel.SetTextMapPropagator(c.Propagator)
 		var res *resource.Resource
-		res, err = resource.New(ctx, resource.WithFromEnv(), // Discover and provide attributes from OTEL_RESOURCE_ATTRIBUTES and OTEL_SERVICE_NAME environment variables.
+		res, err = resource.New(
+			ctx, resource.WithFromEnv(), // Discover and provide attributes from OTEL_RESOURCE_ATTRIBUTES and OTEL_SERVICE_NAME environment variables.
 			resource.WithTelemetrySDK(), // Discover and provide information about the OpenTelemetry SDK used.
 			resource.WithProcess(),      // Discover and provide process information.
 			resource.WithOS(),           // Discover and provide OS information.
@@ -60,26 +60,26 @@ func (c *TelemetryConfig) setupOTelSDK(ctx context.Context) (shutdown func(conte
 		if err != nil {
 			return nil, err
 		}
-		if c.tracerProvider == nil {
-			c.tracerProvider, err = c.newTraceProvider(ctx, res)
+		if c.TracerProvider == nil {
+			c.TracerProvider, err = c.newTraceProvider(ctx, res)
 			if err != nil {
 				handleErr(err)
 				return
 			}
 		}
-		shutdownFuncs = append(shutdownFuncs, c.tracerProvider.Shutdown)
-		otel.SetTracerProvider(c.tracerProvider)
+		shutdownFuncs = append(shutdownFuncs, c.TracerProvider.Shutdown)
+		otel.SetTracerProvider(c.TracerProvider)
 
-		if c.meterProvider == nil {
+		if c.MeterProvider == nil {
 			// Set up meter provider.
-			c.meterProvider, err = c.newMeterProvider(ctx, res)
+			c.MeterProvider, err = c.newMeterProvider(ctx, res)
 			if err != nil {
 				handleErr(err)
 				return
 			}
 		}
-		shutdownFuncs = append(shutdownFuncs, c.meterProvider.Shutdown)
-		otel.SetMeterProvider(c.meterProvider)
+		shutdownFuncs = append(shutdownFuncs, c.MeterProvider.Shutdown)
+		otel.SetMeterProvider(c.MeterProvider)
 	}
 	return
 }
@@ -100,38 +100,31 @@ func (c *TelemetryConfig) newTraceProvider(ctx context.Context, res *resource.Re
 	}
 
 	return sdktrace.NewTracerProvider(
-		sdktrace.WithBatcher(traceExporter, sdktrace.WithBatchTimeout(time.Second)),
 		sdktrace.WithResource(res),
+		sdktrace.WithBatcher(traceExporter, c.BatchSpanProcessorOpts...),
 		sdktrace.WithSampler(sdktrace.TraceIDRatioBased(0.1)),
 	), nil
 }
 
 func (c *TelemetryConfig) newMeterProvider(ctx context.Context, res *resource.Resource) (*sdkmetric.MeterProvider, error) {
 
-	var reader sdkmetric.Reader
-	if c.Prometheus.Enabled {
+	options := []sdkmetric.Option{sdkmetric.WithResource(res)}
+	if len(c.PrometheusExportOpts) > 0 {
 		var err error
-		reader, err = prometheus.New(c.Prometheus.opts...)
+		reader, err := prometheus.New(c.PrometheusExportOpts...)
 		if err != nil {
 			return nil, err
 		}
-	} else {
-		exporter, err := stdoutmetric.New()
+		options = append(options, sdkmetric.WithReader(reader))
+	}
+	if len(c.StdoutExportOpts) > 0 {
+		exporter, err := stdoutmetric.New(c.StdoutExportOpts...)
 		if err != nil {
 			return nil, err
 		}
-		reader = sdkmetric.NewPeriodicReader(exporter,
-			sdkmetric.WithInterval(time.Minute))
+		reader := sdkmetric.NewPeriodicReader(exporter, c.PeriodicReaderOps...)
+		options = append(options, sdkmetric.WithReader(reader))
 	}
 
-	return sdkmetric.NewMeterProvider(
-		sdkmetric.WithResource(res),
-		sdkmetric.WithReader(reader),
-		sdkmetric.WithView(sdkmetric.NewView(
-			sdkmetric.Instrument{Name: "histogram_dealy"},
-			sdkmetric.Stream{Aggregation: sdkmetric.AggregationExplicitBucketHistogram{
-				Boundaries: []float64{0, 5, 10, 25, 50, 75, 100, 250, 500, 1000},
-			}},
-		)),
-	), nil
+	return sdkmetric.NewMeterProvider(options...), nil
 }

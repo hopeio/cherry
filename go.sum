@@ -64,8 +64,11 @@ github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aN
 github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/hopeio/gox v1.7.16 h1:N6KHrAoRvlf1Rc5y43zGD5LPxr/B30Skpbjl/Yr3OXU=
 github.com/hopeio/gox v1.7.16/go.mod h1:jlxjRRDoRXJAvejlbBwTskcUnd53jNESeEet4s7j3aw=
+github.com/hopeio/gox v1.7.18/go.mod h1:jlxjRRDoRXJAvejlbBwTskcUnd53jNESeEet4s7j3aw=
 github.com/hopeio/protobuf v0.7.20 h1:L3HstX++MGyWlfIpuqwIq7Qo5q0Jxxa5CSqzbzFGnJo=
 github.com/hopeio/protobuf v0.7.20/go.mod h1:heubZoc+32XJxkddwHOdqc+wfLBQWj7jzix11bNy6fQ=
+github.com/hopeio/protobuf v0.7.21 h1:kfRdkVYc5f3/FhUOjaARAarNE5YcNaoHFEZk2Y1S2yA=
+github.com/hopeio/protobuf v0.7.21/go.mod h1:gE8Pf5ao8vgLdAwEnZUfRc98Zv1wZNTgi9Vpb/yTN9Q=
 github.com/josharian/intern v1.0.0 h1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=
 github.com/josharian/intern v1.0.0/go.mod h1:5DoeVV0s6jJacbCEi61lwdGj/aVlrQvzHFFd8Hwg//Y=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=

@@ -11,13 +11,11 @@ import (
 	"fmt"
 	"reflect"
 
-	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"github.com/hopeio/gox/context/httpctx"
 	"github.com/hopeio/gox/log"
 	"github.com/hopeio/gox/validator"
-	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
-	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zapgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -28,30 +26,14 @@ import (
 
 func (s *Server) grpcHandler() *grpc.Server {
 	//conf := s.Config
-	grpclog.SetLoggerV2(zapgrpc.NewLogger(log.CallerSkipLogger(4).Logger))
+	grpclog.SetLoggerV2(zapgrpc.NewLogger(log.NoCallerLogger().With(zap.String("server", "grpc")).Logger))
 	if s.GrpcHandler != nil {
 		var stream []grpc.StreamServerInterceptor
 		var unary []grpc.UnaryServerInterceptor
-		var srvMetrics *grpcprom.ServerMetrics
+
 		if s.Telemetry.Enabled {
-			s.Grpc.Options = append(s.Grpc.Options, grpc.StatsHandler(otelgrpc.NewServerHandler(s.Telemetry.otelgrpcOpts...)))
+			s.Grpc.Options = append(s.Grpc.Options, grpc.StatsHandler(otelgrpc.NewServerHandler(s.Telemetry.OtelgrpcOpts...)))
 			// Setup metrics.
-			if s.Telemetry.Prometheus.Enabled {
-				srvMetrics = grpcprom.NewServerMetrics(
-					grpcprom.WithServerHandlingTimeHistogram(
-						grpcprom.WithHistogramBuckets([]float64{0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120}),
-					),
-				)
-				prometheus.MustRegister(srvMetrics)
-				exemplarFromContext := func(ctx context.Context) prometheus.Labels {
-					if span := trace.SpanContextFromContext(ctx); span.IsSampled() {
-						return prometheus.Labels{"traceID": span.TraceID().String()}
-					}
-					return nil
-				}
-				stream = append(stream, srvMetrics.StreamServerInterceptor(grpcprom.WithExemplarFromContext(exemplarFromContext)))
-				unary = append(unary, srvMetrics.UnaryServerInterceptor(grpcprom.WithExemplarFromContext(exemplarFromContext)))
-			}
 		}
 		stream = append(stream, s.StreamAccess)
 		stream = append(stream, s.Grpc.StreamServerInterceptors...)
@@ -62,9 +44,6 @@ func (s *Server) grpcHandler() *grpc.Server {
 			grpc.ChainUnaryInterceptor(unary...))
 
 		grpcServer := grpc.NewServer(s.Grpc.Options...)
-		/*		if s.Telemetry.Enabled && s.Telemetry.Prometheus.Enabled && srvMetrics != nil {
-				srvMetrics.InitializeMetrics(grpcServer)
-			}*/
 		s.GrpcHandler(grpcServer)
 		reflection.Register(grpcServer)
 		return grpcServer
@@ -158,11 +137,4 @@ func (s *recvWrapper) RecvMsg(m interface{}) error {
 		return err
 	}
 	return nil
-}
-
-func StreamValidator(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
-	wrapper := &recvWrapper{
-		ServerStream: stream,
-	}
-	return handler(srv, wrapper)
 }

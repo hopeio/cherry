@@ -19,16 +19,19 @@ import (
 	gatewayx "github.com/hopeio/gox/net/http/grpc/gateway"
 	stringsx "github.com/hopeio/gox/strings"
 	"github.com/hopeio/protobuf/response"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.uber.org/zap"
 )
 
 func (s *Server) InternalHandler() {
 	if s.ApiDoc.Enabled {
 		apidoc.ApiDoc(http.DefaultServeMux, s.ApiDoc.UriPrefix, s.ApiDoc.Dir)
 	}
-	if s.Telemetry.Enabled && s.Telemetry.Prometheus.Enabled {
-		http.Handle(s.Telemetry.Prometheus.HttpUri, promhttp.Handler())
+	if s.Prometheus.Enabled {
+		log.Infow("prometheus enabled", zap.String("uri", s.Prometheus.HttpURI))
+		http.Handle(s.Prometheus.HttpURI, promhttp.HandlerFor(prometheus.DefaultGatherer, s.Prometheus.HandlerOpts))
 	}
 	if s.DebugHandler.Enabled {
 		httpx.HandleDebug(s.DebugHandler.UriPrefix)
@@ -73,7 +76,7 @@ func (s *Server) httpHandler() http.Handler {
 		recorder.Reset()
 	})
 	if s.Telemetry.Enabled {
-		return otelhttp.NewHandler(handler, "server", s.Telemetry.otelhttpOpts...)
+		return otelhttp.NewHandler(handler, "http", s.Telemetry.OtelhttpOpts...)
 	}
 	return handler
 }

@@ -16,11 +16,13 @@ import (
 	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/grpc/web"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/quic-go/quic-go/http3"
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"go.opentelemetry.io/otel/exporters/prometheus"
+	prometheusexporters "go.opentelemetry.io/otel/exporters/prometheus"
+	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/propagation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -53,12 +55,12 @@ type Server struct {
 	InternalServer http.Server
 	ApiDoc         ApiDocConfig
 	Telemetry      TelemetryConfig
+	Prometheus     PrometheusConfig
 	DebugHandler   DebugHandlerConfig
 	BaseContext    context.Context
 	Middlewares    []httpx.Middleware
 	GinServer      *gin.Engine
-	// 注册 grpc 服务
-	GrpcHandler func(*grpc.Server)
+	GrpcHandler    func(*grpc.Server)
 }
 
 type DebugHandlerConfig struct {
@@ -86,43 +88,46 @@ type CorsConfig struct {
 }
 
 type TelemetryConfig struct {
-	Enabled        bool
-	otelhttpOpts   []otelhttp.Option
-	otelgrpcOpts   []otelgrpc.Option
-	propagator     propagation.TextMapPropagator
-	tracerProvider *sdktrace.TracerProvider
-	meterProvider  *sdkmetric.MeterProvider
-	Prometheus     PrometheusConfig
+	Enabled                bool
+	Propagator             propagation.TextMapPropagator
+	TracerProvider         *sdktrace.TracerProvider
+	MeterProvider          *sdkmetric.MeterProvider
+	OtelhttpOpts           []otelhttp.Option
+	OtelgrpcOpts           []otelgrpc.Option
+	PrometheusExportOpts   []prometheusexporters.Option
+	StdoutExportOpts       []stdoutmetric.Option
+	PeriodicReaderOps      []sdkmetric.PeriodicReaderOption
+	BatchSpanProcessorOpts []sdktrace.BatchSpanProcessorOption
 }
 
 type PrometheusConfig struct {
 	Enabled bool
-	HttpUri string
-	opts    []prometheus.Option
+	HttpURI string
+	promhttp.HandlerOpts
 }
 
 func (c *TelemetryConfig) SetOtelhttpHandlerOpts(otelhttpOpts []otelhttp.Option) {
-	c.otelhttpOpts = otelhttpOpts
+	c.OtelhttpOpts = otelhttpOpts
 }
 
 func (c *TelemetryConfig) SetOtelgrpcOptsHandlerOpts(otelgrpcOpts []otelgrpc.Option) {
-	c.otelgrpcOpts = otelgrpcOpts
-}
-
-func (c *TelemetryConfig) SetPrometheusOpts(prometheusOpts []prometheus.Option) {
-	c.Prometheus.opts = prometheusOpts
+	c.OtelgrpcOpts = otelgrpcOpts
 }
 
 func (c *TelemetryConfig) SetTextMapPropagator(propagator propagation.TextMapPropagator) {
-	c.propagator = propagator
+	c.Propagator = propagator
 }
 
 func (c *TelemetryConfig) SetTracerProvider(tracerProvider *sdktrace.TracerProvider) {
-	c.tracerProvider = tracerProvider
+	c.TracerProvider = tracerProvider
 }
 
 func (c *TelemetryConfig) SetMeterProvider(meterProvider *sdkmetric.MeterProvider) {
-	c.meterProvider = meterProvider
+	c.MeterProvider = meterProvider
+}
+
+func (c *TelemetryConfig) SetPrometheusOpts(prometheusOpts []prometheusexporters.Option) {
+	c.PrometheusExportOpts = prometheusOpts
 }
 
 func (s *Server) Init() {
@@ -187,9 +192,9 @@ func (s *Server) Init() {
 		}
 	}
 
-	if s.Telemetry.Enabled && s.Telemetry.Prometheus.Enabled {
-		if s.Telemetry.Prometheus.HttpUri == "" {
-			s.Telemetry.Prometheus.HttpUri = "/metrics"
+	if s.Prometheus.Enabled {
+		if s.Prometheus.HttpURI == "" {
+			s.Prometheus.HttpURI = "/metrics"
 		}
 	}
 
