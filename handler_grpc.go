@@ -11,15 +11,16 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/hopeio/gox/context/httpctx"
 	"github.com/hopeio/gox/log"
 	"github.com/hopeio/gox/validator"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 )
@@ -33,7 +34,6 @@ func (s *Server) grpcHandler() *grpc.Server {
 
 		if s.Telemetry.Enabled {
 			s.Grpc.Options = append(s.Grpc.Options, grpc.StatsHandler(otelgrpc.NewServerHandler(s.Telemetry.OtelgrpcOpts...)))
-			// Setup metrics.
 		}
 		stream = append(stream, s.StreamAccess)
 		stream = append(stream, s.Grpc.StreamServerInterceptors...)
@@ -64,26 +64,33 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 			err = status.Error(codes.Internal, sysErrMsg)
 		}
 	}()
-
+	md := GetMetadata(ctx)
+	md.TraceId = trace.SpanFromContext(ctx).SpanContext().TraceID().String()
+	md.Logger = log.DefaultLogger().With(zap.String(log.FieldTraceId, md.TraceId))
+	md.ServerTransportStream = grpc.ServerTransportStreamFromContext(ctx)
+	var ok bool
+	md.GrpcMD, ok = metadata.FromIncomingContext(ctx)
+	if !ok {
+		md.GrpcMD = nil
+	}
 	if err = validator.ValidateStruct(req); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-
 	resp, err = handler(ctx, req)
-	//不能添加错误处理，除非所有返回的结构相同
+
 	if err != nil {
 		if _, ok := err.(GRPCStatus); !ok {
 			err = status.Error(codes.Unknown, err.Error())
 		}
 	}
 
-	ctxi, _ := httpctx.FromContext(ctx)
 	if s.Grpc.RecordFunc != nil {
-		s.Grpc.RecordFunc(ctxi, &GrpcAccessLogParam{
-			Method: info.FullMethod,
-			req:    req,
-			resp:   resp,
-			err:    err,
+		s.Grpc.RecordFunc(ctx, &GrpcAccessLogParam{
+			Method:   info.FullMethod,
+			Metadata: md,
+			Request:  req,
+			Response: resp,
+			Err:      err,
 		})
 	}
 	if err == nil && resp == nil {
@@ -100,6 +107,16 @@ func (s *Server) StreamAccess(srv interface{}, stream grpc.ServerStream, info *g
 			err = status.Error(codes.Internal, sysErrMsg)
 		}
 	}()
+	ctx := stream.Context()
+	md := GetMetadata(ctx)
+	md.TraceId = trace.SpanFromContext(ctx).SpanContext().TraceID().String()
+	md.Logger = log.DefaultLogger().With(zap.String(log.FieldTraceId, md.TraceId))
+	md.ServerTransportStream = grpc.ServerTransportStreamFromContext(ctx)
+	var ok bool
+	md.GrpcMD, ok = metadata.FromIncomingContext(ctx)
+	if !ok {
+		md.GrpcMD = nil
+	}
 	wrapper := &recvWrapper{
 		ServerStream: stream,
 	}
@@ -109,11 +126,11 @@ func (s *Server) StreamAccess(srv interface{}, stream grpc.ServerStream, info *g
 			err = status.Error(codes.Unknown, err.Error())
 		}
 	}
-	ctxi, _ := httpctx.FromContext(wrapper.Context())
+
 	if s.Grpc.RecordFunc != nil {
-		wrapper.err = err
+		wrapper.Err = err
 		wrapper.Method = info.FullMethod
-		s.Grpc.RecordFunc(ctxi, &wrapper.GrpcAccessLogParam)
+		s.Grpc.RecordFunc(wrapper.Context(), &wrapper.GrpcAccessLogParam)
 	}
 	return err
 }
@@ -124,12 +141,12 @@ type recvWrapper struct {
 }
 
 func (s *recvWrapper) SendMsg(m interface{}) error {
-	s.resp = m
+	s.Response = m
 	return s.ServerStream.SendMsg(m)
 }
 
 func (s *recvWrapper) RecvMsg(m interface{}) error {
-	s.req = m
+	s.Request = m
 	if err := validator.ValidateStruct(m); err != nil {
 		return status.Error(codes.InvalidArgument, err.Error())
 	}

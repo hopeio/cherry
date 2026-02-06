@@ -7,11 +7,11 @@
 package cherry
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
 
-	"github.com/hopeio/gox/context/httpctx"
 	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
 	stringsx "github.com/hopeio/gox/strings"
@@ -28,11 +28,12 @@ type Body struct {
 type AccessLogParam struct {
 	Method, Url string
 	*httpx.Recorder
+	Metadata *Metadata
 }
 
-type AccessLog = func(ctxi *httpctx.Context, pram *AccessLogParam)
+type AccessLog = func(ctx context.Context, pram *AccessLogParam)
 
-func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
+func DefaultAccessLog(ctx context.Context, param *AccessLogParam) {
 	reqBodyField := zap.Skip()
 	if len(param.RequestRecorder.Raw) > 0 || param.RequestRecorder.Value != nil || param.RequestRecorder.Body != nil {
 		if param.RequestRecorder.Raw == nil && param.RequestRecorder.Body != nil {
@@ -52,63 +53,54 @@ func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 			param.ResponseRecorder.Raw = param.ResponseRecorder.Body.Bytes()
 		}
 		if strings.HasPrefix(param.ResponseRecorder.ContentType, httpx.ContentTypeJson) {
-			respBodyField = zap.Reflect("resp", json.RawMessage(param.ResponseRecorder.Raw))
+			respBodyField = zap.Reflect("Response", json.RawMessage(param.ResponseRecorder.Raw))
 		} else if strings.HasPrefix(param.ResponseRecorder.ContentType, httpx.ContentTypeProtobuf) {
-			respBodyField = zap.String("resp", param.ResponseRecorder.Value.(fmt.Stringer).String())
+			respBodyField = zap.String("Response", param.ResponseRecorder.Value.(fmt.Stringer).String())
 		} else {
-			respBodyField = zap.String("resp", stringsx.FromBytes(param.ResponseRecorder.Raw))
+			respBodyField = zap.String("Response", stringsx.FromBytes(param.ResponseRecorder.Raw))
 		}
 	}
-	authField := zap.Skip()
-	authRaw := ctxi.Auth().Raw
-	if len(authRaw) > 0 {
-		zap.Reflect("auth", json.RawMessage(authRaw))
-	}
-	// log 里time now 浪费性能
+
 	if ce := log.NoCallerLogger().Logger.Check(zap.InfoLevel, "access"); ce != nil {
-		ce.Write(zap.String("url", param.Url),
+		ce.Write(zap.Inline(zap.DictObject(param.Metadata.AccessLogFields...)),
+			zap.String("url", param.Url),
 			zap.String("method", param.Method),
 			reqBodyField,
-			zap.String("traceId", ctxi.TraceID()),
-			zap.Duration("duration", ce.Time.Sub(ctxi.RequestTime.Time)),
+			zap.String("traceId", param.Metadata.TraceId),
+			zap.Duration("duration", ce.Time.Sub(param.Metadata.RequestAt)),
 			respBodyField,
-			authField,
-			zap.Int("status", param.Code))
+			zap.Int("status", param.StatusCode))
 	}
 }
 
 type GrpcAccessLogParam struct {
-	Method    string
-	req, resp any
-	err       error
+	Method            string
+	Request, Response any
+	Err               error
+	Metadata          *Metadata
 }
 
-type GrpcAccessLog = func(ctxi *httpctx.Context, pram *GrpcAccessLogParam)
+type GrpcAccessLog = func(ctx context.Context, pram *GrpcAccessLogParam)
 
-func DefaultGrpcAccessLog(ctxi *httpctx.Context, param *GrpcAccessLogParam) {
+func DefaultGrpcAccessLog(ctx context.Context, param *GrpcAccessLogParam) {
 	respBodyField := zap.Skip()
 	codeField := zap.Int32("code", 0)
-	if param.err != nil {
-		s, _ := status.FromError(param.err)
+	if param.Err != nil {
+		s, _ := status.FromError(param.Err)
 		codeField = zap.Int32("code", int32(s.Code()))
-		respBodyField = zap.String("resp", s.Message())
+		respBodyField = zap.String("Response", s.Message())
 	} else {
-		respBodyField = zap.String("resp", param.resp.(fmt.Stringer).String())
+		respBodyField = zap.String("Response", param.Response.(fmt.Stringer).String())
 	}
-	authField := zap.Skip()
-	authRaw := ctxi.Auth().Raw
-	if len(authRaw) > 0 {
-		zap.Reflect("auth", json.RawMessage(authRaw))
-	}
+
 	if ce := log.NoCallerLogger().Logger.Check(zap.InfoLevel, "access"); ce != nil {
-		ce.Write(zap.String("url", param.Method),
+		ce.Write(zap.Inline(zap.DictObject(param.Metadata.AccessLogFields...)),
+			zap.String("url", param.Method),
 			zap.String("method", "grpc"),
-			zap.String("body", param.req.(fmt.Stringer).String()),
-			zap.String("traceId", ctxi.TraceID()),
-			zap.Duration("duration", ce.Time.Sub(ctxi.RequestTime.Time)),
+			zap.String("body", param.Request.(fmt.Stringer).String()),
+			zap.String("traceId", param.Metadata.TraceId),
+			zap.Duration("duration", ce.Time.Sub(param.Metadata.RequestAt)),
 			codeField,
-			respBodyField,
-			authField,
-		)
+			respBodyField)
 	}
 }

@@ -14,8 +14,8 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
-	"github.com/hopeio/gox/context/httpctx"
 	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/grpc/web"
@@ -65,7 +65,6 @@ func (s *Server) Run() {
 
 	// Set up OpenTelemetry.
 	if s.Telemetry.Enabled {
-
 		grpc.EnableTracing = true
 		http.DefaultClient = &http.Client{
 			Transport: otelhttp.NewTransport(
@@ -84,13 +83,21 @@ func (s *Server) Run() {
 		defer otelShutdown(sigCtx)
 	}
 
-	mwHandler := httpx.UseMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := httpx.UseMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		md := Metadata{
+			Request:        r,
+			ResponseWriter: w,
+			RequestAt:      time.Now(),
+		}
+		r = r.WithContext(WithMetadata(r.Context(), &md))
 		contentType := r.Header.Get(httpx.HeaderContentType)
 		if strings.HasPrefix(contentType, httpx.ContentTypeGrpc) {
 			if strings.HasPrefix(contentType[len(httpx.ContentTypeGrpc):], "-web") && wrappedGrpc != nil {
+				md.RequestType = RequestTypeGrpcWeb
 				wrappedGrpc.ServeHTTP(w, r)
 			} else if r.ProtoMajor == 2 && grpcServer != nil {
-				grpcServer.ServeHTTP(w, r) // gRPC Server
+				md.RequestType = RequestTypeGrpc
+				grpcServer.ServeHTTP(w, r)
 			} else {
 				http.NotFound(w, r)
 			}
@@ -98,13 +105,6 @@ func (s *Server) Run() {
 			httpHandler.ServeHTTP(w, r)
 		}
 	}), s.Middlewares...)
-
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := httpctx.FromRequest(w, r)
-		r = r.WithContext(ctx.Wrapper())
-		mwHandler.ServeHTTP(w, r)
-		ctx.RootSpan().End()
-	})
 
 	if s.Server.BaseContext == nil {
 		s.Server.BaseContext = func(_ net.Listener) context.Context {
@@ -180,4 +180,9 @@ func (s *Server) Run() {
 	if err := s.Shutdown(sigCtx); err != nil {
 		log.Error(err)
 	}
+}
+
+func (s *Server) WithContext(ctx context.Context) *Server {
+	s.BaseContext = ctx
+	return s
 }

@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/hopeio/gox/context/httpctx"
+	"github.com/gin-gonic/gin"
 	"github.com/hopeio/gox/errors"
 	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
@@ -22,6 +22,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -60,17 +61,23 @@ func (s *Server) httpHandler() http.Handler {
 				return
 			}
 		}
-
+		metadata := GetMetadata(r.Context())
+		metadata.TraceId = trace.SpanFromContext(r.Context()).SpanContext().TraceID().String()
+		metadata.Logger = log.DefaultLogger().With(zap.String(log.FieldTraceId, metadata.TraceId))
 		recorder := httpx.NewRecorder(w, r)
 		r.Body = &recorder.RequestRecorder
+		s.GinServer.Use(func(c *gin.Context) {
+			metadata.GinContext = c
+		})
 		s.GinServer.ServeHTTP(&recorder.ResponseRecorder, r)
-		ctxi, _ := httpctx.FromContext(r.Context())
+
 		if s.AccessLog.RecordFunc != nil {
 			recorder.RequestRecorder.ContentType = r.Header.Get(httpx.HeaderContentType)
 			recorder.ResponseRecorder.ContentType = recorder.Header().Get(httpx.HeaderContentType)
-			s.AccessLog.RecordFunc(ctxi, &AccessLogParam{
+			s.AccessLog.RecordFunc(r.Context(), &AccessLogParam{
 				r.Method, r.RequestURI,
 				recorder,
+				metadata,
 			})
 		}
 		recorder.Reset()
