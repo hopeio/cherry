@@ -109,7 +109,7 @@ func (c *TelemetryConfig) newTraceProvider(ctx context.Context, res *resource.Re
 func (c *TelemetryConfig) newMeterProvider(ctx context.Context, res *resource.Resource) (*sdkmetric.MeterProvider, error) {
 
 	options := []sdkmetric.Option{sdkmetric.WithResource(res)}
-	if len(c.PrometheusExportOpts) > 0 {
+	if c.PrometheusExportOpts != nil {
 		var err error
 		reader, err := prometheus.New(c.PrometheusExportOpts...)
 		if err != nil {
@@ -117,7 +117,7 @@ func (c *TelemetryConfig) newMeterProvider(ctx context.Context, res *resource.Re
 		}
 		options = append(options, sdkmetric.WithReader(reader))
 	}
-	if len(c.StdoutExportOpts) > 0 {
+	if c.StdoutExportOpts != nil {
 		exporter, err := stdoutmetric.New(c.StdoutExportOpts...)
 		if err != nil {
 			return nil, err

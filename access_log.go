@@ -7,11 +7,11 @@
 package cherry
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
 
-	"github.com/hopeio/gox/context/httpctx"
 	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
 	stringsx "github.com/hopeio/gox/strings"
@@ -30,9 +30,9 @@ type AccessLogParam struct {
 	*httpx.Recorder
 }
 
-type AccessLog = func(ctxi *httpctx.Context, pram *AccessLogParam)
+type AccessLog = func(ctx context.Context, pram *AccessLogParam)
 
-func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
+func DefaultAccessLog(ctx context.Context, param *AccessLogParam) {
 	reqBodyField := zap.Skip()
 	if len(param.RequestRecorder.Raw) > 0 || param.RequestRecorder.Value != nil || param.RequestRecorder.Body != nil {
 		if param.RequestRecorder.Raw == nil && param.RequestRecorder.Body != nil {
@@ -60,17 +60,17 @@ func DefaultAccessLog(ctxi *httpctx.Context, param *AccessLogParam) {
 		}
 	}
 	authField := zap.Skip()
-	authRaw := ctxi.Auth().Raw
-	if len(authRaw) > 0 {
-		zap.Reflect("auth", json.RawMessage(authRaw))
+	metadata := ctx.Value(httpx.RequestMetadataKey).(*httpx.RequestMetadata)
+	if metadata.Auth != nil && len(metadata.Auth.Raw) > 0 {
+		zap.Reflect("auth", json.RawMessage(metadata.Auth.Raw))
 	}
-	// log 里time now 浪费性能
+
 	if ce := log.NoCallerLogger().Logger.Check(zap.InfoLevel, "access"); ce != nil {
 		ce.Write(zap.String("url", param.Url),
 			zap.String("method", param.Method),
 			reqBodyField,
-			zap.String("traceId", ctxi.TraceID()),
-			zap.Duration("duration", ce.Time.Sub(ctxi.RequestTime.Time)),
+			zap.String("traceId", metadata.TraceId),
+			zap.Duration("duration", ce.Time.Sub(metadata.RequestAt)),
 			respBodyField,
 			authField,
 			zap.Int("status", param.Code))
@@ -83,9 +83,9 @@ type GrpcAccessLogParam struct {
 	err       error
 }
 
-type GrpcAccessLog = func(ctxi *httpctx.Context, pram *GrpcAccessLogParam)
+type GrpcAccessLog = func(ctx context.Context, pram *GrpcAccessLogParam)
 
-func DefaultGrpcAccessLog(ctxi *httpctx.Context, param *GrpcAccessLogParam) {
+func DefaultGrpcAccessLog(ctx context.Context, param *GrpcAccessLogParam) {
 	respBodyField := zap.Skip()
 	codeField := zap.Int32("code", 0)
 	if param.err != nil {
@@ -96,16 +96,16 @@ func DefaultGrpcAccessLog(ctxi *httpctx.Context, param *GrpcAccessLogParam) {
 		respBodyField = zap.String("resp", param.resp.(fmt.Stringer).String())
 	}
 	authField := zap.Skip()
-	authRaw := ctxi.Auth().Raw
-	if len(authRaw) > 0 {
-		zap.Reflect("auth", json.RawMessage(authRaw))
+	metadata := ctx.Value(httpx.RequestMetadataKey).(*httpx.RequestMetadata)
+	if metadata.Auth != nil && len(metadata.Auth.Raw) > 0 {
+		zap.Reflect("auth", json.RawMessage(metadata.Auth.Raw))
 	}
 	if ce := log.NoCallerLogger().Logger.Check(zap.InfoLevel, "access"); ce != nil {
 		ce.Write(zap.String("url", param.Method),
 			zap.String("method", "grpc"),
 			zap.String("body", param.req.(fmt.Stringer).String()),
-			zap.String("traceId", ctxi.TraceID()),
-			zap.Duration("duration", ce.Time.Sub(ctxi.RequestTime.Time)),
+			zap.String("traceId", metadata.TraceId),
+			zap.Duration("duration", ce.Time.Sub(metadata.RequestAt)),
 			codeField,
 			respBodyField,
 			authField,

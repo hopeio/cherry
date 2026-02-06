@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/hopeio/gox/context/httpctx"
 	"github.com/hopeio/gox/log"
 	"github.com/hopeio/gox/validator"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -77,9 +76,8 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 		}
 	}
 
-	ctxi, _ := httpctx.FromContext(ctx)
 	if s.Grpc.RecordFunc != nil {
-		s.Grpc.RecordFunc(ctxi, &GrpcAccessLogParam{
+		s.Grpc.RecordFunc(ctx, &GrpcAccessLogParam{
 			Method: info.FullMethod,
 			req:    req,
 			resp:   resp,

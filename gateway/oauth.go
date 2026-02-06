@@ -30,7 +30,7 @@ func RegisterOauthServiceHandlerServer(r *gin.Engine, server OauthServiceServer)
 		res, _ := server.OauthAuthorize(
 			metadata.NewIncomingContext(
 				ctx.Request.Context(),
-				metadata.MD{"auth": {httpx.GetToken(ctx.Request)}}),
+				metadata.MD{"auth": {httpx.GetToken(ctx.Request.Header)}}),
 			&protoReq)
 
 		res.Respond(ctx, ctx.Writer)

@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/hopeio/gox/context/httpctx"
 	"github.com/hopeio/gox/errors"
 	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
@@ -64,11 +63,11 @@ func (s *Server) httpHandler() http.Handler {
 		recorder := httpx.NewRecorder(w, r)
 		r.Body = &recorder.RequestRecorder
 		s.GinServer.ServeHTTP(&recorder.ResponseRecorder, r)
-		ctxi, _ := httpctx.FromContext(r.Context())
+
 		if s.AccessLog.RecordFunc != nil {
 			recorder.RequestRecorder.ContentType = r.Header.Get(httpx.HeaderContentType)
 			recorder.ResponseRecorder.ContentType = recorder.Header().Get(httpx.HeaderContentType)
-			s.AccessLog.RecordFunc(ctxi, &AccessLogParam{
+			s.AccessLog.RecordFunc(r.Context(), &AccessLogParam{
 				r.Method, r.RequestURI,
 				recorder,
 			})
