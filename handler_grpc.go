@@ -14,6 +14,7 @@ import (
 	"github.com/hopeio/gox/log"
 	"github.com/hopeio/gox/validator"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapgrpc"
@@ -22,6 +23,7 @@ import (
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/stats/opentelemetry"
 	"google.golang.org/grpc/status"
 )
 
@@ -33,7 +35,11 @@ func (s *Server) grpcHandler() *grpc.Server {
 		var unary []grpc.UnaryServerInterceptor
 
 		if s.Telemetry.Enabled {
-			s.Grpc.Options = append(s.Grpc.Options, grpc.StatsHandler(otelgrpc.NewServerHandler(s.Telemetry.OtelgrpcOpts...)))
+			s.Grpc.Options = append(s.Grpc.Options, grpc.StatsHandler(
+				otelgrpc.NewServerHandler(append([]otelgrpc.Option{
+					otelgrpc.WithPropagators(propagation.NewCompositeTextMapPropagator(
+						opentelemetry.GRPCTraceBinPropagator{}, propagation.Baggage{},
+					))}, s.Telemetry.OtelgrpcOpts...)...)))
 		}
 		stream = append(stream, s.StreamAccess)
 		stream = append(stream, s.Grpc.StreamServerInterceptors...)

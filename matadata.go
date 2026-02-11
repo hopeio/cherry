@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/gox/log"
+	"go.opentelemetry.io/otel/baggage"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -38,6 +39,7 @@ type Metadata struct {
 	GrpcMD                metadata.MD                // grpc only
 	ServerTransportStream grpc.ServerTransportStream // grpc only
 	AccessLogFields       []zap.Field
+	Bagage                baggage.Baggage // can not edit
 }
 
 func (m *Metadata) Set(key, value any) {

@@ -22,6 +22,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/baggage"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -64,6 +65,7 @@ func (s *Server) httpHandler() http.Handler {
 		metadata := GetMetadata(r.Context())
 		metadata.TraceId = trace.SpanFromContext(r.Context()).SpanContext().TraceID().String()
 		metadata.Logger = log.DefaultLogger().With(zap.String(log.FieldTraceId, metadata.TraceId))
+		metadata.Bagage = baggage.FromContext(r.Context())
 		recorder := httpx.NewRecorder(w, r)
 		r.Body = &recorder.RequestRecorder
 		s.GinServer.Use(func(c *gin.Context) {
