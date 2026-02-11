@@ -11,12 +11,10 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/hopeio/cherry/_example/protobuf/user"
 	"github.com/hopeio/gox/errors"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
-
-	"github.com/hopeio/cherry/_example/protobuf/user"
-	"github.com/hopeio/gox/context/httpctx"
 )
 
 type UserService struct {
@@ -24,8 +22,7 @@ type UserService struct {
 }
 
 func (u *UserService) Signup(ctx context.Context, req *user.SignupReq) (*wrapperspb.StringValue, error) {
-	ctxi, _ := httpctx.FromContext(ctx)
-	defer ctxi.StartSpanEnd("")()
+
 	if req.Mail == "" && req.Phone == "" {
 		return nil, errors.InvalidArgument.Msg("请填写邮箱或手机号")
 	}
@@ -34,14 +31,10 @@ func (u *UserService) Signup(ctx context.Context, req *user.SignupReq) (*wrapper
 }
 
 func (u *UserService) GetUser(ctx context.Context, req *user.GetUserReq) (*user.User, error) {
-	ctxi, _ := httpctx.FromContext(ctx)
-	defer ctxi.StartSpanEnd("")()
 	return &user.User{Id: req.Id, ActivatedAt: timestamppb.Now()}, nil
 }
 func Test(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, _ := strconv.Atoi(idStr)
-	ctxi, _ := httpctx.FromContext(ctx.Request.Context())
-	defer ctxi.StartSpanEnd("")()
 	ctx.JSON(200, user.User{Id: uint64(id), ActivatedAt: timestamppb.Now()})
 }
