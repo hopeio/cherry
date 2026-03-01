@@ -7,15 +7,12 @@
 package cherry
 
 import (
-	httpx "github.com/hopeio/gox/net/http"
 	"log"
-	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
 	"unsafe"
 
-	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
@@ -42,14 +39,6 @@ func TestPtr(t *testing.T) {
 	//字节对齐了,recorder size 56 bool size 1
 	*(*bool)(unsafe.Pointer(uintptr(unsafe.Pointer(recorder)) + 48)) = false
 	recorder.WriteHeader(300)
-	log.Println(recorder.Code)
-}
-
-func TestGinCtxPtr(t *testing.T) {
-	recorder := httpx.NewRecorder(http.Header{})
-	ctx := new(gin.Context)
-	*(*httpx.Recorder)(unsafe.Pointer(uintptr(*(*int64)(unsafe.Pointer(ctx))))) = *recorder
-	log.Println(*(*int64)(unsafe.Pointer(ctx)))
 	log.Println(recorder.Code)
 }
 
