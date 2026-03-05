@@ -21,11 +21,6 @@ import (
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	prometheusexporters "go.opentelemetry.io/otel/exporters/prometheus"
-	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
-	"go.opentelemetry.io/otel/propagation"
-	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"golang.org/x/net/http2"
 	"google.golang.org/grpc"
 )
@@ -54,7 +49,7 @@ type Server struct {
 	Grpc           GrpcConfig
 	InternalServer http.Server
 	ApiDoc         ApiDocConfig
-	Telemetry      TelemetryConfig
+	Otel           OtelConfig
 	Prometheus     PrometheusConfig
 	DebugHandler   DebugHandlerConfig
 	BaseContext    context.Context
@@ -87,47 +82,24 @@ type CorsConfig struct {
 	cors.Options
 }
 
-type TelemetryConfig struct {
+type OtelConfig struct {
 	Enabled                bool
-	Propagator             propagation.TextMapPropagator
-	TracerProvider         *sdktrace.TracerProvider
-	MeterProvider          *sdkmetric.MeterProvider
 	OtelhttpOpts           []otelhttp.Option
 	OtelgrpcOpts           []otelgrpc.Option
-	PrometheusExportOpts   []prometheusexporters.Option
-	StdoutExportOpts       []stdoutmetric.Option
-	PeriodicReaderOps      []sdkmetric.PeriodicReaderOption
-	BatchSpanProcessorOpts []sdktrace.BatchSpanProcessorOption
+}
+
+func (c *OtelConfig) SetOtelhttpHandlerOpts(otelhttpOpts []otelhttp.Option) {
+	c.OtelhttpOpts = otelhttpOpts
+}
+
+func (c *OtelConfig) SetOtelgrpcOptsHandlerOpts(otelgrpcOpts []otelgrpc.Option) {
+	c.OtelgrpcOpts = otelgrpcOpts
 }
 
 type PrometheusConfig struct {
 	Enabled bool
 	HttpURI string
 	promhttp.HandlerOpts
-}
-
-func (c *TelemetryConfig) SetOtelhttpHandlerOpts(otelhttpOpts []otelhttp.Option) {
-	c.OtelhttpOpts = otelhttpOpts
-}
-
-func (c *TelemetryConfig) SetOtelgrpcOptsHandlerOpts(otelgrpcOpts []otelgrpc.Option) {
-	c.OtelgrpcOpts = otelgrpcOpts
-}
-
-func (c *TelemetryConfig) SetTextMapPropagator(propagator propagation.TextMapPropagator) {
-	c.Propagator = propagator
-}
-
-func (c *TelemetryConfig) SetTracerProvider(tracerProvider *sdktrace.TracerProvider) {
-	c.TracerProvider = tracerProvider
-}
-
-func (c *TelemetryConfig) SetMeterProvider(meterProvider *sdkmetric.MeterProvider) {
-	c.MeterProvider = meterProvider
-}
-
-func (c *TelemetryConfig) SetPrometheusOpts(prometheusOpts []prometheusexporters.Option) {
-	c.PrometheusExportOpts = prometheusOpts
 }
 
 func (s *Server) Init() {

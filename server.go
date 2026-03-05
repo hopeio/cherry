@@ -64,7 +64,7 @@ func (s *Server) Run() {
 	}
 
 	// Set up OpenTelemetry.
-	if s.Telemetry.Enabled {
+	if s.Otel.Enabled {
 		grpc.EnableTracing = true
 		http.DefaultClient = &http.Client{
 			Transport: otelhttp.NewTransport(
@@ -75,12 +75,6 @@ func (s *Server) Run() {
 			),
 		}
 
-		otelShutdown, err := s.Telemetry.setupOTelSDK(sigCtx)
-		if err != nil {
-			log.Fatal(err)
-		}
-		// Handler shutdown properly so nothing leaks.
-		defer otelShutdown(sigCtx)
 	}
 
 	handler := httpx.UseMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

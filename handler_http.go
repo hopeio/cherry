@@ -84,8 +84,8 @@ func (s *Server) httpHandler() http.Handler {
 		}
 		recorder.Reset()
 	})
-	if s.Telemetry.Enabled {
-		return otelhttp.NewHandler(handler, "http", s.Telemetry.OtelhttpOpts...)
+	if s.Otel.Enabled {
+		return otelhttp.NewHandler(handler, "http", s.Otel.OtelhttpOpts...)
 	}
 	return handler
 }
