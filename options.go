@@ -67,7 +67,7 @@ func WithCors(handler func(cors *cors.Options)) Option {
 	}
 }
 
-func WithTelemetry(handler func(telemetry *OtelConfig)) Option {
+func WithOtel(handler func(otel *OtelConfig)) Option {
 	return func(server *Server) {
 		handler(&server.Otel)
 	}
