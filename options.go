@@ -13,7 +13,6 @@ import (
 	"github.com/gin-gonic/gin"
 	httpx "github.com/hopeio/gox/net/http"
 	"github.com/rs/cors"
-	"golang.org/x/net/http2"
 	"google.golang.org/grpc"
 )
 
@@ -31,13 +30,13 @@ func WithHttp(handler func(s *http.Server)) Option {
 	}
 }
 
-func WithHttp2(handler func(s *http2.Server)) Option {
+func WithHttp2(handler func(s *Http2Config)) Option {
 	return func(server *Server) {
 		handler(&server.HTTP2)
 	}
 }
 
-func WithHTTP3(handler func(s *Http3)) Option {
+func WithHTTP3(handler func(s *Http3Config)) Option {
 	return func(server *Server) {
 		handler(&server.HTTP3)
 	}

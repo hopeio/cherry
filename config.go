@@ -25,7 +25,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-type Http3 struct {
+type Http3Config struct {
 	Enabled bool
 	http3.Server
 	CertFile string
@@ -43,8 +43,8 @@ type Server struct {
 	CertFile       string
 	KeyFile        string
 	AccessLog      AccessLogConfig
-	HTTP2          http2.Server
-	HTTP3          Http3
+	HTTP2          Http2Config
+	HTTP3          Http3Config
 	Cors           CorsConfig
 	Grpc           GrpcConfig
 	InternalServer http.Server
@@ -56,6 +56,10 @@ type Server struct {
 	Middlewares    []httpx.Middleware
 	GinServer      *gin.Engine
 	GrpcHandler    func(*grpc.Server)
+}
+
+type Http2Config struct {
+	NewWriteScheduler func() http2.WriteScheduler
 }
 
 type DebugHandlerConfig struct {
@@ -83,9 +87,9 @@ type CorsConfig struct {
 }
 
 type OtelConfig struct {
-	Enabled                bool
-	OtelhttpOpts           []otelhttp.Option
-	OtelgrpcOpts           []otelgrpc.Option
+	Enabled      bool
+	OtelhttpOpts []otelhttp.Option
+	OtelgrpcOpts []otelgrpc.Option
 }
 
 func (c *OtelConfig) SetOtelhttpHandlerOpts(otelhttpOpts []otelhttp.Option) {

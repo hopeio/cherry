@@ -74,7 +74,13 @@ func (s *Server) Run() {
 				}),
 			),
 		}
-
+		shutdownFunc, err := setupOTelSDK(sigCtx)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if shutdownFunc != nil {
+			defer shutdownFunc(sigCtx)
+		}
 	}
 
 	handler := httpx.UseMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -107,14 +113,30 @@ func (s *Server) Run() {
 	}
 
 	// 为了提供grpc服务,默认启用http2
+	h2Server := &http2.Server{
+		NewWriteScheduler: s.HTTP2.NewWriteScheduler,
+		MaxConcurrentStreams: uint32(s.Server.HTTP2.MaxConcurrentStreams),
+		MaxDecoderHeaderTableSize: uint32(s.Server.HTTP2.MaxDecoderHeaderTableSize),
+		MaxEncoderHeaderTableSize: uint32(s.Server.HTTP2.MaxEncoderHeaderTableSize),
+		MaxReadFrameSize: uint32(s.Server.HTTP2.MaxReadFrameSize),
+		PermitProhibitedCipherSuites: s.Server.HTTP2.PermitProhibitedCipherSuites,
+		IdleTimeout: s.Server.IdleTimeout,
+		ReadIdleTimeout: s.Server.HTTP2.SendPingTimeout,
+		PingTimeout: s.Server.HTTP2.PingTimeout,
+		WriteByteTimeout: s.Server.HTTP2.WriteByteTimeout,
+		MaxUploadBufferPerConnection: int32(s.Server.HTTP2.MaxReceiveBufferPerConnection),
+		MaxUploadBufferPerStream: int32(s.Server.HTTP2.MaxReceiveBufferPerStream),
+		CountError: s.Server.HTTP2.CountError,
+
+	}
 	if s.Server.TLSConfig != nil || (s.CertFile != "" && s.KeyFile != "") {
-		err := http2.ConfigureServer(&s.Server, &s.HTTP2)
+		err := http2.ConfigureServer(&s.Server, h2Server)
 		if err != nil {
 			log.Fatal(err)
 		}
 		s.Server.Handler = handler
 	} else {
-		h2Handler := h2c.NewHandler(handler, &s.HTTP2)
+		h2Handler := h2c.NewHandler(handler, h2Server)
 		s.Server.Handler = h2Handler
 	}
 	srvErr := make(chan error, 1)

@@ -80,6 +80,8 @@ github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aN
 github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/hopeio/gox v1.7.18 h1:dEjD10S+4/uPf+pfdq3j/0xVr1o54Mk4FID5hffPRsA=
 github.com/hopeio/gox v1.7.18/go.mod h1:jlxjRRDoRXJAvejlbBwTskcUnd53jNESeEet4s7j3aw=
+github.com/hopeio/gox v1.8.2 h1:NdW0CMCCvD7tQ7SyzzPWwqKSipV/RDN8URKgZ7mFzt0=
+github.com/hopeio/gox v1.8.2/go.mod h1:5g08OxNXPkPlqzriDDQh8p3HhuJ15t1mnCh/43+lplA=
 github.com/hopeio/protobuf v0.7.21 h1:kfRdkVYc5f3/FhUOjaARAarNE5YcNaoHFEZk2Y1S2yA=
 github.com/hopeio/protobuf v0.7.21/go.mod h1:gE8Pf5ao8vgLdAwEnZUfRc98Zv1wZNTgi9Vpb/yTN9Q=
 github.com/josharian/intern v1.0.0 h1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=
