@@ -53,11 +53,11 @@ func DefaultAccessLog(ctx context.Context, param *AccessLogParam) {
 			param.ResponseRecorder.Raw = param.ResponseRecorder.Body.Bytes()
 		}
 		if strings.HasPrefix(param.ResponseRecorder.ContentType, httpx.ContentTypeJson) {
-			respBodyField = zap.Reflect("Response", json.RawMessage(param.ResponseRecorder.Raw))
+			respBodyField = zap.Reflect("response", json.RawMessage(param.ResponseRecorder.Raw))
 		} else if strings.HasPrefix(param.ResponseRecorder.ContentType, httpx.ContentTypeProtobuf) {
-			respBodyField = zap.String("Response", param.ResponseRecorder.Value.(fmt.Stringer).String())
+			respBodyField = zap.String("response", param.ResponseRecorder.Value.(fmt.Stringer).String())
 		} else {
-			respBodyField = zap.String("Response", stringsx.FromBytes(param.ResponseRecorder.Raw))
+			respBodyField = zap.String("response", stringsx.FromBytes(param.ResponseRecorder.Raw))
 		}
 	}
 
@@ -66,7 +66,7 @@ func DefaultAccessLog(ctx context.Context, param *AccessLogParam) {
 			zap.String("url", param.Url),
 			zap.String("method", param.Method),
 			reqBodyField,
-			zap.String("traceId", param.Metadata.TraceId),
+			log.Context(ctx),
 			zap.Duration("duration", ce.Time.Sub(param.Metadata.RequestAt)),
 			respBodyField,
 			zap.Int("status", param.StatusCode))
@@ -88,9 +88,9 @@ func DefaultGrpcAccessLog(ctx context.Context, param *GrpcAccessLogParam) {
 	if param.Err != nil {
 		s, _ := status.FromError(param.Err)
 		codeField = zap.Int32("code", int32(s.Code()))
-		respBodyField = zap.String("Response", s.Message())
+		respBodyField = zap.String("response", s.Message())
 	} else {
-		respBodyField = zap.String("Response", param.Response.(fmt.Stringer).String())
+		respBodyField = zap.String("response", param.Response.(fmt.Stringer).String())
 	}
 
 	if ce := log.NoCallerLogger().Logger.Check(zap.InfoLevel, "access"); ce != nil {
@@ -98,7 +98,7 @@ func DefaultGrpcAccessLog(ctx context.Context, param *GrpcAccessLogParam) {
 			zap.String("url", param.Method),
 			zap.String("method", "grpc"),
 			zap.String("body", param.Request.(fmt.Stringer).String()),
-			zap.String("traceId", param.Metadata.TraceId),
+			log.Context(ctx),
 			zap.Duration("duration", ce.Time.Sub(param.Metadata.RequestAt)),
 			codeField,
 			respBodyField)
