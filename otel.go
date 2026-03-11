@@ -14,7 +14,6 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 )
 
@@ -40,43 +39,28 @@ func setupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 		err = errors.Join(inErr, shutdown(ctx))
 	}
 
-	propagator := newPropagator()
-	// Set up Propagator.
-	otel.SetTextMapPropagator(propagator)
-	var res *resource.Resource
-	res, err = resource.New(
-		ctx, resource.WithFromEnv(), // Discover and provide attributes from OTEL_RESOURCE_ATTRIBUTES and OTEL_SERVICE_NAME environment variables.
-		resource.WithTelemetrySDK(), // Discover and provide information about the OpenTelemetry SDK used.
-		resource.WithProcess(),      // Discover and provide process information.
-		resource.WithOS(),           // Discover and provide OS information.
-		resource.WithContainer(),    // Discover and provide container information.
-		resource.WithHost())         // Discover and provide host information.
+	newPropagator()
 
-	if err != nil {
-		return nil, err
-	}
 
 	if otel.GetTracerProvider() == nil {
 		var tracerProvider *trace.TracerProvider
-		tracerProvider, err = newTraceProvider(res)
+		tracerProvider, err = newTraceProvider()
 		if err != nil {
 			handleErr(err)
 			return
 		}
-
 		shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
-		otel.SetTracerProvider(tracerProvider)
 	}
 
 	if otel.GetMeterProvider() == nil {
 		var meterProvider *metric.MeterProvider
-		meterProvider, err = newMeterProvider(res)
+		meterProvider, err = newMeterProvider()
 		if err != nil {
 			handleErr(err)
 			return
 		}
 		shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
-		otel.SetMeterProvider(meterProvider)
+
 	}
 	if len(shutdownFuncs) == 0 {
 		shutdown = nil
@@ -84,18 +68,23 @@ func setupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 	return
 }
 
-func newPropagator() propagation.TextMapPropagator {
-	return propagation.NewCompositeTextMapPropagator(
-		propagation.TraceContext{},
-		propagation.Baggage{},
-	)
+func newPropagator() {
+	if otel.GetTextMapPropagator() == nil {
+		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+			propagation.TraceContext{},
+			propagation.Baggage{},
+		))
+	}
 }
 
-func newTraceProvider(res *resource.Resource) (*trace.TracerProvider, error) {
-	return trace.NewTracerProvider(trace.WithResource(res)), nil
+func newTraceProvider() (*trace.TracerProvider, error) {
+	tracerProvider := trace.NewTracerProvider()
+	otel.SetTracerProvider(tracerProvider)
+	return tracerProvider, nil
 }
 
-func newMeterProvider(res *resource.Resource) (*metric.MeterProvider, error) {
-
-	return metric.NewMeterProvider(metric.WithResource(res)), nil
+func newMeterProvider() (*metric.MeterProvider, error) {
+	meterProvider := metric.NewMeterProvider()
+	otel.SetMeterProvider(meterProvider)
+	return meterProvider, nil
 }
