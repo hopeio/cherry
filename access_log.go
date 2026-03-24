@@ -41,7 +41,7 @@ func DefaultAccessLog(ctx context.Context, param *AccessLogParam) {
 		}
 		if strings.HasPrefix(param.RequestRecorder.ContentType, httpx.ContentTypeJson) {
 			reqBodyField = zap.Reflect("body", json.RawMessage(param.RequestRecorder.Raw))
-		} else if strings.HasPrefix(param.RequestRecorder.ContentType, httpx.ContentTypeProtobuf) {
+		} else if strings.HasPrefix(param.RequestRecorder.ContentType, httpx.ContentTypeXProtobuf) {
 			reqBodyField = zap.String("body", param.RequestRecorder.Value.(fmt.Stringer).String())
 		} else {
 			reqBodyField = zap.String("body", stringsx.FromBytes(param.RequestRecorder.Raw))
@@ -54,7 +54,7 @@ func DefaultAccessLog(ctx context.Context, param *AccessLogParam) {
 		}
 		if strings.HasPrefix(param.ResponseRecorder.ContentType, httpx.ContentTypeJson) {
 			respBodyField = zap.Reflect("response", json.RawMessage(param.ResponseRecorder.Raw))
-		} else if strings.HasPrefix(param.ResponseRecorder.ContentType, httpx.ContentTypeProtobuf) {
+		} else if strings.HasPrefix(param.ResponseRecorder.ContentType, httpx.ContentTypeXProtobuf) {
 			respBodyField = zap.String("response", param.ResponseRecorder.Value.(fmt.Stringer).String())
 		} else {
 			respBodyField = zap.String("response", stringsx.FromBytes(param.ResponseRecorder.Raw))
