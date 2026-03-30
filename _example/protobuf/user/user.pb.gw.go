@@ -14,7 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/gox"
-	"github.com/hopeio/gox/encoding/text"
+	"github.com/hopeio/gox/strconv"
 	grpc_0 "github.com/hopeio/gox/net/http/grpc"
 	"github.com/hopeio/protobuf/grpc/gateway"
 	"google.golang.org/grpc"
@@ -31,7 +31,7 @@ var _ io.Reader
 var _ status.Status
 var _ = metadata.Join
 var _ = gox.Pointer[bool]
-var _ = text.Bool
+var _ = strconv.Bool
 
 func request_UserService_Signup_0(ctx *gin.Context, client UserServiceClient) (proto.Message, grpc_0.ServerMetadata, error) {
 	var protoReq SignupReq
