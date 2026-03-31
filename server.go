@@ -23,6 +23,7 @@ import (
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
@@ -81,6 +82,8 @@ func (s *Server) Run() {
 		if shutdownFunc != nil {
 			defer shutdownFunc(sigCtx)
 		}
+		s.tracer = otel.Tracer(ScopeName)
+		s.meter = otel.Meter(ScopeName)
 	}
 
 	handler := httpx.UseMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

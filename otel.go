@@ -19,11 +19,6 @@ import (
 
 const ScopeName = "github.com/hopeio/cherry"
 
-var (
-	Tracer = otel.Tracer(ScopeName)
-	Meter  = otel.Meter(ScopeName)
-)
-
 // setupOTelSDK bootstraps the OpenTelemetry pipeline.
 // If it does not return an error, make sure to call shutdown for proper cleanup.
 func setupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, err error) {

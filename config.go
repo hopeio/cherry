@@ -21,6 +21,8 @@ import (
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/net/http2"
 	"google.golang.org/grpc"
 )
@@ -50,6 +52,8 @@ type Server struct {
 	InternalServer http.Server
 	ApiDoc         ApiDocConfig
 	Otel           OtelConfig
+	tracer         trace.Tracer
+	meter          metric.Meter
 	Prometheus     PrometheusConfig
 	DebugHandler   DebugHandlerConfig
 	BaseContext    context.Context

@@ -10,7 +10,7 @@ import (
 	"context"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/gox/kvstruct"
+	"github.com/hopeio/gox/mapstruct"
 	"github.com/hopeio/protobuf/oauth"
 
 	httpx "github.com/hopeio/gox/net/http"
@@ -26,7 +26,7 @@ type OauthServiceServer interface {
 func RegisterOauthServiceHandlerServer(r *gin.Engine, server OauthServiceServer) {
 	r.GET("/oauth/authorize", func(ctx *gin.Context) {
 		var protoReq oauth.OauthReq
-		kvstruct.DefaultDecoder().Decode(&protoReq, ctx.Request.URL.Query())
+		mapstruct.DefaultDecoder().Decode(&protoReq, ctx.Request.URL.Query())
 		res, _ := server.OauthAuthorize(
 			metadata.NewIncomingContext(
 				ctx.Request.Context(),
@@ -38,7 +38,7 @@ func RegisterOauthServiceHandlerServer(r *gin.Engine, server OauthServiceServer)
 
 	r.POST("/oauth/access_token", func(ctx *gin.Context) {
 		var protoReq oauth.OauthReq
-		kvstruct.DefaultDecoder().Decode(&protoReq, ctx.Request.PostForm)
+		mapstruct.DefaultDecoder().Decode(&protoReq, ctx.Request.PostForm)
 		res, _ := server.OauthToken(ctx.Request.Context(), &protoReq)
 		res.Respond(ctx, ctx.Writer)
 	})
