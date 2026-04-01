@@ -85,7 +85,9 @@ func (s *Server) httpHandler() http.Handler {
 		recorder.Reset()
 	})
 	if s.Otel.Enabled {
-		return otelhttp.NewHandler(handler, "http", s.Otel.OtelhttpOpts...)
+		return otelhttp.NewHandler(handler, "http", append([]otelhttp.Option{otelhttp.WithSpanNameFormatter(func(operation string, r *http.Request) string {
+			return r.RequestURI
+		})}, s.Otel.OtelhttpOpts...)...)
 	}
 	return handler
 }
