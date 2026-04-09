@@ -54,6 +54,12 @@ func WithGinHandler(handler func(*gin.Engine)) Option {
 	}
 }
 
+func WithInternalServer(handler func(s *http.Server)) Option {
+	return func(server *Server) {
+		handler(&server.InternalServer)
+	}
+}
+
 func WithGrpc(handler func(option *GrpcConfig)) Option {
 	return func(server *Server) {
 		handler(&server.Grpc)

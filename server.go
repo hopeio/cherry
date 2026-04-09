@@ -26,7 +26,6 @@ import (
 	"go.opentelemetry.io/otel"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
-	"google.golang.org/grpc"
 )
 
 func NewServer(options ...Option) *Server {
@@ -66,7 +65,6 @@ func (s *Server) Run() {
 
 	// Set up OpenTelemetry.
 	if s.Otel.Enabled {
-		grpc.EnableTracing = true
 		http.DefaultClient = &http.Client{
 			Transport: otelhttp.NewTransport(
 				http.DefaultTransport,

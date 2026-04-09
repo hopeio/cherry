@@ -11,16 +11,13 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"github.com/hopeio/gox/errors"
 	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
-	"github.com/hopeio/gox/net/http/apidoc"
+	"github.com/hopeio/gox/net/http/openapi"
 	gatewayx "github.com/hopeio/gox/net/http/grpc/gateway"
 	stringsx "github.com/hopeio/gox/strings"
 	"github.com/hopeio/protobuf/response"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/baggage"
 	"go.opentelemetry.io/otel/trace"
@@ -28,12 +25,8 @@ import (
 )
 
 func (s *Server) InternalHandler() {
-	if s.ApiDoc.Enabled {
-		apidoc.ApiDoc(http.DefaultServeMux, s.ApiDoc.UriPrefix, s.ApiDoc.Dir)
-	}
-	if s.Prometheus.Enabled {
-		log.Infow("prometheus enabled", zap.String("uri", s.Prometheus.HttpURI))
-		http.Handle(s.Prometheus.HttpURI, promhttp.HandlerFor(prometheus.DefaultGatherer, s.Prometheus.HandlerOpts))
+	if s.Openapi.Enabled {
+		openapi.Openapi(http.DefaultServeMux, s.Openapi.UriPrefix, s.Openapi.Dir)
 	}
 	if s.DebugHandler.Enabled {
 		httpx.HandleDebug(s.DebugHandler.UriPrefix)
@@ -68,9 +61,6 @@ func (s *Server) httpHandler() http.Handler {
 		metadata.Bagage = baggage.FromContext(r.Context())
 		recorder := httpx.NewRecorder(w, r)
 		r.Body = &recorder.RequestRecorder
-		s.GinServer.Use(func(c *gin.Context) {
-			metadata.GinContext = c
-		})
 		s.GinServer.ServeHTTP(&recorder.ResponseRecorder, r)
 
 		if s.AccessLog.RecordFunc != nil {

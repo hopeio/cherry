@@ -50,11 +50,10 @@ type Server struct {
 	Cors           CorsConfig
 	Grpc           GrpcConfig
 	InternalServer http.Server
-	ApiDoc         ApiDocConfig
+	Openapi        OpenapiConfig
 	Otel           OtelConfig
 	tracer         trace.Tracer
 	meter          metric.Meter
-	Prometheus     PrometheusConfig
 	DebugHandler   DebugHandlerConfig
 	BaseContext    context.Context
 	Middlewares    []httpx.Middleware
@@ -71,7 +70,7 @@ type DebugHandlerConfig struct {
 	UriPrefix string
 }
 
-type ApiDocConfig struct {
+type OpenapiConfig struct {
 	Enabled        bool
 	UriPrefix, Dir string
 }
@@ -96,11 +95,11 @@ type OtelConfig struct {
 	OtelgrpcOpts []otelgrpc.Option
 }
 
-func (c *OtelConfig) SetOtelhttpHandlerOpts(otelhttpOpts []otelhttp.Option) {
+func (c *OtelConfig) SetOtelhttpOptions(otelhttpOpts []otelhttp.Option) {
 	c.OtelhttpOpts = otelhttpOpts
 }
 
-func (c *OtelConfig) SetOtelgrpcOptsHandlerOpts(otelgrpcOpts []otelgrpc.Option) {
+func (c *OtelConfig) SetOtelgrpcOptions(otelgrpcOpts []otelgrpc.Option) {
 	c.OtelgrpcOpts = otelgrpcOpts
 }
 
@@ -129,6 +128,9 @@ func (s *Server) Init() {
 	if s.GinServer == nil {
 		s.GinServer = gin.New()
 	}
+	s.GinServer.Use(func(c *gin.Context) {
+		GetMetadata(c.Request.Context()).GinContext = c
+	})
 
 	if s.InternalServer.Addr == "" {
 		s.InternalServer.Addr = ":8081"
@@ -169,12 +171,6 @@ func (s *Server) Init() {
 		}
 		if len(s.Cors.AllowedHeaders) == 0 {
 			s.Cors.AllowedHeaders = []string{"*"}
-		}
-	}
-
-	if s.Prometheus.Enabled {
-		if s.Prometheus.HttpURI == "" {
-			s.Prometheus.HttpURI = "/metrics"
 		}
 	}
 
