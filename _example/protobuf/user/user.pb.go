@@ -11,8 +11,6 @@ import (
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	deletedAt "github.com/hopeio/protobuf/time/deletedAt"
 	timestamp "github.com/hopeio/protobuf/time/timestamp"
-	_ "github.com/hopeio/protobuf/utils/enum"
-	_ "github.com/hopeio/protobuf/utils/patch"
 	_ "github.com/hopeio/protobuf/utils/validator"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"

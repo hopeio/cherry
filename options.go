@@ -10,7 +10,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	httpx "github.com/hopeio/gox/net/http"
 	"github.com/rs/cors"
 	"google.golang.org/grpc"
@@ -42,15 +41,15 @@ func WithHTTP3(handler func(s *Http3Config)) Option {
 	}
 }
 
-func WithGrpcHandler(handler func(*grpc.Server)) Option {
+func WithHttpHandler(handler func(http.Handler)) Option {
 	return func(server *Server) {
-		server.GrpcHandler = handler
+		handler(server.HttpHandler)
 	}
 }
 
-func WithGinHandler(handler func(*gin.Engine)) Option {
+func WithGrpcHandler(handler func(*grpc.Server)) Option {
 	return func(server *Server) {
-		handler(server.GinServer)
+		server.GrpcHandler = handler
 	}
 }
 

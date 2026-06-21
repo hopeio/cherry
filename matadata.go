@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/hopeio/gox/log"
 	"go.opentelemetry.io/otel/baggage"
 	"go.uber.org/zap"
@@ -34,7 +33,6 @@ type Metadata struct {
 	AuthID                string
 	Request               *http.Request
 	ResponseWriter        http.ResponseWriter
-	GinContext            *gin.Context // http only
 	RequestAt             time.Time
 	GrpcMD                metadata.MD                // grpc only
 	ServerTransportStream grpc.ServerTransportStream // grpc only

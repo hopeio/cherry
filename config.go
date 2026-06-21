@@ -57,7 +57,7 @@ type Server struct {
 	DebugHandler   DebugHandlerConfig
 	BaseContext    context.Context
 	Middlewares    []httpx.Middleware
-	GinServer      *gin.Engine
+	HttpHandler    http.Handler
 	GrpcHandler    func(*grpc.Server)
 }
 
@@ -125,12 +125,9 @@ func (s *Server) Init() {
 		s.Grpc.RecordFunc = DefaultGrpcAccessLog
 	}
 
-	if s.GinServer == nil {
-		s.GinServer = gin.New()
+	if s.HttpHandler == nil {
+		s.HttpHandler = gin.New()
 	}
-	s.GinServer.Use(func(c *gin.Context) {
-		GetMetadata(c.Request.Context()).GinContext = c
-	})
 
 	if s.InternalServer.Addr == "" {
 		s.InternalServer.Addr = ":8081"

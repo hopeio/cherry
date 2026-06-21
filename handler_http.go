@@ -14,8 +14,8 @@ import (
 	"github.com/hopeio/gox/errors"
 	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
-	"github.com/hopeio/gox/net/http/openapi"
 	gatewayx "github.com/hopeio/gox/net/http/grpc/gateway"
+	"github.com/hopeio/gox/net/http/openapi"
 	stringsx "github.com/hopeio/gox/strings"
 	"github.com/hopeio/protobuf/response"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -51,7 +51,7 @@ func (s *Server) httpHandler() http.Handler {
 		if len(s.AccessLog.ExcludePrefixes) > 0 {
 			if stringsx.HasPrefixes(r.RequestURI, s.AccessLog.ExcludePrefixes) &&
 				!stringsx.HasPrefixes(r.RequestURI, s.AccessLog.IncludePrefixes) {
-				s.GinServer.ServeHTTP(w, r)
+				s.HttpHandler.ServeHTTP(w, r)
 				return
 			}
 		}
@@ -61,7 +61,7 @@ func (s *Server) httpHandler() http.Handler {
 		metadata.Bagage = baggage.FromContext(r.Context())
 		recorder := httpx.NewRecorder(w, r)
 		r.Body = &recorder.RequestRecorder
-		s.GinServer.ServeHTTP(&recorder.ResponseRecorder, r)
+		s.HttpHandler.ServeHTTP(&recorder.ResponseRecorder, r)
 
 		if s.AccessLog.RecordFunc != nil {
 			recorder.RequestRecorder.ContentType = r.Header.Get(httpx.HeaderContentType)
