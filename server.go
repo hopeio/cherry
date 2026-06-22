@@ -18,7 +18,6 @@ import (
 
 	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
-	"github.com/hopeio/gox/net/http/grpc/web"
 	"github.com/quic-go/quic-go"
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
@@ -57,12 +56,6 @@ func (s *Server) Run() {
 		httpHandler = cors.New(s.Cors.Options).Handler(httpHandler)
 	}
 
-	// grpc-web
-	var wrappedGrpc *web.WrappedGrpcServer
-	if s.Grpc.EnableGrpcWeb {
-		wrappedGrpc = web.WrapServer(grpcServer, s.Grpc.GrpcWebOptions...)
-	}
-
 	// Set up OpenTelemetry.
 	if s.Otel.Enabled {
 		http.DefaultClient = &http.Client{
@@ -93,10 +86,7 @@ func (s *Server) Run() {
 		r = r.WithContext(WithMetadata(r.Context(), &md))
 		contentType := r.Header.Get(httpx.HeaderContentType)
 		if strings.HasPrefix(contentType, httpx.ContentTypeGrpc) {
-			if strings.HasPrefix(contentType[len(httpx.ContentTypeGrpc):], "-web") && wrappedGrpc != nil {
-				md.RequestType = RequestTypeGrpcWeb
-				wrappedGrpc.ServeHTTP(w, r)
-			} else if r.ProtoMajor == 2 && grpcServer != nil {
+			 if r.ProtoMajor == 2 && grpcServer != nil {
 				md.RequestType = RequestTypeGrpc
 				grpcServer.ServeHTTP(w, r)
 			} else {

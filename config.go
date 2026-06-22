@@ -15,7 +15,6 @@ import (
 	"github.com/hopeio/gox/crypto/tls"
 	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
-	"github.com/hopeio/gox/net/http/grpc/web"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/quic-go/quic-go/http3"
 	"github.com/rs/cors"
@@ -77,8 +76,6 @@ type OpenapiConfig struct {
 
 type GrpcConfig struct {
 	RecordFunc               GrpcAccessLog
-	EnableGrpcWeb            bool
-	GrpcWebOptions           []web.Option
 	Options                  []grpc.ServerOption
 	UnaryServerInterceptors  []grpc.UnaryServerInterceptor
 	StreamServerInterceptors []grpc.StreamServerInterceptor
