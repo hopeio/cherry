@@ -10,7 +10,6 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	pb "github.com/hopeio/cherry/_example/proto"
 	"github.com/hopeio/gox/errors"
 	"google.golang.org/protobuf/types/known/timestamppb"

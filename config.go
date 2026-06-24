@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/hopeio/gox/crypto/tls"
 	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
@@ -22,7 +21,6 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
-	"golang.org/x/net/http2"
 	"google.golang.org/grpc"
 )
 
@@ -44,7 +42,6 @@ type Server struct {
 	CertFile          string
 	KeyFile           string
 	AccessLog         AccessLogConfig
-	NewWriteScheduler func() http2.WriteScheduler
 	HTTP3             Http3Config
 	Cors              CorsConfig
 	Grpc              GrpcConfig
@@ -103,7 +100,6 @@ type PrometheusConfig struct {
 }
 
 func (s *Server) Init() {
-	gin.SetMode(gin.ReleaseMode)
 	if s.BaseContext == nil {
 		s.BaseContext = context.Background()
 	}
@@ -119,7 +115,7 @@ func (s *Server) Init() {
 	}
 
 	if s.HttpHandler == nil {
-		s.HttpHandler = gin.New()
+		log.Fatal("HttpHandler is required")
 	}
 
 	if s.InternalServer.Addr == "" {

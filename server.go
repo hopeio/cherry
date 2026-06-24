@@ -23,8 +23,6 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
 )
 
 func NewServer(options ...Option) *Server {
@@ -97,6 +95,8 @@ func (s *Server) Run() {
 		}
 	}), s.Middlewares...)
 
+	s.Server.Handler = handler
+
 	if s.Server.BaseContext == nil {
 		s.Server.BaseContext = func(_ net.Listener) context.Context {
 			return sigCtx
@@ -104,31 +104,10 @@ func (s *Server) Run() {
 	}
 
 	// 为了提供grpc服务,默认启用http2
-	h2Server := &http2.Server{
-		NewWriteScheduler: s.NewWriteScheduler,
-		MaxConcurrentStreams: uint32(s.Server.HTTP2.MaxConcurrentStreams),
-		MaxDecoderHeaderTableSize: uint32(s.Server.HTTP2.MaxDecoderHeaderTableSize),
-		MaxEncoderHeaderTableSize: uint32(s.Server.HTTP2.MaxEncoderHeaderTableSize),
-		MaxReadFrameSize: uint32(s.Server.HTTP2.MaxReadFrameSize),
-		PermitProhibitedCipherSuites: s.Server.HTTP2.PermitProhibitedCipherSuites,
-		IdleTimeout: s.Server.IdleTimeout,
-		ReadIdleTimeout: s.Server.HTTP2.SendPingTimeout,
-		PingTimeout: s.Server.HTTP2.PingTimeout,
-		WriteByteTimeout: s.Server.HTTP2.WriteByteTimeout,
-		MaxUploadBufferPerConnection: int32(s.Server.HTTP2.MaxReceiveBufferPerConnection),
-		MaxUploadBufferPerStream: int32(s.Server.HTTP2.MaxReceiveBufferPerStream),
-		CountError: s.Server.HTTP2.CountError,
-
-	}
-	if s.Server.TLSConfig != nil || (s.CertFile != "" && s.KeyFile != "") {
-		err := http2.ConfigureServer(&s.Server, h2Server)
-		if err != nil {
-			log.Fatal(err)
-		}
-		s.Server.Handler = handler
-	} else {
-		h2Handler := h2c.NewHandler(handler, h2Server)
-		s.Server.Handler = h2Handler
+	if s.Server.TLSConfig == nil{
+		s.Server.Protocols = new(http.Protocols)
+		s.Server.Protocols.SetHTTP1(true)
+		s.Server.Protocols.SetUnencryptedHTTP2(true)
 	}
 	srvErr := make(chan error, 1)
 	if s.HTTP3.Enabled {

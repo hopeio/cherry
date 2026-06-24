@@ -3,13 +3,11 @@ package user;
 
 import "patch/go.proto";;
 import "hopeio/time/timestamp/timestamp.proto";
-import "hopeio/model/gorm.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 import "hopeio/utils/validator/validator.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
-import "danielvladco/protobuf/graphql.proto";
 
 option java_package = "cherry.hopeio.protobuf.user";
 option go_package = "github.com/hopeio/cherry/_example/protobuf/user";
@@ -34,10 +32,6 @@ message User {
   UserStatus status = 28 [(go.field) = {tags:'gorm:"type:int2;default:0"'}, (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     read_only:true
   }];
-  timestamp.Timestamp createdAt = 25 [(go.field) = {tags:'gorm:"type:timestamptz(6);default:now();index"'}];
-  google.protobuf.Timestamp activatedAt = 3 [(go.field) = {tags:'gorm:"<-:false;type:timestamptz(6);index"'}];
-  deletedAt.DeletedAt deletedAt = 27 [(go.field) = {tags:'gorm:"<-:false;type:timestamptz(6);index"'}];
-  // uint32 isDeleted = 29 [(go.field) = {tags:'gorm:"default:0"'}];
 }
 
 message SignupReq {
@@ -59,37 +53,37 @@ message SignupReq {
 
 // 用户性别
 enum Gender{
-  GenderPlaceholder = 0 [(go.enum).value= "占位"];
-  GenderUnfilled = 1 [(go.enum).value= "未填"];
-  GenderMale = 2 [(go.enum).value= "男"];
-  GenderFemale = 3 [(go.enum).value= "女"];
+  GenderPlaceholder = 0;
+  GenderUnfilled = 1 ;
+  GenderMale = 2 ;
+  GenderFemale = 3;
 }
 
 // 用户角色
 enum Role {
-  PlaceholderRole = 0 [(go.enum).value= "占位"];
-  RoleNormal = 1 [(go.enum).value= "普通用户"];
-  RoleAdmin = 2 [(go.enum).value= "管理员"];
-  RoleSuperAdmin = 3 [(go.enum).value= "超级管理员"];
+  PlaceholderRole = 0;
+  RoleNormal = 1;
+  RoleAdmin = 2;
+  RoleSuperAdmin = 3;
 }
 
 // 用户角色
 enum UserStatus {
-  UserStatusPlaceholder = 0 [(go.enum).value= "占位"];
-  UserStatusInActive = 1 [(go.enum).value= "未激活"];
-  UserStatusActivated = 2 [(go.enum).value= "已激活"];
-  UserStatusFrozen = 3 [(go.enum).value= "已冻结"];
-  UserStatusDeleted = 4 [(go.enum).value= "已注销"];
+  UserStatusPlaceholder = 0;
+  UserStatusInActive = 1;
+  UserStatusActivated = 2;
+  UserStatusFrozen = 3;
+  UserStatusDeleted = 4;
 }
 
 enum UserErr {
-  UserErrPlaceholder = 0 [(go.enum).value= "占位"];
-  UserErrLogin = 1000 [(go.enum).value= "用户名或密码错误"];
-  UserErrNoActive = 1001 [(go.enum).value= "未激活账号"];
-  UserErrNoAuthority = 1002 [(go.enum).value= "无权限"];
-  UserErrLoginTimeout = 1003 [(go.enum).value= "登录超时"];
-  UserErrInvalidToken = 1004 [(go.enum).value= "Token错误"];
-  UserErrNoLogin = 1005 [(go.enum).value= "未登录"];
+  UserErrPlaceholder = 0;
+  UserErrLogin = 1000;
+  UserErrNoActive = 1001;
+  UserErrNoAuthority = 1002;
+  UserErrLoginTimeout = 1003;
+  UserErrInvalidToken = 1004;
+  UserErrNoLogin = 1005;
 }
 
 message GetUserReq {
@@ -108,7 +102,6 @@ service UserService {
       summary : "注册"
       description : "注册接口"
     };
-    option (danielvladco.protobuf.graphql.rpc) = {type: MUTATION};
   }
 
   rpc GetUser (GetUserReq) returns (User) {
@@ -120,6 +113,5 @@ service UserService {
       summary : "详情"
       description : "详情接口"
     };
-    option (danielvladco.protobuf.graphql.rpc) = {type: QUERY};
   }
 }

@@ -11,7 +11,6 @@ import (
 	"net/http"
 
 	"github.com/hopeio/cherry/_example/protobuf/user"
-	"golang.org/x/net/http2"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -60,15 +59,12 @@ func sendGRPCRequest() {
 	httpReq.Header.Set("Te", "trailers") // 必须小写 "te"
 	httpReq.Header.Set("User-Agent", "grpc-go/1.0")
 	httpReq.ProtoMinor = 2
+	tr := &http.Transport{}
+	tr.Protocols = new(http.Protocols)
+	tr.Protocols.SetUnencryptedHTTP2(true)
 	// 发送请求
 	client := &http.Client{
-		Transport: &http2.Transport{
-			AllowHTTP: true,
-			DialTLSContext: func(ctx context.Context, network, addr string, cfg *tls.Config) (net.Conn, error) {
-				// 忽略 TLS，使用普通 TCP
-				return net.Dial(network, addr)
-			},
-		},
+		Transport: tr,
 	}
 	resp, err := client.Do(httpReq)
 	if err != nil {
