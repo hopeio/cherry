@@ -4,7 +4,7 @@
  * @Created by jyb
  */
 
-package cherry
+package mix
 
 import (
 	"log"

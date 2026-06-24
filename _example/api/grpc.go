@@ -7,8 +7,8 @@
 package api
 
 import (
-	"github.com/hopeio/cherry/_example/protobuf/user"
-	pb "github.com/hopeio/cherry/_example/proto"
+	"github.com/hopeio/mix/_example/protobuf/user"
+	pb "github.com/hopeio/mix/_example/proto"
 	"google.golang.org/grpc"
 )
 

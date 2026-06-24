@@ -10,7 +10,7 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/hopeio/cherry/_example/protobuf/user"
+	"github.com/hopeio/mix/_example/protobuf/user"
 	"google.golang.org/protobuf/proto"
 )
 

@@ -4,7 +4,7 @@
  * @Created by jyb
  */
 
-package cherry
+package mix
 
 import (
 	"context"
@@ -17,7 +17,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 )
 
-const ScopeName = "github.com/hopeio/cherry"
+const ScopeName = "github.com/hopeio/mix"
 
 // setupOTelSDK bootstraps the OpenTelemetry pipeline.
 // If it does not return an error, make sure to call shutdown for proper cleanup.

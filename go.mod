@@ -1,4 +1,4 @@
-module github.com/hopeio/cherry
+module github.com/hopeio/mix
 
 go 1.25.0
 

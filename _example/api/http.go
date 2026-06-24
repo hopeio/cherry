@@ -9,7 +9,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/hopeio/cherry/_example/service"
+	"github.com/hopeio/mix/_example/service"
 	"github.com/hopeio/gox/net/http/grpc/gateway"
 )
 

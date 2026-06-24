@@ -10,7 +10,7 @@ import (
 	"context"
 	"strconv"
 
-	pb "github.com/hopeio/cherry/_example/proto"
+	pb "github.com/hopeio/mix/_example/proto"
 	"github.com/hopeio/gox/errors"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"google.golang.org/protobuf/types/known/wrapperspb"

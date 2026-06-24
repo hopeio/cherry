@@ -7,10 +7,10 @@
 package main
 
 import (
-	"github.com/hopeio/cherry"
-	"github.com/hopeio/cherry/_example/api"
+	"github.com/hopeio/mix"
+	"github.com/hopeio/mix/_example/api"
 )
 
 func main() {
-	cherry.NewServer(cherry.WithGrpcHandler(api.GrpcRegister), cherry.WithHttpHandler(api.HttpHandler)).Run()
+	mix.NewServer(mix.WithGrpcHandler(api.GrpcRegister), mix.WithHttpHandler(api.HttpHandler)).Run()
 }

@@ -9,8 +9,8 @@ import "google/api/annotations.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
 
-option java_package = "cherry.hopeio.protobuf.user";
-option go_package = "github.com/hopeio/cherry/_example/protobuf/user";
+option java_package = "mix.hopeio.protobuf.user";
+option go_package = "github.com/hopeio/mix/_example/protobuf/user";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   info: {

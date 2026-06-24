@@ -544,7 +544,7 @@ const file_proto_user_proto_rawDesc = "" +
 	".user.User\"F\x92A2\n" +
 	"\x12用户相关接口\n" +
 	"\x06v1.0.0\x12\x06详情\x1a\f详情接口\x82\xd3\xe4\x93\x02\v\x12\t/api/{id}BX\x92A\a\x12\x052\x031.0\n" +
-	"\x1bcherry.hopeio.protobuf.userZ/github.com/hopeio/cherry/_example/protobuf/userb\x06proto3"
+	"\x1bmix.hopeio.protobuf.userZ/github.com/hopeio/mix/_example/protobuf/userb\x06proto3"
 
 var (
 	file_proto_user_proto_rawDescOnce sync.Once
