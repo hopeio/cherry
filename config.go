@@ -41,27 +41,23 @@ type AccessLogConfig struct {
 
 type Server struct {
 	http.Server
-	CertFile       string
-	KeyFile        string
-	AccessLog      AccessLogConfig
-	HTTP2          Http2Config
-	HTTP3          Http3Config
-	Cors           CorsConfig
-	Grpc           GrpcConfig
-	InternalServer http.Server
-	Openapi        OpenapiConfig
-	Otel           OtelConfig
-	tracer         trace.Tracer
-	meter          metric.Meter
-	DebugHandler   DebugHandlerConfig
-	BaseContext    context.Context
-	Middlewares    []httpx.Middleware
-	HttpHandler    http.Handler
-	GrpcHandler    func(*grpc.Server)
-}
-
-type Http2Config struct {
+	CertFile          string
+	KeyFile           string
+	AccessLog         AccessLogConfig
 	NewWriteScheduler func() http2.WriteScheduler
+	HTTP3             Http3Config
+	Cors              CorsConfig
+	Grpc              GrpcConfig
+	InternalServer    http.Server
+	Openapi           OpenapiConfig
+	Otel              OtelConfig
+	tracer            trace.Tracer
+	meter             metric.Meter
+	DebugHandler      DebugHandlerConfig
+	BaseContext       context.Context
+	Middlewares       []httpx.Middleware
+	HttpHandler       http.Handler
+	GrpcHandler       func(*grpc.Server)
 }
 
 type DebugHandlerConfig struct {

@@ -20,7 +20,7 @@ require (
 )
 
 require (
-	github.com/hopeio/gox v1.11.2
+	github.com/hopeio/gox v1.11.5
 	github.com/hopeio/protobuf v0.9.0
 	github.com/quic-go/quic-go v0.57.0
 	github.com/rs/cors v1.11.1

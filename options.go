@@ -29,21 +29,15 @@ func WithHttp(handler func(s *http.Server)) Option {
 	}
 }
 
-func WithHttp2(handler func(s *Http2Config)) Option {
-	return func(server *Server) {
-		handler(&server.HTTP2)
-	}
-}
-
 func WithHTTP3(handler func(s *Http3Config)) Option {
 	return func(server *Server) {
 		handler(&server.HTTP3)
 	}
 }
 
-func WithHttpHandler(handler func(http.Handler)) Option {
+func WithHttpHandler(handler http.Handler) Option {
 	return func(server *Server) {
-		handler(server.HttpHandler)
+		server.HttpHandler = handler
 	}
 }
 

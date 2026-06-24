@@ -8,10 +8,10 @@ package api
 
 import (
 	"github.com/hopeio/cherry/_example/protobuf/user"
-	userService "github.com/hopeio/cherry/_example/user/service"
+	pb "github.com/hopeio/cherry/_example/proto"
 	"google.golang.org/grpc"
 )
 
 func GrpcRegister(gs *grpc.Server) {
-	user.RegisterUserServiceServer(gs, userService.GetUserService())
+	pb.RegisterUserServiceServer(gs, userService.GetUserService())
 }

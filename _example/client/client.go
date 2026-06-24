@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	"github.com/hopeio/cherry/_example/protobuf/user"
+	pb "github.com/hopeio/cherry/_example/proto"
 	"github.com/hopeio/gox/log"
 	grpcx "github.com/hopeio/gox/net/http/grpc"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -16,5 +16,5 @@ func main() {
 		log.Fatalf("did not connect: %v", err)
 	}
 	client := user.NewUserServiceClient(conn)
-	log.Info(client.GetUser(context.Background(), &user.GetUserReq{Id: 1}))
+	log.Info(client.GetUser(context.Background(), &pb.GetUserReq{Id: 1}))
 }

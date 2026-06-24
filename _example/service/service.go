@@ -11,7 +11,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/cherry/_example/protobuf/user"
+	pb "github.com/hopeio/cherry/_example/proto"
 	"github.com/hopeio/gox/errors"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
@@ -21,7 +21,7 @@ type UserService struct {
 	user.UnimplementedUserServiceServer
 }
 
-func (u *UserService) Signup(ctx context.Context, req *user.SignupReq) (*wrapperspb.StringValue, error) {
+func (u *UserService) Signup(ctx context.Context, req *pb.SignupReq) (*wrapperspb.StringValue, error) {
 
 	if req.Mail == "" && req.Phone == "" {
 		return nil, errors.InvalidArgument.Msg("请填写邮箱或手机号")
@@ -30,11 +30,6 @@ func (u *UserService) Signup(ctx context.Context, req *user.SignupReq) (*wrapper
 	return &wrapperspb.StringValue{Value: "注册成功"}, nil
 }
 
-func (u *UserService) GetUser(ctx context.Context, req *user.GetUserReq) (*user.User, error) {
+func (u *UserService) GetUser(ctx context.Context, req *pb.GetUserReq) (*pb.User, error) {
 	return &user.User{Id: req.Id, ActivatedAt: timestamppb.Now()}, nil
-}
-func Test(ctx *gin.Context) {
-	idStr := ctx.Param("id")
-	id, _ := strconv.Atoi(idStr)
-	ctx.JSON(200, user.User{Id: uint64(id), ActivatedAt: timestamppb.Now()})
 }

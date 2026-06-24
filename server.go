@@ -105,7 +105,7 @@ func (s *Server) Run() {
 
 	// 为了提供grpc服务,默认启用http2
 	h2Server := &http2.Server{
-		NewWriteScheduler: s.HTTP2.NewWriteScheduler,
+		NewWriteScheduler: s.NewWriteScheduler,
 		MaxConcurrentStreams: uint32(s.Server.HTTP2.MaxConcurrentStreams),
 		MaxDecoderHeaderTableSize: uint32(s.Server.HTTP2.MaxDecoderHeaderTableSize),
 		MaxEncoderHeaderTableSize: uint32(s.Server.HTTP2.MaxEncoderHeaderTableSize),
