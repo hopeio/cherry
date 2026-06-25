@@ -19,6 +19,11 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+const (
+	ContentTypeJson    = "json"
+	ContentTypeProtobuf = "protobuf"
+)
+
 type Body struct {
 	ContentType string
 	Raw         []byte
@@ -39,9 +44,9 @@ func DefaultAccessLog(ctx context.Context, param *AccessLogParam) {
 		if param.RequestRecorder.Raw == nil && param.RequestRecorder.Body != nil {
 			param.RequestRecorder.Raw = param.RequestRecorder.Body.Bytes()
 		}
-		if strings.HasPrefix(param.RequestRecorder.ContentType, httpx.ContentTypeJson) {
+		if strings.HasSuffix(param.RequestRecorder.ContentType, ContentTypeJson) {
 			reqBodyField = zap.Reflect("body", json.RawMessage(param.RequestRecorder.Raw))
-		} else if strings.HasPrefix(param.RequestRecorder.ContentType, httpx.ContentTypeXProtobuf) {
+		} else if strings.HasSuffix(param.RequestRecorder.ContentType, ContentTypeProtobuf) {
 			reqBodyField = zap.String("body", param.RequestRecorder.Value.(fmt.Stringer).String())
 		} else {
 			reqBodyField = zap.String("body", stringsx.FromBytes(param.RequestRecorder.Raw))
@@ -52,9 +57,9 @@ func DefaultAccessLog(ctx context.Context, param *AccessLogParam) {
 		if param.ResponseRecorder.Raw == nil && param.ResponseRecorder.Body != nil {
 			param.ResponseRecorder.Raw = param.ResponseRecorder.Body.Bytes()
 		}
-		if strings.HasPrefix(param.ResponseRecorder.ContentType, httpx.ContentTypeJson) {
+		if strings.HasSuffix(param.ResponseRecorder.ContentType, ContentTypeJson) {
 			respBodyField = zap.Reflect("response", json.RawMessage(param.ResponseRecorder.Raw))
-		} else if strings.HasPrefix(param.ResponseRecorder.ContentType, httpx.ContentTypeXProtobuf) {
+		} else if strings.HasSuffix(param.ResponseRecorder.ContentType, ContentTypeProtobuf) {
 			respBodyField = zap.String("response", param.ResponseRecorder.Value.(fmt.Stringer).String())
 		} else {
 			respBodyField = zap.String("response", stringsx.FromBytes(param.ResponseRecorder.Raw))
