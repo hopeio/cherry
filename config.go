@@ -56,7 +56,12 @@ type Server struct {
 	BaseContext    context.Context
 	Middlewares    []httpx.Middleware
 	HttpHandler    http.Handler
-	GrpcHandler    func(*grpc.Server)
+	// http3Serve, when set, replaces the built-in HTTP/3 listener. WebTransport has
+	// to own the QUIC stack: it decodes both extended CONNECT and regular HTTP/3
+	// requests on the same connection, so a second listener would open a duplicate
+	// control stream and break every session.
+	http3Serve  func() error
+	GrpcHandler func(*grpc.Server)
 	// DisableInternalServer 关闭内部端口（健康检查/OpenAPI/调试端点）
 	DisableInternalServer bool
 
