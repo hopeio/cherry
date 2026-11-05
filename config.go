@@ -31,6 +31,16 @@ type Http3Config struct {
 	http3.Server
 	CertFile string
 	KeyFile  string
+	// WebTransport configures the WebTransport extension of HTTP/3.
+	//
+	// When enabled, mix owns the QUIC stack: regular h3 requests and WT
+	// sessions coexist on the same connection (WT uses extended CONNECT).
+	// When disabled, http3.Server listens on its own and there is no
+	// extra indirection.
+	//
+	// Enabling it without a Handler is an error at startup: sessions
+	// would be established and nobody would use them.
+	WebTransport WebTransportConfig
 }
 
 type AccessLogConfig struct {
@@ -56,12 +66,7 @@ type Server struct {
 	BaseContext    context.Context
 	Middlewares    []httpx.Middleware
 	HttpHandler    http.Handler
-	// http3Serve, when set, replaces the built-in HTTP/3 listener. WebTransport has
-	// to own the QUIC stack: it decodes both extended CONNECT and regular HTTP/3
-	// requests on the same connection, so a second listener would open a duplicate
-	// control stream and break every session.
-	http3Serve  func() error
-	GrpcHandler func(*grpc.Server)
+	GrpcHandler    func(*grpc.Server)
 	// DisableInternalServer 关闭内部端口（健康检查/OpenAPI/调试端点）
 	DisableInternalServer bool
 
@@ -257,6 +262,16 @@ func (s *Server) Init() {
 	if s.HTTP3.Enabled {
 		if s.HTTP3.Addr == "" {
 			s.HTTP3.Addr = ":8080"
+		}
+		// HTTP/3 shares the certificate with the HTTPS listener: one
+		// certificate to deploy, and the same identity on both ports.
+		// Configuring [Server.HTTP3].CertFile separately is only needed
+		// to use a different certificate on this port.
+		if s.HTTP3.CertFile == "" {
+			s.HTTP3.CertFile = s.CertFile
+		}
+		if s.HTTP3.KeyFile == "" {
+			s.HTTP3.KeyFile = s.KeyFile
 		}
 		if s.HTTP3.CertFile != "" && s.HTTP3.KeyFile != "" {
 			tlsConfig, err := tls.NewServerTLSConfig(s.HTTP3.CertFile, s.HTTP3.KeyFile)

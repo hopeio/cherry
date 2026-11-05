@@ -146,14 +146,7 @@ func (s *Server) Run() {
 				srvErr <- errors.New("mix: http3 enabled but HTTP3.CertFile/HTTP3.KeyFile not set, QUIC requires TLS")
 				return
 			}
-			// A transport that owns the QUIC stack (WebTransport) serves the same
-			// http3.Server itself; starting the default listener as well would give
-			// every connection two HTTP/3 control streams.
-			if s.http3Serve != nil {
-				srvErr <- s.http3Serve()
-				return
-			}
-			srvErr <- s.HTTP3.ListenAndServeTLS(s.HTTP3.CertFile, s.HTTP3.KeyFile)
+			srvErr <- s.serveHTTP3(s.HTTP3.CertFile, s.HTTP3.KeyFile, handler)
 		}()
 	}
 	go func() {
@@ -253,10 +246,4 @@ func (s *Server) Run() {
 func (s *Server) WithContext(ctx context.Context) *Server {
 	s.BaseContext = ctx
 	return s
-}
-
-// SetHTTP3Serve lets a transport that owns the QUIC stack take over the HTTP/3
-// listener. Passing nil restores the default ListenAndServeTLS.
-func (s *Server) SetHTTP3Serve(fn func() error) {
-	s.http3Serve = fn
 }

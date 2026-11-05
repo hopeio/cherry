@@ -82,6 +82,17 @@ func (s *Server) httpHandler() http.Handler {
 		for k, v := range r.Header {
 			md.IncomingMD[strings.ToLower(k)] = v
 		}
+		// A WebTransport CONNECT needs the original ResponseWriter: it
+		// hijacks the connection, and the access log recorder only
+		// implements http.ResponseWriter, which loses both the hijack and
+		// the http3.Settingser the upgrade looks for.
+		//
+		// The session is not access logged either: it is a long-lived
+		// stream, not a request with a response body.
+		if isWebTransportRequest(r) {
+			s.HttpHandler.ServeHTTP(w, r)
+			return
+		}
 		recorder := httpx.NewRecorder(w, r)
 		r.Body = &recorder.RequestRecorder
 		s.HttpHandler.ServeHTTP(&recorder.ResponseRecorder, r)
