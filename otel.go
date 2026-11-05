@@ -26,7 +26,6 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
-	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/propagation"
 	sdklog "go.opentelemetry.io/otel/sdk/log"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
@@ -425,7 +424,9 @@ func newLoggerProvider(ctx context.Context, res *resource.Resource, cfg *OtelCon
 		sdklog.WithProcessor(sdklog.NewBatchProcessor(exporter)),
 		sdklog.WithResource(res),
 	)
-	global.SetLoggerProvider(lp)
+	// The global logger provider lives in the root package; go.mod therefore pins
+	// otel ≥ v1.47, the first release that exposes it.
+	otel.SetLoggerProvider(lp)
 	return lp, nil
 }
 
