@@ -193,8 +193,12 @@ func (s *Server) Run() {
 		// cleanup by hand first (signal deregistration, OTel flush).
 		stop()
 		if otelShutdown != nil {
-			flushCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			otelShutdown(flushCtx)
+			// Match the deferred path: baseCtx may carry values supplied
+			// through WithContext, and the final flush should keep them.
+			flushCtx, cancel := context.WithTimeout(context.WithoutCancel(sigCtx), 5*time.Second)
+			if err := otelShutdown(flushCtx); err != nil {
+				log.Error(err)
+			}
 			cancel()
 		}
 		log.Fatalf("failed to serve: %v", err)
