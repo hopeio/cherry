@@ -37,14 +37,15 @@ func NewServer(options ...Option) *Server {
 }
 
 func (s *Server) Run() {
-	// BaseContext 作为根上下文（可通过 WithContext 设置），信号取消时一并取消
+	// BaseContext is the root context (settable through WithContext); it is
+	// cancelled together with the signal context.
 	baseCtx := s.BaseContext
 	if baseCtx == nil {
 		baseCtx = context.Background()
 	}
 	// Handler SIGINT (CTRL+C) gracefully.
-	// 注意：SIGKILL 无法被捕获，无需注册
-	sigCtx, stop := signal.NotifyContext(baseCtx, // kill -SIGINT XXXX 或 Ctrl+c
+	// Note: SIGKILL cannot be caught, so there is no need to register it.
+	sigCtx, stop := signal.NotifyContext(baseCtx, // kill -SIGINT XXXX or Ctrl+c
 		syscall.SIGINT,
 		// kill -SIGTERM XXXX
 		syscall.SIGTERM,
@@ -110,14 +111,15 @@ func (s *Server) Run() {
 		}
 	}
 
-	// 为了提供grpc服务,默认启用http2
+	// HTTP/2 is enabled by default because the gRPC service needs it.
 	if s.Server.TLSConfig == nil {
 		s.Server.Protocols = new(http.Protocols)
 		s.Server.Protocols.SetHTTP1(true)
 		s.Server.Protocols.SetUnencryptedHTTP2(true)
 	}
 
-	// grpc / http3 / http / internal 四个监听 goroutine 都可能上报错误
+	// The four listener goroutines (grpc / http3 / http / internal) can all
+	// report an error.
 	srvErr := make(chan error, 4)
 
 	if s.Grpc.Addr != "" && s.Grpc.Addr != s.Addr {
@@ -141,7 +143,8 @@ func (s *Server) Run() {
 		}
 		go func() {
 			log.Infof("http3 listening: %s", s.HTTP3.Addr)
-			// QUIC 必须基于 TLS，证书缺失时直接报错而不是裸监听
+			// QUIC requires TLS: report the error when the certificate is missing
+			// instead of listening without TLS.
 			if s.HTTP3.CertFile == "" || s.HTTP3.KeyFile == "" {
 				srvErr <- errors.New("mix: http3 enabled but HTTP3.CertFile/HTTP3.KeyFile not set, QUIC requires TLS")
 				return
@@ -177,7 +180,8 @@ func (s *Server) Run() {
 	// Wait for interruption.
 	select {
 	case err := <-srvErr:
-		// 启动/监听失败：log.Fatal 会跳过所有 defer，先手动做清理（信号注销、OTel flush）
+		// Startup or listen failure: log.Fatal skips every defer, so do the
+		// cleanup by hand first (signal deregistration, OTel flush).
 		stop()
 		if otelShutdown != nil {
 			flushCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -192,11 +196,13 @@ func (s *Server) Run() {
 		log.Debug("stop server")
 	}
 
-	//服务关闭：sigCtx 已取消，不能再用它做优雅关停，需新建带超时的 ctx
+	// Shutting down: sigCtx is already cancelled and cannot drive the
+	// graceful shutdown, so build a new context with a timeout.
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	// gRPC / HTTP / HTTP3 / internal 并行优雅关停，共享一个超时预算
+	// gRPC / HTTP / HTTP3 / internal shut down gracefully in parallel,
+	// sharing one timeout budget.
 	var wg sync.WaitGroup
 	if grpcServer != nil {
 		wg.Add(1)
@@ -210,7 +216,7 @@ func (s *Server) Run() {
 			select {
 			case <-grpcStopped:
 			case <-shutdownCtx.Done():
-				// 超时后强制关停
+				// Force the shutdown once the timeout expires.
 				grpcServer.Stop()
 			}
 		}()

@@ -126,9 +126,11 @@ func CommonBind(s Source, v any) error {
 				}
 			}
 			if len(data) == 0 {
-				// DELETE / PUT 常只带路径参数、没有 body：这里不能直接 return，
-				// 否则下面的 path/query/header 绑定全被跳过，接口拿不到 id。
-				// （历史 bug：取消点赞、重命名/删除收藏夹都因此静默失效。）
+				// DELETE / PUT often carry only path parameters and no body, so
+				// returning here is not an option: it would skip every path,
+				// query and header binding below and the handler would never see
+				// the id. (Historical bug: unliking, renaming and deleting a
+				// collection folder all failed silently because of it.)
 			} else {
 				if err := DefaultUnmarshal(ctx, contentType, data, v); err != nil {
 					return InvalidArgument.Wrap(err)
@@ -285,7 +287,8 @@ func (s RequestSource) Body() (context.Context, string, io.ReadCloser) {
 		return s.Context(), "", nil
 	}
 	contentType := s.Request.Header.Get(httpx.HeaderContentType)
-	// form/multipart 也需返回 Body，由 CommonBind 按 Content-Type 解析。
+	// form/multipart also needs the Body back, so that CommonBind can parse
+	// it according to the Content-Type.
 	return s.Context(), contentType, s.Request.Body
 }
 

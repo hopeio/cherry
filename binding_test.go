@@ -27,7 +27,8 @@ func TestBind(t *testing.T) {
 	var u User
 	err = Bind(req, &u)
 	require.NoError(t, err)
-	// JSON body 分支会直接返回，不会继续绑定 uri/query/header。
+	// The JSON body branch returns right away and does not go on to bind
+	// the uri, the query or the headers.
 	assert.Equal(t, 0, u.ID)
 	assert.Equal(t, "test", u.Name)
 	assert.Equal(t, 0, u.Age)
@@ -134,8 +135,10 @@ func TestHeaderSource_GetDirectly(t *testing.T) {
 	assert.Equal(t, "foo bar", vals[0])
 }
 
-// DELETE / PUT 只带路径参数、没有 body 时，空 body 不能短路掉 path/query 绑定：
-// 之前这里 return，导致取消点赞、重命名/删除收藏夹都拿不到 id。
+// With a DELETE or PUT that carries only path parameters and no body, the
+// empty body must not short-circuit the path and query bindings: returning
+// here used to leave the handlers without the id, which silently broke
+// unliking and renaming or deleting a collection folder.
 func TestBindDeleteWithoutBodyBindsPath(t *testing.T) {
 	req, err := http.NewRequest(http.MethodDelete, "http://localhost/api/content/container/7", nil)
 	require.NoError(t, err)

@@ -127,7 +127,8 @@ func TestWithMiddleware(t *testing.T) {
 	}), s.Middlewares...)
 	rec := httpx.NewRecorder(nil, httptest.NewRequest(http.MethodGet, "/", nil))
 	chain.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
-	// UseMiddleware 按注册顺序从里到外包裹，执行时后注册的先运行。
+	// UseMiddleware wraps from the inside out in registration order, so the
+	// last one registered runs first.
 	if len(order) != 3 || order[0] != "mw2" || order[1] != "mw1" || order[2] != "handler" {
 		t.Fatalf("middleware order=%v", order)
 	}

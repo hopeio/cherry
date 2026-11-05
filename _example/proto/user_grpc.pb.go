@@ -28,7 +28,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserServiceClient interface {
-	// 注册
+	// Signup.
 	Signup(ctx context.Context, in *SignupReq, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
 	GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*User, error)
 }
@@ -63,7 +63,7 @@ func (c *userServiceClient) GetUser(ctx context.Context, in *GetUserReq, opts ..
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility
 type UserServiceServer interface {
-	// 注册
+	// Signup.
 	Signup(context.Context, *SignupReq) (*wrapperspb.StringValue, error)
 	GetUser(context.Context, *GetUserReq) (*User, error)
 	mustEmbedUnimplementedUserServiceServer()

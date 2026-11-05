@@ -67,7 +67,8 @@ type Server struct {
 	Middlewares    []httpx.Middleware
 	HttpHandler    http.Handler
 	GrpcHandler    func(*grpc.Server)
-	// DisableInternalServer 关闭内部端口（健康检查/OpenAPI/调试端点）
+	// DisableInternalServer turns off the internal port (health check,
+	// OpenAPI, debug endpoints).
 	DisableInternalServer bool
 
 	// InternalAuth: trust boundary for service-to-service calls.
@@ -137,7 +138,8 @@ type OtelConfig struct {
 	// DisableRuntimeMetrics skips go.opentelemetry.io/contrib/instrumentation/runtime.
 	DisableRuntimeMetrics bool
 
-	// Pyroscope：仅 Enabled=true 时启动；地址可从 ServerAddress 或 PYROSCOPE_SERVER_ADDRESS 补。
+	// Pyroscope: started only when Enabled is true; the address may come
+	// from ServerAddress or from PYROSCOPE_SERVER_ADDRESS.
 	Pyroscope PyroscopeConfig
 
 	OtelhttpOpts []otelhttp.Option
@@ -248,7 +250,9 @@ func (s *Server) Init() {
 
 	log.ValueLevelNotify("ReadTimeout", s.ReadTimeout, time.Second)
 	log.ValueLevelNotify("WriteTimeout", s.WriteTimeout, time.Second)
-	// 头部读取超时兜底，防 slowloris 占连接；只限请求头，不影响大文件上传
+	// Fallback read timeout for the request headers, so a slowloris cannot
+	// hold a connection open. It applies to the headers only and does not
+	// affect large uploads.
 	if s.ReadHeaderTimeout == 0 && s.ReadTimeout == 0 {
 		s.ReadHeaderTimeout = 10 * time.Second
 	}

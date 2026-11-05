@@ -55,16 +55,17 @@ func TestErrCodeLayout(t *testing.T) {
 	if c.BizCode() != 3001 || c.GRPCCode() != codes.PermissionDenied {
 		t.Fatalf("roundtrip: biz=%d grpc=%v", c.BizCode(), c.GRPCCode())
 	}
-	// 业务码以纯值注册过（RegisterErrCodeMap 注册 proto 枚举）时，composite 能拆出名字
+	// When the business code was registered as a plain value (RegisterErrCodeMap
+	// registers a proto enum), the composite splits out its name.
 	RegisterErrCode(3001, "CustomBiz")
 	if c.String() != "CustomBiz" {
 		t.Fatalf("composite String=%q", c.String())
 	}
-	// 纯 gRPC 错误：BizCode 为 0，GRPCCode 为自身
+	// A pure gRPC error: BizCode is 0 and GRPCCode is the error itself.
 	if NotFound.BizCode() != 0 || NotFound.GRPCCode() != codes.NotFound {
 		t.Fatal("pure grpc code layout")
 	}
-	// 未注册的 composite 保留完整码信息
+	// An unregistered composite keeps the full code information.
 	if (ErrCode(3999)*100 + ErrCode(codes.NotFound)).String() != "Unknown Error, Code:"+strconv.Itoa(3999*100+5) {
 		t.Fatalf("unregistered String=%q", (ErrCode(3999)*100 + ErrCode(codes.NotFound)).String())
 	}
@@ -75,11 +76,12 @@ func TestErrCode_GRPCStatus(t *testing.T) {
 	if st.Code().String() != "InvalidArgument" {
 		t.Fatalf("grpc code=%v", st.Code())
 	}
-	// msg 携带 composite 整值，纯 gRPC 错误时即 code 自身
+	// The msg carries the composite value, which is the code itself for a
+	// pure gRPC error.
 	if st.Message() != "3" {
 		t.Fatalf("grpc message=%q", st.Message())
 	}
-	// 业务码不再被当成非法 gRPC code 发出去
+	// The business code is no longer sent out as an invalid gRPC code.
 	custom := ErrCode(1001)*100 + ErrCode(codes.InvalidArgument)
 	st2 := custom.GRPCStatus()
 	if st2.Code() != codes.InvalidArgument {
@@ -140,7 +142,8 @@ func TestErrResp_RespondAlwaysWritesHeaders(t *testing.T) {
 	if rec.Header().Get(HeaderErrorCode) != "5" {
 		t.Fatalf("Error-Code=%q", rec.Header().Get(HeaderErrorCode))
 	}
-	// composite：Error-Code 整值，msg 仍在 body
+	// composite: the Error-Code header holds the whole value and the msg
+	// stays in the body.
 	rec2 := httptest.NewRecorder()
 	resp2 := NewErrResp(ErrCode(1001)*100+ErrCode(codes.PermissionDenied), "auth.err.missing", nil)
 	if _, err := resp2.Respond(t.Context(), rec2); err != nil {

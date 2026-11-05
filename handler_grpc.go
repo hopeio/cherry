@@ -85,7 +85,7 @@ func (s *Server) grpcHandler() *grpc.Server {
 		grpcServer := grpc.NewServer(s.Grpc.Options...)
 		s.GrpcHandler(grpcServer)
 		reflection.Register(grpcServer)
-		// 标准健康检查服务，供 grpc-health-probe / k8s gRPC 探针使用
+		// The standard health service, for grpc-health-probe and the k8s gRPC probe.
 		healthgrpc.RegisterHealthServer(grpcServer, health.NewServer())
 		return grpcServer
 	}
@@ -101,7 +101,8 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 			err = status.Error(codes.Internal, sysErrMsg)
 		}
 	}()
-	// 独立 gRPC 端口不经过 HTTP 分发层，ctx 中可能没有 Metadata，此处兜底注入
+	// A dedicated gRPC port does not go through the HTTP dispatch layer, so
+	// the context may carry no Metadata; inject a fallback here.
 	md := GetMetadata(ctx)
 	if md == nil {
 		md = &Metadata{RequestAt: time.Now()}
@@ -132,8 +133,9 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 		}
 	}
 
-	// 兼容 handler 返回双 nil：grpc 的 proto codec 无法 marshal nil 响应，
-	// 直接返回会报 Internal，需按方法签名构造空响应
+	// Tolerate a handler that returns two nils: the gRPC proto codec cannot
+	// marshal a nil response and reporting it as is fails with Internal, so
+	// build an empty response from the method signature instead.
 	if err == nil && resp == nil {
 		resp = emptyResp(info)
 	}
@@ -150,13 +152,16 @@ func (s *Server) UnaryAccess(ctx context.Context, req interface{}, info *grpc.Un
 	return resp, err
 }
 
-// emptyRespTypeCache 缓存 FullMethod -> 响应元素类型，避免每次请求都反射方法签名
+// emptyRespTypeCache caches FullMethod -> response element type, so that
+// every request does not have to reflect over the method signature.
 var emptyRespTypeCache sync.Map
 
-// emptyResp 从服务实现的方法签名反射出响应类型并构造空实例。
-// 不能对 nil 的 resp 自身反射（reflect.TypeOf(nil) == nil，调 Elem 必 panic），
-// 只能从 info.Server 的方法签名拿类型。类型按 FullMethod 缓存，
-// 稳定后每次请求仅一次 sync.Map 查询 + 一次小对象分配。
+// emptyResp reflects the response type out of the service method signature
+// and builds an empty instance of it.
+// It cannot reflect on the nil resp itself (reflect.TypeOf(nil) == nil and
+// calling Elem on it panics), so the type has to come from the method
+// signature of info.Server. The type is cached per FullMethod: once it is
+// warm, a request costs one sync.Map lookup and one small allocation.
 func emptyResp(info *grpc.UnaryServerInfo) any {
 	if v, ok := emptyRespTypeCache.Load(info.FullMethod); ok {
 		if t, _ := v.(reflect.Type); t != nil {
@@ -168,7 +173,9 @@ func emptyResp(info *grpc.UnaryServerInfo) any {
 	if i := strings.LastIndexByte(info.FullMethod, '/'); i >= 0 && i < len(info.FullMethod)-1 {
 		if m, ok := reflect.TypeOf(info.Server).MethodByName(info.FullMethod[i+1:]); ok {
 			ft := m.Type
-			// 生成的服务方法签名为 (ctx, req) (*Resp, error)，取第一个非 error 返回值
+			// The generated service method has the signature
+			// (ctx, req) (*Resp, error); take the first return value that is
+			// not an error.
 			if ft.NumOut() > 0 && ft.Out(0) != reflect.TypeFor[error]() {
 				rt := ft.Out(0)
 				if rt.Kind() == reflect.Pointer {
@@ -194,7 +201,8 @@ func (s *Server) StreamAccess(srv interface{}, stream grpc.ServerStream, info *g
 		}
 	}()
 	ctx := stream.Context()
-	// 独立 gRPC 端口不经过 HTTP 分发层，ctx 中可能没有 Metadata，此处兜底注入
+	// A dedicated gRPC port does not go through the HTTP dispatch layer, so
+	// the context may carry no Metadata; inject a fallback here.
 	md := GetMetadata(ctx)
 	if md == nil {
 		md = &Metadata{RequestAt: time.Now()}
@@ -239,7 +247,8 @@ type recvWrapper struct {
 	ctx context.Context
 }
 
-// Context 返回注入了 Metadata 的 ctx，保证业务 handler 能取到
+// Context returns the context with the Metadata injected, so that the
+// business handler can reach it.
 func (s *recvWrapper) Context() context.Context {
 	return s.ctx
 }
@@ -253,7 +262,8 @@ func (s *recvWrapper) RecvMsg(m interface{}) error {
 	if err := s.ServerStream.RecvMsg(m); err != nil {
 		return err
 	}
-	// 必须先接收数据再校验，否则校验的是零值结构体
+	// The data has to be received before it is validated, otherwise the
+	// validation would run against a zero-valued struct.
 	s.Request = m
 	if err := ValidateStruct(m); err != nil {
 		return err

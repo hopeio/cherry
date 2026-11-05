@@ -29,9 +29,10 @@ const (
 	HeaderErrorMessage = "Error-Message"
 )
 
-// InternalHandler 往内部端口的私有 mux 上注册健康检查、OpenAPI 文档与调试端点
+// InternalHandler registers the health check, the OpenAPI document and the
+// debug endpoints on the private mux of the internal port.
 func (s *Server) InternalHandler(mux *http.ServeMux) {
-	// k8s / 负载均衡标准探针端点
+	// Standard probe endpoints for k8s and load balancers.
 	healthz := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
@@ -57,12 +58,13 @@ func (s *Server) httpHandler() http.Handler {
 				se := &ErrResp{Code: Internal, Msg: sysErrMsg}
 				buf, contentType, _ := DefaultMarshal(r.Context(), se)
 				w.Header().Set(httpx.HeaderContentType, contentType)
-				// panic 属系统错误，必须以 500 告知客户端（若响应头已写出则此调用为 no-op）
+				// A panic is a server-side error, so the client has to see a 500
+				// (a no-op once the response headers are already written).
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write(buf)
 			}
 		}()
-		// 不记录日志
+		// Do not log it.
 		if len(s.AccessLog.ExcludePrefixes) > 0 {
 			if stringsx.HasPrefixes(r.URL.Path, s.AccessLog.ExcludePrefixes) &&
 				!stringsx.HasPrefixes(r.URL.Path, s.AccessLog.IncludePrefixes) {
@@ -77,7 +79,8 @@ func (s *Server) httpHandler() http.Handler {
 		md.TraceId = trace.SpanFromContext(r.Context()).SpanContext().TraceID().String()
 		md.Logger = log.DefaultLogger().With(zap.String(log.FieldTraceId, md.TraceId))
 		md.Baggage = baggage.FromContext(r.Context())
-		// gRPC metadata 约定小写 key，HTTP header 是 CanonicalMIME 大小写，需转换
+		// gRPC metadata uses lowercase keys while HTTP headers use the
+		// CanonicalMIME form, so the case has to be converted.
 		md.IncomingMD = make(metadata.MD, len(r.Header))
 		for k, v := range r.Header {
 			md.IncomingMD[strings.ToLower(k)] = v

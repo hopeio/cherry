@@ -11,7 +11,8 @@ import (
 	httpx "github.com/hopeio/gox/net/http"
 )
 
-// ResponseWriter 将 fiber.Ctx 适配为 http.ResponseWriter（含 Flush），供 gateway 流式写出复用。
+// ResponseWriter adapts a fiber.Ctx to http.ResponseWriter (Flush
+// included), so that the gateway can reuse it for streaming writes.
 type ResponseWriter struct {
 	fiber.Ctx
 	reqHeader   http.Header

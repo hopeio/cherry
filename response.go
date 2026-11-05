@@ -57,9 +57,11 @@ type headerSetter interface {
 	Set(key, value string)
 }
 
-// WriteErrHeaders 在业务错误时只写 Error-Code 头（composite 整值：
-// 业务码*100+gRPC code），HTTP 客户端靠它判断是否出错；msg/i18n 变量一律
-// 走响应体（protobuf 的 ErrorInfo 或 JSON 的 msg/data）。
+// WriteErrHeaders writes only the Error-Code header on a business error
+// (the composite value: business code*100 + gRPC code), which is how the
+// HTTP client tells that the call failed. The msg and the i18n variables
+// always travel in the response body instead (the ErrorInfo of protobuf or
+// the msg/data of JSON).
 func WriteErrHeaders(h headerSetter, code ErrCode) {
 	if h == nil || code == Success {
 		return
@@ -74,11 +76,12 @@ func StatusFromErrCode(code ErrCode) int {
 	return http.StatusOK
 }
 
-// CommonResp 主要用来接收返回，发送请使用 CommonAnyResp
+// CommonResp is meant for receiving a response; use CommonAnyResp to send
+// one.
 type CommonResp[T any] struct {
 	Code ErrCode `json:"code"`
 	Msg  string  `json:"msg,omitempty"`
-	//验证码
+	// Data carries the payload of the response.
 	Data T `json:"data,omitempty"`
 }
 
@@ -257,8 +260,9 @@ func RespondSuccess(ctx context.Context, w http.ResponseWriter, res any) (int, e
 	return w.Write(data)
 }
 
-// recordBody 沿 Unwrap 链找到 RecordBodyer 记录响应体：
-// w 自身可能就是 recorder，也可能被 otelhttp 等中间件包了若干层。
+// recordBody walks the Unwrap chain to find the RecordBodyer and records
+// the response body: w may be the recorder itself, or it may be wrapped in
+// several layers of middleware such as otelhttp.
 func recordBody(w http.ResponseWriter, raw []byte, v any) {
 	for ow := w; ; {
 		if recorder, ok := ow.(httpx.RecordBodyer); ok {
@@ -342,7 +346,8 @@ func ErrRespFrom(err error) *ErrResp {
 	}
 	if st, ok := status.FromError(err); ok {
 		er := &ErrResp{}
-		// msg 就是 composite 整值（业务码*100+gRPC code），直接还原。
+		// The msg is the composite value (business code*100 + gRPC code),
+		// so it converts back directly.
 		if c, perr := strconv.ParseInt(st.Message(), 10, 32); perr == nil {
 			er.Code = ErrCode(c)
 		} else {
@@ -360,7 +365,8 @@ func ErrRespFrom(err error) *ErrResp {
 			}
 		}
 		if er.Msg == "" {
-			// 无 ErrorInfo 时用注册名；不要把 status.Message（可能是驱动原文）下发。
+			// Without an ErrorInfo, use the registered name; do not pass
+			// status.Message down (it may be the driver's original text).
 			er.Msg = er.Code.String()
 		}
 		return er
@@ -375,7 +381,8 @@ func ErrRespFrom(err error) *ErrResp {
 		c := ErrCode(rv.Uint())
 		return NewErrResp(c, c.String(), nil)
 	}
-	// 未类型化错误（驱动原文）：不下发 err.Error()。
+	// An untyped error (the driver's original text): do not pass
+	// err.Error() down.
 	return NewErrResp(Internal, Internal.String(), nil)
 }
 
@@ -411,10 +418,13 @@ func (res *ErrResp) ErrResp() *ErrResp {
 }
 
 func (x *ErrResp) GRPCStatus() *status.Status {
-	// code 用低两位（<100）标准枚举（保证合法）；msg 放 composite 整值，客户端按数字
-	// 还原业务码。i18n key 与 {k} 占位符变量放进标准 google.rpc.ErrorInfo 的
-	// reason/metadata——它是 gRPC 错误详情的标准类型，grpc-go/grpc-dart 客户端
-	// 都会自动解码，无需手写 wire。
+	// The code uses the standard enum in the low two digits (below 100, so
+	// it stays valid) and the msg carries the composite value, which the
+	// client converts back into the business code. The i18n key and the {k}
+	// placeholder variables go into the reason/metadata of the standard
+	// google.rpc.ErrorInfo: it is the standard type for gRPC error details,
+	// so the grpc-go and grpc-dart clients decode it on their own without
+	// hand-written wire code.
 	st := status.New(x.Code.GRPCCode(), strconv.Itoa(int(x.Code)))
 	if x.Msg != "" || len(x.Data) > 0 {
 		if st2, err := st.WithDetails(x.ErrorInfo()); err == nil {
@@ -424,8 +434,9 @@ func (x *ErrResp) GRPCStatus() *status.Status {
 	return st
 }
 
-// ErrorInfo 把 HTTP protobuf 错误体编成 google.rpc.ErrorInfo：
-// reason = i18n key（同 msg），metadata = 占位符变量（同 data）。
+// ErrorInfo encodes the HTTP protobuf error body into a
+// google.rpc.ErrorInfo: reason is the i18n key (the same as msg) and metadata
+// holds the placeholder variables (the same as data).
 func (x *ErrResp) ErrorInfo() *errdetails.ErrorInfo {
 	if x == nil {
 		return &errdetails.ErrorInfo{}
@@ -555,8 +566,10 @@ func (res *ResponseFile) Respond(ctx context.Context, w http.ResponseWriter) (in
 			}
 		} else {
 			limitedWriter = iox.NewLimitedWriter(512)
-			// io.EOF 表示探测缓冲已满且流还有剩余（LimitedWriter 的约定），
-			// 剩余部分由下方第二次 WriteTo 继续输出；旧行为静默吞掉超出 512 字节的内容
+			// io.EOF means the probe buffer is full and the stream still has
+			// more (the LimitedWriter convention); the rest goes out through the
+			// second WriteTo below. The old behaviour silently dropped
+			// everything beyond the 512 bytes.
 			_, err := res.Body.WriteTo(&limitedWriter)
 			if err != nil && !errors.Is(err, io.EOF) {
 				return 0, err

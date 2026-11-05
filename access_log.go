@@ -37,7 +37,8 @@ type AccessLogParam struct {
 
 type AccessLog = func(ctx context.Context, param *AccessLogParam)
 
-// safeStringer 安全地把任意值转成字符串，避免访问日志里的类型断言把服务打崩
+// safeStringer converts any value to a string safely, so that a type
+// assertion in the access log cannot take the service down.
 func safeStringer(v any) string {
 	if v == nil {
 		return ""

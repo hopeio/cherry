@@ -10,7 +10,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// ServerTransportStream 双向 streaming；Unary 路径也用它承载 metadata（grpc.SetHeader 等）。
+// ServerTransportStream is the bidirectional streaming transport; the
+// Unary path uses it as well to carry the metadata (grpc.SetHeader etc.).
 type ServerTransportStream[Req, Resp any, ReqPtr mix.ProtoMessage[Req], RespPtr mix.ProtoMessage[Resp]] struct {
 	ginStreamBase
 	closed bool

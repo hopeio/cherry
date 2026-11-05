@@ -16,8 +16,9 @@ var _ grpc.ServerStream = (*ServerStream[emptypb.Empty, emptypb.Empty, *emptypb.
 var _ mix.ClientSideStream[emptypb.Empty, emptypb.Empty, *emptypb.Empty, *emptypb.Empty] = (*ServerStream[emptypb.Empty, emptypb.Empty, *emptypb.Empty, *emptypb.Empty])(nil)
 var _ mix.ServerSideStream[emptypb.Empty, *emptypb.Empty] = (*ServerStream[emptypb.Empty, emptypb.Empty, *emptypb.Empty, *emptypb.Empty])(nil)
 
-// ServerStream 服务端 handler 持有的 gRPC stream（grpc.ServerStream 语义）。
-// 通过 noRecv / unaryResponse 区分 server streaming、client streaming、bidi。
+// ServerStream is the gRPC stream held by the server handler (the
+// grpc.ServerStream semantics). noRecv and unaryResponse tell server
+// streaming, client streaming and bidi apart.
 type ServerStream[Req, Resp any, ReqPtr mix.ProtoMessage[Req], RespPtr mix.ProtoMessage[Resp]] struct {
 	streamBase
 	closed        bool

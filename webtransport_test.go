@@ -133,10 +133,10 @@ func TestIsWebTransportRequest(t *testing.T) {
 		proto  string
 		want   bool
 	}{
-		{"WT 的 CONNECT", http.MethodConnect, "webtransport", true},
-		{"普通 CONNECT", http.MethodConnect, "h3", false},
-		{"普通 GET", http.MethodGet, "webtransport", false},
-		{"普通 GET h3", http.MethodGet, "HTTP/3.0", false},
+		{"WT CONNECT", http.MethodConnect, "webtransport", true},
+		{"plain CONNECT", http.MethodConnect, "h3", false},
+		{"plain GET", http.MethodGet, "webtransport", false},
+		{"plain GET h3", http.MethodGet, "HTTP/3.0", false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

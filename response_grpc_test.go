@@ -11,10 +11,13 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// detail 用标准 google.rpc.ErrorInfo 携带 i18n key（reason）与占位符变量（metadata）：
-// status.code 是低两位（<100）标准枚举，status.msg 是 composite 整值。
-// 断言走 st.Proto().GetDetails()（真实上网络的 wire 层），回归 Any 套 Any bug——
-// WithDetails 传 anypb.Any 会被再包一层。
+// detail carries the i18n key (reason) and the placeholder variables
+// (metadata) in a standard google.rpc.ErrorInfo: status.code is the
+// standard enum in the low two digits (below 100) and status.msg is the
+// composite value.
+// The assertion goes through st.Proto().GetDetails(), the wire level that
+// actually goes on the network, to guard against the Any-inside-Any bug:
+// WithDetails wraps an anypb.Any in another one.
 func TestErrRespGRPCStatusDetail(t *testing.T) {
 	e := mix.NewErrResp(mix.InvalidArgument, "auth.err.thirdLogin", map[string]string{"type": "Apple", "x": "y"})
 	st := e.GRPCStatus()
@@ -41,7 +44,7 @@ func TestErrRespGRPCStatusDetail(t *testing.T) {
 	if got.Metadata["type"] != "Apple" || got.Metadata["x"] != "y" {
 		t.Fatalf("metadata = %v", got.Metadata)
 	}
-	// grpc-go 的 Details() 能自动解出标准类型。
+	// grpc-go's Details() unwraps the standard types on its own.
 	if d, ok := st.Details()[0].(*errdetails.ErrorInfo); !ok || d.Metadata["type"] != "Apple" {
 		t.Fatalf("decoded detail = %T", st.Details()[0])
 	}
@@ -55,7 +58,9 @@ func TestErrRespFromGRPCStatusDetails(t *testing.T) {
 	}
 }
 
-// composite 业务码经 gRPC 通道往返：code 拆低两位（<100）、msg 放整值、reason 放 i18n key。
+// A composite business code travels over the gRPC channel: the code
+// splits off the low two digits (below 100), the msg carries the whole
+// value and the reason carries the i18n key.
 func TestErrRespCompositeRoundtrip(t *testing.T) {
 	code := mix.ErrCode(1001)*100 + mix.ErrCode(codes.PermissionDenied)
 	e := mix.NewErrResp(code, "auth.err.notActivated", map[string]string{"a": "b"})
@@ -72,7 +77,7 @@ func TestErrRespCompositeRoundtrip(t *testing.T) {
 	}
 }
 
-// msg/data 全空时不带 details，保持轻量。
+// With both msg and data empty there are no details, to stay light.
 func TestErrRespGRPCStatusNoDetail(t *testing.T) {
 	st := mix.NewErrResp(mix.Internal, "", nil).GRPCStatus()
 	if len(st.Details()) != 0 {
@@ -80,7 +85,8 @@ func TestErrRespGRPCStatusNoDetail(t *testing.T) {
 	}
 }
 
-// data 为空但 msg 非空：reason（i18n key）也要传给客户端。
+// The data is empty but the msg is not, so the reason (the i18n key)
+// still has to reach the client.
 func TestErrRespGRPCStatusReasonWithoutData(t *testing.T) {
 	st := mix.InvalidArgument.Msg("auth.err.notActivated", nil).GRPCStatus()
 	details := st.Details()

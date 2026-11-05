@@ -87,7 +87,7 @@ func TestValidateStruct_MinTag(t *testing.T) {
 
 func TestFieldNameForValidate(t *testing.T) {
 	type tagged struct {
-		Password string `json:"password" comment:"密码"`
+		Password string `json:"password" comment:"password"`
 		Label    string `json:"label" i18nkey:"auth.password"`
 		Bare     string
 	}

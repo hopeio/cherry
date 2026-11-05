@@ -16,7 +16,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// ResponseStream 供 ForwardResponseMessage 读取 handler 通过 SetTrailer 累积的 metadata。
+// ResponseStream lets ForwardResponseMessage read the metadata that the
+// handler accumulated through SetTrailer.
 type ResponseStream interface {
 	Trailer() metadata.MD
 }
@@ -37,7 +38,8 @@ func readGRPCFrame(body io.Reader) ([]byte, error) {
 	return payload, nil
 }
 
-// WriteGRPCFrame 将单条消息编码为 gRPC length-prefixed 帧写入 w。
+// WriteGRPCFrame encodes a single message as a gRPC length-prefixed frame
+// and writes it to w.
 func WriteGRPCFrame(w io.Writer, ctx context.Context, msg proto.Message) error {
 	data, _, err := mix.DefaultMarshal(ctx, msg)
 	if err != nil {
@@ -46,7 +48,7 @@ func WriteGRPCFrame(w io.Writer, ctx context.Context, msg proto.Message) error {
 	return writeGRPCFrameData(w, data)
 }
 
-// WriteGRPCFrameData 写入已编码 payload 的 gRPC 帧。
+// WriteGRPCFrameData writes an already encoded payload as a gRPC frame.
 func WriteGRPCFrameData(w io.Writer, data []byte) error {
 	return writeGRPCFrameData(w, data)
 }

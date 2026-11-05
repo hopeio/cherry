@@ -9,7 +9,6 @@ package user
 import (
 	_ "github.com/alta/protopatch/patch/gopb"
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
-	_ "github.com/hopeio/protobuf/time/timestamp"
 	_ "github.com/hopeio/protobuf/utils/validator"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -28,7 +27,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// 用户性别
+// The gender of a user.
 type Gender int32
 
 const (
@@ -81,7 +80,7 @@ func (Gender) EnumDescriptor() ([]byte, []int) {
 	return file_proto_user_proto_rawDescGZIP(), []int{0}
 }
 
-// 用户角色
+// The role of a user.
 type Role int32
 
 const (
@@ -134,7 +133,7 @@ func (Role) EnumDescriptor() ([]byte, []int) {
 	return file_proto_user_proto_rawDescGZIP(), []int{1}
 }
 
-// 用户角色
+// The role of a user.
 type UserStatus int32
 
 const (
@@ -254,11 +253,11 @@ func (UserErr) EnumDescriptor() ([]byte, []int) {
 type User struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	Id       uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty" gorm:"primaryKey;"`
-	Name     string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty" gorm:"size:10;not null" comment:"昵称"`
-	Password string                 `protobuf:"bytes,5,opt,name=password,proto3" json:"-" gorm:"size:32;not null" validate:"gte=8,lte=15" comment:"密码"`
-	Mail     string                 `protobuf:"bytes,6,opt,name=mail,proto3" json:"mail,omitempty" gorm:"size:32" validate:"email" comment:"邮箱"`
-	Phone    string                 `protobuf:"bytes,7,opt,name=phone,proto3" json:"phone,omitempty" gorm:"size:32" validate:"phone" comment:"手机号"`
-	// 性别，0未填写，1男，2女
+	Name     string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty" gorm:"size:10;not null" comment:"nickname"`
+	Password string                 `protobuf:"bytes,5,opt,name=password,proto3" json:"-" gorm:"size:32;not null" validate:"gte=8,lte=15" comment:"password"`
+	Mail     string                 `protobuf:"bytes,6,opt,name=mail,proto3" json:"mail,omitempty" gorm:"size:32" validate:"email" comment:"email"`
+	Phone    string                 `protobuf:"bytes,7,opt,name=phone,proto3" json:"phone,omitempty" gorm:"size:32" validate:"phone" comment:"phone number"`
+	// Gender: 0 not filled in, 1 male, 2 female.
 	Gender        Gender     `protobuf:"varint,8,opt,name=gender,proto3,enum=user.Gender" json:"gender,omitempty" gorm:"type:int2;default:0"`
 	Role          Role       `protobuf:"varint,24,opt,name=role,proto3,enum=user.Role" json:"role,omitempty" gorm:"type:int2;default:0"`
 	Status        UserStatus `protobuf:"varint,28,opt,name=status,proto3,enum=user.UserStatus" json:"status,omitempty" gorm:"type:int2;default:0"`
@@ -354,16 +353,16 @@ func (x *User) GetStatus() UserStatus {
 
 type SignupReq struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// 密码
-	Password string `protobuf:"bytes,4,opt,name=password,proto3" json:"password,omitempty" validate:"required,gte=6,lte=15" comment:"密码"`
-	Name     string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty" validate:"required,gte=3,lte=10" comment:"昵称"`
-	Gender   Gender `protobuf:"varint,3,opt,name=gender,proto3,enum=user.Gender" json:"gender,omitempty" validate:"required" comment:"性别"`
-	// 邮箱
-	Mail string `protobuf:"bytes,6,opt,name=mail,proto3" json:"mail,omitempty" validate:"omitempty,email" comment:"邮箱"`
-	// 手机号
-	Phone string `protobuf:"bytes,7,opt,name=phone,proto3" json:"phone,omitempty" validate:"omitempty,phone" comment:"手机号"`
-	// 验证码
-	VCode         string `protobuf:"bytes,8,opt,name=vCode,proto3" json:"vCode,omitempty" validate:"required" comment:"验证码"`
+	// Password.
+	Password string `protobuf:"bytes,4,opt,name=password,proto3" json:"password,omitempty" validate:"required,gte=6,lte=15" comment:"password"`
+	Name     string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty" validate:"required,gte=3,lte=10" comment:"nickname"`
+	Gender   Gender `protobuf:"varint,3,opt,name=gender,proto3,enum=user.Gender" json:"gender,omitempty" validate:"required" comment:"gender"`
+	// Email address.
+	Mail string `protobuf:"bytes,6,opt,name=mail,proto3" json:"mail,omitempty" validate:"omitempty,email" comment:"email"`
+	// Phone number.
+	Phone string `protobuf:"bytes,7,opt,name=phone,proto3" json:"phone,omitempty" validate:"omitempty,phone" comment:"phone number"`
+	// Verification code.
+	VCode         string `protobuf:"bytes,8,opt,name=vCode,proto3" json:"vCode,omitempty" validate:"required" comment:"verification code"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -488,24 +487,24 @@ var File_proto_user_proto protoreflect.FileDescriptor
 
 const file_proto_user_proto_rawDesc = "" +
 	"\n" +
-	"\x10proto/user.proto\x12\x04user\x1a\x0epatch/go.proto\x1a%hopeio/time/timestamp/timestamp.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\x1a&hopeio/utils/validator/validator.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe8\x04\n" +
+	"\x10proto/user.proto\x12\x04user\x1a\x0epatch/go.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\x1a&hopeio/utils/validator/validator.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xee\x04\n" +
 	"\x04User\x12)\n" +
-	"\x02id\x18\x01 \x01(\x04B\x19ʵ\x03\x15\xa2\x01\x12gorm:\"primaryKey;\"R\x02id\x12C\n" +
-	"\x04name\x18\x02 \x01(\tB/ʵ\x03+\xa2\x01(gorm:\"size:10;not null\" comment:\"昵称\"R\x04name\x12l\n" +
-	"\bpassword\x18\x05 \x01(\tBPʵ\x03L\xa2\x01Ijson:\"-\" gorm:\"size:32;not null\" validate:\"gte=8,lte=15\" comment:\"密码\"R\bpassword\x12K\n" +
-	"\x04mail\x18\x06 \x01(\tB7ʵ\x033\xa2\x010gorm:\"size:32\" validate:\"email\" comment:\"邮箱\"R\x04mail\x12P\n" +
-	"\x05phone\x18\a \x01(\tB:ʵ\x036\xa2\x013gorm:\"size:32\" validate:\"phone\" comment:\"手机号\"R\x05phone\x12N\n" +
+	"\x02id\x18\x01 \x01(\x04B\x19ʵ\x03\x15\xa2\x01\x12gorm:\"primaryKey;\"R\x02id\x12E\n" +
+	"\x04name\x18\x02 \x01(\tB1ʵ\x03-\xa2\x01*gorm:\"size:10;not null\" comment:\"nickname\"R\x04name\x12n\n" +
+	"\bpassword\x18\x05 \x01(\tBRʵ\x03N\xa2\x01Kjson:\"-\" gorm:\"size:32;not null\" validate:\"gte=8,lte=15\" comment:\"password\"R\bpassword\x12J\n" +
+	"\x04mail\x18\x06 \x01(\tB6ʵ\x032\xa2\x01/gorm:\"size:32\" validate:\"email\" comment:\"email\"R\x04mail\x12S\n" +
+	"\x05phone\x18\a \x01(\tB=ʵ\x039\xa2\x016gorm:\"size:32\" validate:\"phone\" comment:\"phone number\"R\x05phone\x12N\n" +
 	"\x06gender\x18\b \x01(\x0e2\f.user.GenderB(\x92A\x04\x9a\x02\x01\x03ʵ\x03\x1d\xa2\x01\x1agorm:\"type:int2;default:0\"R\x06gender\x12A\n" +
 	"\x04role\x18\x18 \x01(\x0e2\n" +
 	".user.RoleB!ʵ\x03\x1d\xa2\x01\x1agorm:\"type:int2;default:0\"R\x04role\x12P\n" +
-	"\x06status\x18\x1c \x01(\x0e2\x10.user.UserStatusB&\x92A\x02@\x01ʵ\x03\x1d\xa2\x01\x1agorm:\"type:int2;default:0\"R\x06status\"\x83\x04\n" +
-	"\tSignupReq\x12z\n" +
-	"\bpassword\x18\x04 \x01(\tB^\x92A\v*\x06密码\x80\x01\x06ʵ\x034\xa2\x011validate:\"required,gte=6,lte=15\" comment:\"密码\"\xe2\xdf\x1f\x14*\x10密码最短6位p\x05R\bpassword\x12L\n" +
-	"\x04name\x18\x01 \x01(\tB8ʵ\x034\xa2\x011validate:\"required,gte=3,lte=10\" comment:\"昵称\"R\x04name\x12Q\n" +
-	"\x06gender\x18\x03 \x01(\x0e2\f.user.GenderB+ʵ\x03'\xa2\x01$validate:\"required\" comment:\"性别\"R\x06gender\x12F\n" +
-	"\x04mail\x18\x06 \x01(\tB2ʵ\x03.\xa2\x01+validate:\"omitempty,email\" comment:\"邮箱\"R\x04mail\x12K\n" +
-	"\x05phone\x18\a \x01(\tB5ʵ\x031\xa2\x01.validate:\"omitempty,phone\" comment:\"手机号\"R\x05phone\x12D\n" +
-	"\x05vCode\x18\b \x01(\tB.ʵ\x03*\xa2\x01'validate:\"required\" comment:\"验证码\"R\x05vCode\"7\n" +
+	"\x06status\x18\x1c \x01(\x0e2\x10.user.UserStatusB&\x92A\x02@\x01ʵ\x03\x1d\xa2\x01\x1agorm:\"type:int2;default:0\"R\x06status\"\xb4\x04\n" +
+	"\tSignupReq\x12\x9e\x01\n" +
+	"\bpassword\x18\x04 \x01(\tB\x81\x01\x92A\r*\bPassword\x80\x01\x06ʵ\x036\xa2\x013validate:\"required,gte=6,lte=15\" comment:\"password\"\xe2\xdf\x1f3*/The password must be at least 6 characters longp\x05R\bpassword\x12N\n" +
+	"\x04name\x18\x01 \x01(\tB:ʵ\x036\xa2\x013validate:\"required,gte=3,lte=10\" comment:\"nickname\"R\x04name\x12Q\n" +
+	"\x06gender\x18\x03 \x01(\x0e2\f.user.GenderB+ʵ\x03'\xa2\x01$validate:\"required\" comment:\"gender\"R\x06gender\x12E\n" +
+	"\x04mail\x18\x06 \x01(\tB1ʵ\x03-\xa2\x01*validate:\"omitempty,email\" comment:\"email\"R\x04mail\x12N\n" +
+	"\x05phone\x18\a \x01(\tB8ʵ\x034\xa2\x011validate:\"omitempty,phone\" comment:\"phone number\"R\x05phone\x12L\n" +
+	"\x05vCode\x18\b \x01(\tB6ʵ\x032\xa2\x01/validate:\"required\" comment:\"verification code\"R\x05vCode\"7\n" +
 	"\n" +
 	"GetUserReq\x12)\n" +
 	"\x02id\x18\x01 \x01(\x04B\x19ʵ\x03\x15\xa2\x01\x12gorm:\"primaryKey;\"R\x02id*U\n" +
@@ -535,16 +534,16 @@ const file_proto_user_proto_rawDesc = "" +
 	"\x12UserErrNoAuthority\x10\xea\a\x12\x18\n" +
 	"\x13UserErrLoginTimeout\x10\xeb\a\x12\x18\n" +
 	"\x13UserErrInvalidToken\x10\xec\a\x12\x13\n" +
-	"\x0eUserErrNoLogin\x10\xed\a2\x83\x02\n" +
-	"\vUserService\x12\x82\x01\n" +
-	"\x06Signup\x12\x0f.user.SignupReq\x1a\x1c.google.protobuf.StringValue\"I\x92A2\n" +
-	"\x12用户相关接口\n" +
-	"\x06v1.0.0\x12\x06注册\x1a\f注册接口\x82\xd3\xe4\x93\x02\x0e:\x01*\"\t/api/user\x12o\n" +
+	"\x0eUserErrNoLogin\x10\xed\a2\xf8\x01\n" +
+	"\vUserService\x12|\n" +
+	"\x06Signup\x12\x0f.user.SignupReq\x1a\x1c.google.protobuf.StringValue\"C\x92A,\n" +
+	"\tUser APIs\n" +
+	"\x06v1.0.0\x12\x06Signup\x1a\x0fSignup endpoint\x82\xd3\xe4\x93\x02\x0e:\x01*\"\t/api/user\x12k\n" +
 	"\aGetUser\x12\x10.user.GetUserReq\x1a\n" +
-	".user.User\"F\x92A2\n" +
-	"\x12用户相关接口\n" +
-	"\x06v1.0.0\x12\x06详情\x1a\f详情接口\x82\xd3\xe4\x93\x02\v\x12\t/api/{id}BX\x92A\a\x12\x052\x031.0\n" +
-	"\x1bmix.hopeio.protobuf.userZ/github.com/hopeio/mix/_example/protobuf/userb\x06proto3"
+	".user.User\"B\x92A.\n" +
+	"\tUser APIs\n" +
+	"\x06v1.0.0\x12\aDetails\x1a\x10Details endpoint\x82\xd3\xe4\x93\x02\v\x12\t/api/{id}BR\x92A\a\x12\x052\x031.0\n" +
+	"\x18mix.hopeio.protobuf.userZ,github.com/hopeio/mix/_example/protobuf/userb\x06proto3"
 
 var (
 	file_proto_user_proto_rawDescOnce sync.Once

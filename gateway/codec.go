@@ -40,8 +40,10 @@ func init() {
 	}
 }
 
-// wantsJSON：只有 Accept 明确点名 JSON、且没有声明 protobuf 时才走 JSON。
-// 空 / `*/*` 走 pb —— gRPC-gateway 的契约是 protobuf 优先，浏览器端想拿 JSON 自己声明。
+// wantsJSON: JSON is used only when Accept names JSON explicitly and no
+// protobuf is declared. An empty or `*/*` Accept goes to protobuf: the
+// gRPC-gateway contract puts protobuf first, and a browser that wants JSON
+// has to say so.
 func wantsJSON(r *http.Request) bool {
 	if r == nil {
 		return false
@@ -53,8 +55,10 @@ func wantsJSON(r *http.Request) bool {
 	return strings.Contains(accept, "application/json") || strings.Contains(accept, "text/json")
 }
 
-// marshalPreferPB 是 mix.DefaultMarshal 的实现：从元数据拿本次请求做协商；
-// 没有请求上下文（后台任务、流式起始）按 pb 处理。
+// marshalPreferPB is the implementation of mix.DefaultMarshal: it takes
+// the current request from the metadata to run the negotiation. Without a
+// request context (a background job, the start of a stream) it goes with
+// protobuf.
 func marshalPreferPB(ctx context.Context, v any) ([]byte, string, error) {
 	if md := mix.GetMetadata(ctx); md != nil && wantsJSON(md.Request) {
 		return JsonMarshal(ctx, v)
@@ -62,7 +66,9 @@ func marshalPreferPB(ctx context.Context, v any) ([]byte, string, error) {
 	return ProtobufMarshal(ctx, v)
 }
 
-// marshalForRequest 供网关写出使用：直接按本次请求协商，不依赖元数据是否已注入。
+// marshalForRequest is what the gateway writes with: it negotiates
+// against the current request directly, without depending on whether the
+// metadata has been injected.
 func marshalForRequest(r *http.Request, v any) ([]byte, string, error) {
 	ctx := context.Background()
 	if r != nil {

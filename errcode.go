@@ -48,7 +48,7 @@ var codeMsgMap = map[ErrCode]string{
 	Unauthenticated:    "Unauthenticated",
 }
 
-// 不是并发安全的，在初始化的时候做
+// Not safe for concurrent use; call it during initialization.
 func RegisterErrCode(code ErrCode, msg string) {
 	codeMsgMap[code] = msg
 }
@@ -61,21 +61,28 @@ func RegisterErrCodeMap(enum map[int32]string) {
 
 type ErrCode int32
 
-// ErrCode 布局：低两位是标准 gRPC code，高位是业务码（bizcode*100+grpcCode，
-// 与 HTTP 状态码 2xx/3xx/4xx 分组同思路，十进制直读：100107 = UserErrLogin+InvalidArgument）。
-// 定义错误码直接写算术：`ErrCode(bizCode)*100 + ErrCode(codes.X)`，
-// 用 GRPCCode()/BizCode() 拆解。纯 gRPC 错误（业务码为 0）值即 gRPC code，
-// 上方常量与既有注册行为完全兼容。
-// gRPC 通道上 status.code 只放 <100 的标准枚举；业务码经 status.msg（composite
-// 整值字符串）与 ErrorInfo detail（reason/metadata）传给客户端。
+// ErrCode layout: the low two digits hold the standard gRPC code, the high
+// part holds the business code (bizcode*100+grpcCode, the same idea as the
+// 2xx/3xx/4xx grouping of HTTP status codes, readable straight in decimal:
+// 100107 = UserErrLogin+InvalidArgument).
+// Define an error code with plain arithmetic:
+// `ErrCode(bizCode)*100 + ErrCode(codes.X)`, and split it apart again with
+// GRPCCode()/BizCode(). A pure gRPC error (business code 0) is its own value,
+// so the constants above and the existing registration behaviour stay
+// compatible.
+// On the gRPC channel status.code only carries the standard enum below 100;
+// the business code travels in status.msg (the composite value as a string)
+// and in the ErrorInfo detail (reason/metadata).
 const grpcCodeBase int32 = 100
 
-// GRPCCode 返回低两位的标准 gRPC code；纯 gRPC 错误即为自身。
+// GRPCCode returns the standard gRPC code from the low two digits; for a
+// pure gRPC error it is the error itself.
 func (x ErrCode) GRPCCode() codes.Code {
 	return codes.Code(int32(x) % grpcCodeBase)
 }
 
-// BizCode 返回高位业务码；纯 gRPC 错误为 0。
+// BizCode returns the business code from the high part; 0 for a pure gRPC
+// error.
 func (x ErrCode) BizCode() int32 {
 	return int32(x) / grpcCodeBase
 }
@@ -84,7 +91,8 @@ func (x ErrCode) String() string {
 	if value, ok := codeMsgMap[x]; ok {
 		return value
 	}
-	// composite：业务码以纯值注册过（RegisterErrCodeMap 注册 proto 枚举）
+	// composite: the business code was registered as a plain value
+	// (RegisterErrCodeMap registers a proto enum)
 	if biz := x.BizCode(); biz != 0 {
 		if value, ok := codeMsgMap[ErrCode(biz)]; ok {
 			return value
@@ -114,8 +122,9 @@ func (x ErrCode) Error() string {
 	return x.String()
 }
 
-// GRPCStatus 拆开上 gRPC：code 用 <100 的标准枚举（保证合法），msg 放 composite
-// 整值，客户端解析数字即可还原业务码。
+// GRPCStatus splits the error for gRPC: the code uses the standard enum
+// below 100 (so it stays valid) and the msg carries the composite value,
+// which the client parses back into the business code.
 func (x ErrCode) GRPCStatus() *status.Status {
 	return status.New(x.GRPCCode(), strconv.Itoa(int(x)))
 }

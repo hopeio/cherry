@@ -36,7 +36,7 @@ func TestPtr(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	recorder.WriteHeader(200)
 	log.Println(recorder.Code)
-	//字节对齐了,recorder size 56 bool size 1
+	// The bytes are aligned: recorder size 56, bool size 1.
 	*(*bool)(unsafe.Pointer(uintptr(unsafe.Pointer(recorder)) + 48)) = false
 	recorder.WriteHeader(300)
 	log.Println(recorder.Code)

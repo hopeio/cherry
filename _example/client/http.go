@@ -19,50 +19,50 @@ func main() {
 }
 
 func createGRPCRequest(msg proto.Message) ([]byte, error) {
-	// 1. 序列化 protobuf
+	// 1. Serialize the protobuf message.
 	data, err := proto.Marshal(msg)
 	if err != nil {
 		return nil, err
 	}
 
-	// 2. 创建 gRPC 帧
+	// 2. Build the gRPC frame.
 	frame := make([]byte, 5+len(data))
 
-	// 3. 压缩标志位 (0 = 未压缩)
+	// 3. The compressed flag (0 means not compressed).
 	frame[0] = 0
 
-	// 4. 写入消息长度 (大端序)
+	// 4. Write the message length (big endian).
 	binary.BigEndian.PutUint32(frame[1:5], uint32(len(data)))
 
-	// 5. 写入消息数据
+	// 5. Write the message body.
 	copy(frame[5:], data)
 
 	return frame, nil
 }
 
 func sendGRPCRequest() {
-	// 准备请求消息
+	// Prepare the request message.
 	req := &user.GetUserReq{Id: 1}
 
-	// 创建 gRPC 帧
+	// Build the gRPC frame.
 	grpcBody, _ := createGRPCRequest(req)
 
-	// 创建 HTTP 请求
+	// Build the HTTP request.
 	httpReq, _ := http.NewRequest(
 		"POST",
 		"http://localhost:8080/user.UserService/GetUser",
 		bytes.NewReader(grpcBody),
 	)
 
-	// 设置必需的 gRPC 头部
+	// Set the gRPC headers that are required.
 	httpReq.Header.Set("Content-Type", "application/grpc+proto")
-	httpReq.Header.Set("Te", "trailers") // 必须小写 "te"
+	httpReq.Header.Set("Te", "trailers") // The "te" header must be lowercase.
 	httpReq.Header.Set("User-Agent", "grpc-go/1.0")
 	httpReq.ProtoMinor = 2
 	tr := &http.Transport{}
 	tr.Protocols = new(http.Protocols)
 	tr.Protocols.SetUnencryptedHTTP2(true)
-	// 发送请求
+	// Send the request.
 	client := &http.Client{
 		Transport: tr,
 	}
@@ -72,27 +72,27 @@ func sendGRPCRequest() {
 	}
 	defer resp.Body.Close()
 
-	// 读取响应
+	// Read the response.
 	body, _ := io.ReadAll(resp.Body)
 
-	// 解析 gRPC 响应帧
+	// Parse the gRPC response frame.
 	if len(body) < 5 {
 		panic("invalid response")
 	}
 
-	// 检查压缩标志
+	// Check the compressed flag.
 	compressedFlag := body[0]
 
-	// 读取消息长度
+	// Read the message length.
 	msgLength := binary.BigEndian.Uint32(body[1:5])
 
-	// 提取消息数据
+	// Extract the message body.
 	msgData := body[5 : 5+msgLength]
 
-	// 解析响应
+	// Parse the response.
 	var response user.User
 	if compressedFlag == 1 {
-		// 需要解压
+		// The body has to be decompressed.
 		panic("compressed response not supported")
 	}
 	proto.Unmarshal(msgData, &response)

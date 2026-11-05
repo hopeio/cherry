@@ -49,7 +49,8 @@ func (s RequestSource) Body() (context.Context, string, io.ReadCloser) {
 	if req.IsBodyStream() {
 		return s.RequestCtx(), contentType, iox.WrapReader(req.BodyStream(), req.CloseBodyStream)
 	}
-	// RawBytes.Read 为指针接收者（消费型读取），需取地址实现 io.ReadCloser
+	// RawBytes.Read has a pointer receiver (it consumes the bytes), so its
+	// address is needed to implement io.ReadCloser.
 	rb := iox.RawBytes(req.Body())
 	return s.RequestCtx(), contentType, &rb
 }
