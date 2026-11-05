@@ -29,8 +29,20 @@ func WrapContext(ctx context.Context, v any) context.Context {
 	return context.WithValue(ctx, wrapContextKey, v)
 }
 
+// UnWrapContext returns what WrapContext put on ctx, or ctx itself when nothing was
+// wrapped there.
+//
+// Falling back to ctx instead of nil lets a service hold one variable across the faces
+// it is reached through: the gin wrapper hands back the *gin.Context (which implements
+// context.Context and delegates to the request), gRPC and a plain http handler hand back
+// the original ctx — either one still works as a context. Callers needing the concrete
+// payload still type-assert, and a missing ReqResp now fails that assertion instead of
+// returning a nil that panics on the next call.
 func UnWrapContext(ctx context.Context) any {
-	return ctx.Value(wrapContextKey)
+	if v := ctx.Value(wrapContextKey); v != nil {
+		return v
+	}
+	return ctx
 }
 
 type ReqResp struct {

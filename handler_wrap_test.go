@@ -193,9 +193,21 @@ func TestWrapContext_RoundTrip(t *testing.T) {
 	}
 }
 
-func TestWrapContext_UnWrapContextNil(t *testing.T) {
-	if UnWrapContext(context.Background()) != nil {
-		t.Fatal("expected nil for unrelated context")
+// Nothing was wrapped on this ctx, so UnWrapContext hands the context back: a service
+// reached over gRPC (or a bare handler) must be able to use the result as a context
+// instead of guarding against a nil.
+func TestWrapContext_UnWrapContextFallsBackToCtx(t *testing.T) {
+	ctx := context.WithValue(context.Background(), wrapParentKey{}, "kept")
+
+	got := UnWrapContext(ctx)
+	if c, ok := got.(context.Context); !ok {
+		t.Fatalf("the fallback must be a context.Context, got %T", got)
+	} else if c.Value(wrapParentKey{}) != "kept" {
+		t.Fatal("the fallback dropped the original context values")
+	}
+	// The concrete payload is still one (clean) type assertion away.
+	if _, ok := got.(ReqResp); ok {
+		t.Fatal("an unwrapped ctx must not assert as ReqResp")
 	}
 }
 
