@@ -125,7 +125,7 @@ func HandlerWrapCommon[REQ, RESP any](service types.Service[*REQ, *RESP]) gin.Ha
 			ctx.Abort()
 			return
 		}
-		res, err := service(mix.WrapContext(ctx), req)
+		res, err := service(mix.WrapContext(ctx.Request.Context(), ctx), req)
 		if err != nil {
 			mix.ServeError(ctx.Writer, ctx.Request, err)
 			ctx.Abort()

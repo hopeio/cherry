@@ -186,7 +186,7 @@ func TestWrapContext_UnWrapContext(t *testing.T) {
 
 func TestWrapContext_RoundTrip(t *testing.T) {
 	payload := struct{ N int }{42}
-	ctx := WrapContext(payload)
+	ctx := WrapContext(context.Background(), payload)
 	got := UnWrapContext(ctx)
 	if got != payload {
 		t.Fatalf("got=%v want=%v", got, payload)
@@ -196,6 +196,30 @@ func TestWrapContext_RoundTrip(t *testing.T) {
 func TestWrapContext_UnWrapContextNil(t *testing.T) {
 	if UnWrapContext(context.Background()) != nil {
 		t.Fatal("expected nil for unrelated context")
+	}
+}
+
+type wrapParentKey struct{}
+
+// WrapContext used to start from context.Background(), which detached the
+// service from the request: the span, middleware values and the client's
+// cancellation all disappeared. It now derives from the parent context.
+func TestWrapContextKeepsParent(t *testing.T) {
+	parent, cancel := context.WithCancel(context.WithValue(context.Background(), wrapParentKey{}, "kept"))
+	ctx := WrapContext(parent, "payload")
+
+	if got := ctx.Value(wrapParentKey{}); got != "kept" {
+		t.Fatalf("parent value lost: got %v", got)
+	}
+	if got := UnWrapContext(ctx); got != "payload" {
+		t.Fatalf("payload lost: got %v", got)
+	}
+
+	cancel()
+	select {
+	case <-ctx.Done():
+	default:
+		t.Fatal("wrapped context does not follow the parent's cancellation")
 	}
 }
 

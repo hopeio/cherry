@@ -77,7 +77,16 @@ func (s *Server) Run() {
 		}
 		if shutdownFunc != nil {
 			otelShutdown = shutdownFunc
-			defer shutdownFunc(sigCtx)
+			// sigCtx is already cancelled by the time this defer runs. An
+			// exporter given a cancelled context drops the final flush, so
+			// use a fresh bounded context while keeping sigCtx's values.
+			defer func() {
+				flushCtx, cancel := context.WithTimeout(context.WithoutCancel(sigCtx), 5*time.Second)
+				defer cancel()
+				if err := shutdownFunc(flushCtx); err != nil {
+					log.Error(err)
+				}
+			}()
 		}
 		s.tracer = otel.Tracer(ScopeName)
 		s.meter = otel.Meter(ScopeName)
@@ -137,8 +146,8 @@ func (s *Server) Run() {
 	if s.HTTP3.Enabled {
 		s.HTTP3.Handler = handler
 		if s.HTTP3.ConnContext == nil {
-			s.HTTP3.ConnContext = func(ctx context.Context, c *quic.Conn) context.Context {
-				return sigCtx
+			s.HTTP3.ConnContext = func(connCtx context.Context, _ *quic.Conn) context.Context {
+				return bridgeShutdownContext(sigCtx, connCtx)
 			}
 		}
 		go func() {
@@ -252,4 +261,30 @@ func (s *Server) Run() {
 func (s *Server) WithContext(ctx context.Context) *Server {
 	s.BaseContext = ctx
 	return s
+}
+
+// bridgeShutdownContext derives the context for one HTTP/3 connection.
+//
+// quic-go builds connCtx from conn.Context() and attaches ServerContextKey,
+// LocalAddrContextKey and RemoteAddrContextKey before calling ConnContext.
+// It also cancels that context when the QUIC connection ends, so requests
+// still in flight on the connection stop with it. Returning the process
+// shutdown context instead of deriving from connCtx would throw all of that
+// away: those values disappear, and a client disconnect no longer cancels
+// its requests.
+//
+// A context has one parent, so the shutdown signal is bridged in with
+// AfterFunc. Both cancel paths are covered: the QUIC connection ending
+// cancels connCtx (and therefore the derived ctx), and a SIGTERM cancels
+// shutdown, which cancels the derived ctx through the callback. The second
+// AfterFunc releases the registration as soon as either one fires, so a
+// long-lived process does not accumulate one callback per connection.
+func bridgeShutdownContext(shutdown, connCtx context.Context) context.Context {
+	ctx, cancel := context.WithCancel(connCtx)
+	stop := context.AfterFunc(shutdown, cancel)
+	context.AfterFunc(ctx, func() {
+		stop()
+		cancel()
+	})
+	return ctx
 }
