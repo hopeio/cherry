@@ -38,7 +38,7 @@ message SignupReq {
   // Password.
   string password = 4 [(go.field) = {tags:'validate:"required,gte=6,lte=15" comment:"password"'}, (validator.field) = {
     length_gt: 5,
-    custom_error: "The password must be at least 6 characters long"
+    custom_error: "auth.err.pwdMinLength"
   }, (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "Password",
     min_length: 6}];
   string name = 1 [(go.field) = {tags:'validate:"required,gte=3,lte=10" comment:"nickname"'}];

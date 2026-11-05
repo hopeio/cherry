@@ -5,21 +5,6 @@ import (
 )
 
 func (x *User) Validate() error {
-	if x.CreatedAt != nil {
-		if err := mix.ValidateStruct(x.CreatedAt); err != nil {
-			return err
-		}
-	}
-	if x.ActivatedAt != nil {
-		if err := mix.ValidateStruct(x.ActivatedAt); err != nil {
-			return err
-		}
-	}
-	if x.DeletedAt != nil {
-		if err := mix.ValidateStruct(x.DeletedAt); err != nil {
-			return err
-		}
-	}
 	return nil
 }
 func (x *SignupReq) Validate() error {

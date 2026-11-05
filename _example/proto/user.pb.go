@@ -497,9 +497,9 @@ const file_proto_user_proto_rawDesc = "" +
 	"\x06gender\x18\b \x01(\x0e2\f.user.GenderB(\x92A\x04\x9a\x02\x01\x03ʵ\x03\x1d\xa2\x01\x1agorm:\"type:int2;default:0\"R\x06gender\x12A\n" +
 	"\x04role\x18\x18 \x01(\x0e2\n" +
 	".user.RoleB!ʵ\x03\x1d\xa2\x01\x1agorm:\"type:int2;default:0\"R\x04role\x12P\n" +
-	"\x06status\x18\x1c \x01(\x0e2\x10.user.UserStatusB&\x92A\x02@\x01ʵ\x03\x1d\xa2\x01\x1agorm:\"type:int2;default:0\"R\x06status\"\xb4\x04\n" +
-	"\tSignupReq\x12\x9e\x01\n" +
-	"\bpassword\x18\x04 \x01(\tB\x81\x01\x92A\r*\bPassword\x80\x01\x06ʵ\x036\xa2\x013validate:\"required,gte=6,lte=15\" comment:\"password\"\xe2\xdf\x1f3*/The password must be at least 6 characters longp\x05R\bpassword\x12N\n" +
+	"\x06status\x18\x1c \x01(\x0e2\x10.user.UserStatusB&\x92A\x02@\x01ʵ\x03\x1d\xa2\x01\x1agorm:\"type:int2;default:0\"R\x06status\"\x99\x04\n" +
+	"\tSignupReq\x12\x83\x01\n" +
+	"\bpassword\x18\x04 \x01(\tBg\x92A\r*\bPassword\x80\x01\x06ʵ\x036\xa2\x013validate:\"required,gte=6,lte=15\" comment:\"password\"\xe2\xdf\x1f\x19*\x15auth.err.pwdMinLengthp\x05R\bpassword\x12N\n" +
 	"\x04name\x18\x01 \x01(\tB:ʵ\x036\xa2\x013validate:\"required,gte=3,lte=10\" comment:\"nickname\"R\x04name\x12Q\n" +
 	"\x06gender\x18\x03 \x01(\x0e2\f.user.GenderB+ʵ\x03'\xa2\x01$validate:\"required\" comment:\"gender\"R\x06gender\x12E\n" +
 	"\x04mail\x18\x06 \x01(\tB1ʵ\x03-\xa2\x01*validate:\"omitempty,email\" comment:\"email\"R\x04mail\x12N\n" +
