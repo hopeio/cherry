@@ -36,7 +36,22 @@ func NewServer(options ...Option) *Server {
 	return s
 }
 
-func (s *Server) Run() {
+// Run serves until SIGINT/SIGTERM or a fatal listener failure, and it always completes
+// the graceful shutdown before returning, so the caller only has to report the error and
+// pick an exit code.
+//
+// Returning instead of calling log.Fatalf matters for two reasons. Fatal skips the
+// caller's defers, so the process loses whatever the assembler registered there — dao
+// close, config centre close, log sync — and a library can only ever replicate the part
+// it can see (which is exactly what the hand-written block above the old Fatal was
+// doing). Fatal also skipped this function's own shutdown pass: a listener that failed
+// to bind used to kill the process while the other listeners were still serving, so
+// clients saw resets instead of a drain.
+//
+// Failure of an optional listener — HTTP/3 and the WebTransport riding on it — disables
+// that listener and does not end Run, matching prepareHTTP3: an extra transport must not
+// outrank the API already serving.
+func (s *Server) Run() error {
 	// BaseContext is the root context (settable through WithContext); it is
 	// cancelled together with the signal context.
 	baseCtx := s.BaseContext
@@ -60,8 +75,9 @@ func (s *Server) Run() {
 		httpHandler = cors.New(s.Cors.Options).Handler(httpHandler)
 	}
 
-	// Set up OpenTelemetry instrumentation (HTTP/gRPC wrappers).
-	var otelShutdown func(context.Context) error
+	// Set up OpenTelemetry instrumentation (HTTP/gRPC wrappers). The only owner of the
+	// final flush is the defer below: Run no longer has a Fatal path that needs to
+	// replicate this cleanup by hand.
 	if s.Otel.Enabled {
 		http.DefaultClient = &http.Client{
 			Transport: otelhttp.NewTransport(
@@ -73,10 +89,10 @@ func (s *Server) Run() {
 		}
 		shutdownFunc, err := setupOTelSDK(sigCtx, &s.Otel)
 		if err != nil {
-			log.Fatal(err)
-		}
-		if shutdownFunc != nil {
-			otelShutdown = shutdownFunc
+			// Telemetry setup is reported, not fatal: instrumentation is an add-on, and
+			// losing traces must not take the API down — the same rule as HTTP/3 below.
+			log.Errorf("mix: otel instrumentation disabled: %v", err)
+		} else if shutdownFunc != nil {
 			// sigCtx is already cancelled by the time this defer runs. An
 			// exporter given a cancelled context drops the final flush, so
 			// use a fresh bounded context while keeping sigCtx's values.
@@ -88,9 +104,12 @@ func (s *Server) Run() {
 				}
 			}()
 		}
-		s.tracer = otel.Tracer(ScopeName)
-		s.meter = otel.Meter(ScopeName)
 	}
+	// Taken unconditionally: before the SDK is installed the global provider hands out a
+	// noop delegate, so a failed or absent setup leaves these usable instead of making
+	// the first s.Tracer().Start panic.
+	s.tracer = otel.Tracer(ScopeName)
+	s.meter = otel.Meter(ScopeName)
 
 	onePort := s.Grpc.Addr == "" || s.Grpc.Addr == s.Addr
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -127,9 +146,9 @@ func (s *Server) Run() {
 		s.Server.Protocols.SetUnencryptedHTTP2(true)
 	}
 
-	// The four listener goroutines (grpc / http3 / http / internal) can all
-	// report an error.
-	srvErr := make(chan error, 4)
+	// The three fatal listener goroutines (grpc / http / internal) report here. HTTP/3
+	// is deliberately absent: it is an optional transport and reports its own failure.
+	srvErr := make(chan error, 3)
 
 	if s.Grpc.Addr != "" && s.Grpc.Addr != s.Addr {
 		go func() {
@@ -156,7 +175,11 @@ func (s *Server) Run() {
 		}
 		go func() {
 			log.Infof("http3 listening: %s", s.HTTP3.Addr)
-			srvErr <- s.serveHTTP3(s.HTTP3.CertFile, s.HTTP3.KeyFile, handler)
+			// Optional transport: failing here disables HTTP/3 (and WebTransport with it)
+			// rather than ending Run. ErrServerClosed is the graceful shutdown talking.
+			if err := s.serveHTTP3(s.HTTP3.CertFile, s.HTTP3.KeyFile, handler); err != nil && !errors.Is(err, http.ErrServerClosed) {
+				log.Errorf("mix: http3 disabled after failure: %v", err)
+			}
 		}()
 	}
 	go func() {
@@ -185,21 +208,15 @@ func (s *Server) Run() {
 	}
 
 	// Wait for interruption.
+	var runErr error
 	select {
 	case err := <-srvErr:
-		// Startup or listen failure: log.Fatal skips every defer, so do the
-		// cleanup by hand first (signal deregistration, OTel flush).
-		stop()
-		if otelShutdown != nil {
-			// Match the deferred path: baseCtx may carry values supplied
-			// through WithContext, and the final flush should keep them.
-			flushCtx, cancel := context.WithTimeout(context.WithoutCancel(sigCtx), 5*time.Second)
-			if err := otelShutdown(flushCtx); err != nil {
-				log.Error(err)
-			}
-			cancel()
+		// A listener returning nil is GracefulStop/Shutdown talking, not a fault; only a
+		// real error is handed back, after the shutdown pass below has completed.
+		if err != nil {
+			runErr = err
+			log.Errorf("failed to serve: %v", err)
 		}
-		log.Fatalf("failed to serve: %v", err)
 	case <-sigCtx.Done():
 		// Wait for first CTRL+C.
 		// Stop receiving signal notifications as soon as possible.
@@ -257,7 +274,11 @@ func (s *Server) Run() {
 			}
 		}()
 	}
+	// Everything is drained at this point. The caller may exit however it likes, and its
+	// own defers still get to run — that is the whole point of returning instead of
+	// fataling here.
 	wg.Wait()
+	return runErr
 }
 
 func (s *Server) WithContext(ctx context.Context) *Server {
