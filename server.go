@@ -89,25 +89,37 @@ func (s *Server) Run() error {
 		}
 		shutdownFunc, err := setupOTelSDK(sigCtx, &s.Otel)
 		if err != nil {
-			// Telemetry setup is reported, not fatal: instrumentation is an add-on, and
-			// losing traces must not take the API down — the same rule as HTTP/3 below.
-			log.Errorf("mix: otel instrumentation disabled: %v", err)
-		} else if shutdownFunc != nil {
-			// sigCtx is already cancelled by the time this defer runs. An
-			// exporter given a cancelled context drops the final flush, so
-			// use a fresh bounded context while keeping sigCtx's values.
-			defer func() {
-				flushCtx, cancel := context.WithTimeout(context.WithoutCancel(sigCtx), 5*time.Second)
-				defer cancel()
-				if err := shutdownFunc(flushCtx); err != nil {
-					log.Error(err)
-				}
-			}()
+			// A deterministic configuration fault, not a transient one: the OTLP exporters
+			// never dial here, so an unreachable collector or a malformed endpoint returns
+			// nil and surfaces at runtime through the SDK error handler. Arriving here
+			// means the resource attributes, provider wiring or profiling config is
+			// genuinely wrong, and continuing would run the whole process lifetime with
+			// silently absent telemetry — so stopping is the right outcome.
+			//
+			// Return, do not Fatal: only the caller's defers know how to clean up what the
+			// caller assembled, and nothing has listened yet, so there is no shutdown pass
+			// to run here. Granularity is coarse on purpose: a Pyroscope failure also stops
+			// startup, because setupOTelSDK reports the two as one error.
+			return err
 		}
+		// The returned closure is non-nil on every path (the disabled short-circuits hand
+		// back a noop), so there is no nil guard to carry here.
+		//
+		// sigCtx is already cancelled by the time this defer runs. An exporter given a
+		// cancelled context drops the final flush, so use a fresh bounded context while
+		// keeping sigCtx's values.
+		defer func() {
+			flushCtx, cancel := context.WithTimeout(context.WithoutCancel(sigCtx), 5*time.Second)
+			defer cancel()
+			if err := shutdownFunc(flushCtx); err != nil {
+				log.Error(err)
+			}
+		}()
 	}
-	// Taken unconditionally: before the SDK is installed the global provider hands out a
-	// noop delegate, so a failed or absent setup leaves these usable instead of making
-	// the first s.Tracer().Start panic.
+	// Taken unconditionally: with instrumentation off (Otel.Enabled false, or the SDK
+	// short-circuiting because the app installed its provider first) these are the global
+	// noop delegates, which keeps the first s.Tracer().Start from panicking. A genuine
+	// setup failure has already returned above.
 	s.tracer = otel.Tracer(ScopeName)
 	s.meter = otel.Meter(ScopeName)
 
