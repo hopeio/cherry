@@ -143,6 +143,10 @@ func (s *Server) Run() {
 		}()
 	}
 
+	// HTTP/3 is an optional extra listener over the same handler, so it gets its own
+	// preparation pass before the block below decides whether to run it.
+	s.prepareHTTP3()
+
 	if s.HTTP3.Enabled {
 		s.HTTP3.Handler = handler
 		if s.HTTP3.ConnContext == nil {
@@ -152,12 +156,6 @@ func (s *Server) Run() {
 		}
 		go func() {
 			log.Infof("http3 listening: %s", s.HTTP3.Addr)
-			// QUIC requires TLS: report the error when the certificate is missing
-			// instead of listening without TLS.
-			if s.HTTP3.CertFile == "" || s.HTTP3.KeyFile == "" {
-				srvErr <- errors.New("mix: http3 enabled but HTTP3.CertFile/HTTP3.KeyFile not set, QUIC requires TLS")
-				return
-			}
 			srvErr <- s.serveHTTP3(s.HTTP3.CertFile, s.HTTP3.KeyFile, handler)
 		}()
 	}
@@ -291,4 +289,37 @@ func bridgeShutdownContext(shutdown, connCtx context.Context) context.Context {
 		cancel()
 	})
 	return ctx
+}
+
+// prepareHTTP3 fills the HTTP/3 defaults that belong to this library instead of being
+// re-implemented by every consumer, and turns "no TLS material" into a disabled option.
+//
+// The certificate pair falls back to the main server's: HTTP/3 and HTTPS are the same
+// endpoint over a different transport, and demanding both be configured only produced
+// deployments where h3 — and WebTransport, which rides on this same QUIC stack — stayed
+// silently off while the API answered fine.
+//
+// A missing pair must not fail the process: srvErr is consumed by log.Fatalf, so an
+// optional transport would otherwise outrank the listener that is already serving. It
+// disables itself with an error line instead, and only ever disables — never enables.
+//
+// Addr mirrors what quic-go binds when it is empty (":https", the same port), so the
+// startup line names the port actually open.
+func (s *Server) prepareHTTP3() {
+	if !s.HTTP3.Enabled {
+		return
+	}
+	if s.HTTP3.CertFile == "" {
+		s.HTTP3.CertFile = s.CertFile
+	}
+	if s.HTTP3.KeyFile == "" {
+		s.HTTP3.KeyFile = s.KeyFile
+	}
+	if s.HTTP3.Addr == "" {
+		s.HTTP3.Addr = ":443"
+	}
+	if s.HTTP3.CertFile == "" || s.HTTP3.KeyFile == "" {
+		s.HTTP3.Enabled = false
+		log.Errorf("mix: http3 disabled (WebTransport with it): QUIC requires TLS, set HTTP3.CertFile/HTTP3.KeyFile or the server's CertFile/KeyFile")
+	}
 }
